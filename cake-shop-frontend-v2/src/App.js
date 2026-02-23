@@ -7,6 +7,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import './index.css';
 
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext'; // Add this import
 import SidebarNav from './components/SidebarNav';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -27,6 +28,7 @@ import ProfilePage from './pages/ProfilePage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminPage from './pages/AdminPage';
+import CartPage from './pages/CartPage'; // Create this new page
 
 // Add Google Fonts
 const addGoogleFonts = () => {
@@ -38,7 +40,7 @@ const addGoogleFonts = () => {
 
 function AppContent() {
   const location = useLocation();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
@@ -48,8 +50,8 @@ function AppContent() {
       <SidebarNav />
       <div className="main-content" style={{
         flex: 1,
-        marginLeft: '80px',
-        width: 'calc(100% - 80px)',
+        marginLeft: '88px',
+        width: 'calc(100% - 88px)',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column'
@@ -60,8 +62,9 @@ function AppContent() {
             <Route path="/" element={<HomePage />} />
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/create" element={<BuilderPage />} />
+            <Route path="/cart" element={<CartPage />} /> {/* Add cart route */}
             <Route path="/success" element={<SuccessPage />} />
-            
+
             {/* Auth Routes */}
             <Route path="/register" element={<UserTypeSelectionPage />} />
             <Route path="/register/customer" element={<RegisterPage />} />
@@ -70,20 +73,20 @@ function AppContent() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/login/customer" element={<LoginPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            
+
             {/* Protected Routes */}
             <Route path="/order" element={
               <RequireAuth>
                 <OrderPage />
               </RequireAuth>
             } />
-            
+
             <Route path="/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
             } />
-            
+
             <Route path="/my-orders" element={
               <ProtectedRoute>
                 <MyOrdersPage />
@@ -96,7 +99,7 @@ function AppContent() {
                 <AdminPage />
               </ProtectedRoute>
             } />
-            
+
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -114,9 +117,11 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <CartProvider> {/* Wrap with CartProvider */}
+        <Router>
+          <AppContent />
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }
@@ -129,13 +134,13 @@ const NotFound = () => (
       <h1 className="display-1 fw-bold" style={{ color: '#FF6B8B' }}>404</h1>
       <h2 className="mb-4">Page Not Found</h2>
       <p className="text-secondary mb-4">The page you're looking for doesn't exist or has been moved.</p>
-      <button 
-        className="btn btn-lg rounded-pill px-5 py-3" 
+      <button
+        className="btn btn-lg rounded-pill px-5 py-3"
         style={{
           background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)',
           border: 'none',
           color: 'white'
-        }} 
+        }}
         onClick={() => window.location.href = '/'}
       >
         <i className="bi bi-house-door me-2"></i>

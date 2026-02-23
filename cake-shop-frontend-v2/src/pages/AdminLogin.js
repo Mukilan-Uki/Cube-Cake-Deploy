@@ -1,7 +1,10 @@
+// src/pages/AdminLogin.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLogin = () => {
+  const { setAuthData } = useAuth();
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
     email: 'admin@cubecake.com',
@@ -9,7 +12,7 @@ const AdminLogin = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [backendStatus, setBackendStatus] = useState('Checking...');
+  const [backendStatus, setBackendStatus] = useState(null);
 
   // Check backend status on component mount
   useEffect(() => {
@@ -18,22 +21,14 @@ const AdminLogin = () => {
 
   const checkBackendStatus = async () => {
     try {
-      const response = await fetch('http://localhost:5001/health', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      
+      const response = await fetch('http://localhost:5001/health');
       if (response.ok) {
-        const data = await response.json();
-        setBackendStatus(`✅ Backend is running (Port: 5001, DB: ${data.database})`);
+        setBackendStatus('online');
       } else {
-        setBackendStatus(`❌ Backend responded with error: ${response.status}`);
+        setBackendStatus('error');
       }
     } catch (err) {
-      console.error('Backend check failed:', err);
-      setBackendStatus(`❌ Cannot connect to backend: ${err.message}`);
+      setBackendStatus('offline');
     }
   };
 
@@ -41,11 +36,8 @@ const AdminLogin = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
-    console.log('🔐 Attempting admin login with:', credentials.email);
-    
+
     try {
-      // Attempt login
       const response = await fetch('http://localhost:5001/api/auth/admin/login', {
         method: 'POST',
         headers: {
@@ -57,31 +49,24 @@ const AdminLogin = () => {
           password: credentials.password
         })
       });
-      
+
       let result;
       try {
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-        result = JSON.parse(responseText);
+        result = await response.json();
       } catch (parseError) {
-        throw new Error(`Server returned invalid JSON. Check backend.`);
+        throw new Error('Server error');
       }
-      
+
       if (response.ok && result.success) {
-        console.log('✅ Admin login successful:', result);
-        
-        // Store session
         localStorage.setItem('token', result.token);
         localStorage.setItem('user', JSON.stringify(result.user));
-        
-        // Navigate to admin page
+        setAuthData(result.user, result.token);
         navigate('/admin');
       } else {
-        setError(`❌ Login failed: ${result.message || 'Invalid credentials'}`);
+        setError(result.message || 'Invalid credentials');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setError(`❌ Network error: ${error.message}. Make sure backend is running.`);
+      setError('Connection failed. Please check your network.');
     } finally {
       setLoading(false);
     }
@@ -89,108 +74,94 @@ const AdminLogin = () => {
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-cream py-5">
-      <div className="glass-card p-4 p-md-5" style={{ width: '100%', maxWidth: '500px' }}>
+      <div className="glass-panel p-4 p-md-5 animate-fade-up" style={{ width: '100%', maxWidth: '500px' }}>
         <div className="text-center mb-4">
-          <div className="bg-gradient-to-r from-apricot to-strawberry rounded-circle p-3 d-inline-block mb-3">
-            <i className="bi bi-shield-lock text-white fs-2"></i>
+          <div className="rounded-circle p-3 d-inline-flex mb-3 align-items-center justify-content-center"
+            style={{ background: 'var(--royal-chocolate)', width: '70px', height: '70px', boxShadow: '0 10px 20px rgba(44,24,16,0.2)' }}>
+            <i className="bi bi-shield-lock text-gold fs-2"></i>
           </div>
-          <h2 className="font-script gradient-text">Admin Login</h2>
-          <p className="text-muted">Cube Cake Administration Panel</p>
-        </div>
-
-        {/* Backend Status */}
-        <div className={`alert ${backendStatus.includes('✅') ? 'alert-success' : 'alert-danger'} mb-4`}>
-          <i className={`bi ${backendStatus.includes('✅') ? 'bi-check-circle' : 'bi-exclamation-triangle'} me-2`}></i>
-          {backendStatus}
+          <h2 className="font-script text-gold display-6">Admin Portal</h2>
+          <p className="text-secondary small text-uppercase" style={{ letterSpacing: '1px' }}>Secure Access</p>
         </div>
 
         <form onSubmit={handleLogin}>
           {error && (
-            <div className="alert alert-danger">
-              <i className="bi bi-exclamation-triangle me-2"></i>
+            <div className="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger rounded-3 p-3 mb-4 small">
+              <i className="bi bi-exclamation-circle me-2"></i>
               {error}
             </div>
           )}
 
-          <div className="mb-3">
-            <label className="form-label">Admin Email</label>
+          <div className="mb-4">
+            <label className="form-label small fw-bold text-chocolate text-uppercase">Email Address</label>
             <div className="input-group">
-              <span className="input-group-text bg-cream">
-                <i className="bi bi-envelope text-chocolate"></i>
+              <span className="input-group-text bg-white border-end-0 border" style={{ borderRadius: '12px 0 0 12px' }}>
+                <i className="bi bi-envelope text-gold"></i>
               </span>
               <input
                 type="email"
-                className="form-control"
+                className="form-control border-start-0 ps-0"
+                style={{ borderRadius: '0 12px 12px 0' }}
                 value={credentials.email}
-                onChange={(e) => setCredentials({...credentials, email: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
                 required
                 disabled={loading}
               />
             </div>
           </div>
 
-          <div className="mb-4">
-            <label className="form-label">Password</label>
+          <div className="mb-5">
+            <label className="form-label small fw-bold text-chocolate text-uppercase">Password</label>
             <div className="input-group">
-              <span className="input-group-text bg-cream">
-                <i className="bi bi-key text-chocolate"></i>
+              <span className="input-group-text bg-white border-end-0 border" style={{ borderRadius: '12px 0 0 12px' }}>
+                <i className="bi bi-key text-gold"></i>
               </span>
               <input
                 type="password"
-                className="form-control"
+                className="form-control border-start-0 ps-0"
+                style={{ borderRadius: '0 12px 12px 0' }}
                 value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                 required
                 disabled={loading}
               />
             </div>
           </div>
 
-          <button 
-            type="submit" 
-            className="btn btn-frosting w-100 mb-3"
+          <button
+            type="submit"
+            className="btn-royal w-100 mb-4"
             disabled={loading}
           >
             {loading ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2"></span>
-                Authenticating...
-              </>
+              <span><span className="spinner-border spinner-border-sm me-2"></span>Authenticating...</span>
             ) : (
-              <>
-                <i className="bi bi-shield-lock me-2"></i>
-                Login as Administrator
-              </>
+              <span>Login to Dashboard</span>
             )}
           </button>
 
-          <div className="text-center mb-3">
-            <small className="text-muted">
-              Default admin: <strong>admin@cubecake.com</strong> / <strong>admin123</strong>
-            </small>
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="btn btn-link text-decoration-none text-secondary small"
+            >
+              <i className="bi bi-arrow-left me-1"></i>
+              Back to Storefront
+            </button>
+          </div>
+
+          <div className="mt-4 text-center">
+            <div className={`d-inline-flex align-items-center px-3 py-1 rounded-pill small ${backendStatus === 'online' ? 'bg-success bg-opacity-10 text-success' :
+                backendStatus === 'offline' ? 'bg-danger bg-opacity-10 text-danger' : 'bg-secondary bg-opacity-10 text-secondary'
+              }`}>
+              <div className={`rounded-circle me-2 ${backendStatus === 'online' ? 'bg-success' :
+                  backendStatus === 'offline' ? 'bg-danger' : 'bg-secondary'
+                }`} style={{ width: '8px', height: '8px' }}></div>
+              System Status: {backendStatus === 'online' ? 'Online' : backendStatus === 'offline' ? 'Offline' : 'Checking...'}
+            </div>
           </div>
         </form>
-
-        {/* Debug Buttons */}
-        <div className="mt-4">
-          <button 
-            onClick={checkBackendStatus}
-            className="btn btn-outline-secondary w-100 mb-2"
-            disabled={loading}
-          >
-            <i className="bi bi-arrow-repeat me-2"></i>
-            Re-check Backend Status
-          </button>
-          
-          <button 
-            onClick={() => navigate('/')}
-            className="btn btn-link text-decoration-none w-100"
-            disabled={loading}
-          >
-            <i className="bi bi-arrow-left me-1"></i>
-            Back to Cake Shop
-          </button>
-        </div>
       </div>
     </div>
   );

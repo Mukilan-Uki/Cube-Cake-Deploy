@@ -1,3 +1,4 @@
+// src/pages/UserTypeSelectionPage.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,132 +7,92 @@ const UserTypeSelectionPage = () => {
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-cream py-5">
-      <div className="glass-card p-5" style={{ maxWidth: '700px' }}>
+      <div className="glass-panel p-5 animate-fade-up" style={{ maxWidth: '800px', width: '100%' }}>
         <div className="text-center mb-5">
-          <div className="bg-gradient-to-r from-apricot to-strawberry rounded-circle p-4 d-inline-block mb-3">
-            <i className="bi bi-cake text-white fs-1"></i>
-          </div>
-          <h1 className="font-script gradient-text display-4">Join Cube Cake</h1>
-          <p className="lead text-chocolate">Select your account type to get started</p>
+          <h1 className="display-4 fw-bold text-chocolate mb-2">Join Our Community</h1>
+          <p className="lead text-secondary">Choose how you want to experience Cube Cake</p>
         </div>
 
         <div className="row g-4">
           {/* Customer Registration */}
           <div className="col-md-6">
-            <div 
-              className="glass-card p-4 text-center h-100 cursor-pointer"
-              style={{ 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '2px solid transparent'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#FF9E6D'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
+            <div
+              className="glass-panel p-4 text-center h-100 position-relative overflow-hidden"
+              style={{ cursor: 'pointer', transition: 'all 0.3s ease', background: 'rgba(255,255,255,0.5)' }}
               onClick={() => navigate('/register/customer')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
+                e.currentTarget.style.borderColor = 'var(--royal-gold)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = 'transparent';
+              }}
             >
-              <div className="rounded-circle bg-apricot bg-opacity-10 p-4 d-inline-flex mb-4">
-                <i className="bi bi-person-fill fs-2 text-apricot"></i>
+              <div className="mb-4">
+                <div className="d-inline-flex align-items-center justify-content-center rounded-circle border border-2 border-gold p-3" style={{ width: '80px', height: '80px' }}>
+                  <i className="bi bi-person-heart fs-1 text-gold"></i>
+                </div>
               </div>
-              <h3 className="text-chocolate mb-3">Customer</h3>
-              <p className="text-muted mb-4">
-                Order cakes, track deliveries, and save your favorite designs
-              </p>
-              <ul className="text-start text-muted small mb-4">
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Browse & order cakes
-                </li>
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Custom cake designer
-                </li>
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Track order status
-                </li>
-                <li>
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Save favorite designs
-                </li>
+              <h3 className="h4 text-chocolate fw-bold mb-3">Cake Lover</h3>
+              <ul className="text-start text-secondary small mb-4 ps-4 list-unstyled">
+                <li className="mb-2"><i className="bi bi-check2 text-gold me-2"></i>Order custom cakes</li>
+                <li className="mb-2"><i className="bi bi-check2 text-gold me-2"></i>Track deliveries</li>
+                <li className="mb-2"><i className="bi bi-check2 text-gold me-2"></i>Save favorites</li>
               </ul>
-              <button className="btn btn-frosting w-100">
-                Register as Customer
-                <i className="bi bi-arrow-right ms-2"></i>
+              <button className="btn-royal w-100">
+                Join as Customer
               </button>
             </div>
           </div>
 
           {/* Shop Owner Registration */}
           <div className="col-md-6">
-            <div 
-              className="glass-card p-4 text-center h-100 cursor-pointer"
-              style={{ 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '2px solid transparent'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#FF6B8B'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
+            <div
+              className="glass-panel p-4 text-center h-100 position-relative overflow-hidden"
+              style={{ cursor: 'pointer', transition: 'all 0.3s ease', background: 'rgba(255,255,255,0.5)' }}
               onClick={() => navigate('/register/shop')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
+                e.currentTarget.style.borderColor = 'var(--royal-chocolate)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = 'transparent';
+              }}
             >
-              <div className="rounded-circle bg-strawberry bg-opacity-10 p-4 d-inline-flex mb-4">
-                <i className="bi bi-shop fs-2 text-strawberry"></i>
+              <div className="mb-4">
+                <div className="d-inline-flex align-items-center justify-content-center rounded-circle border border-2 border-chocolate p-3" style={{ width: '80px', height: '80px' }}>
+                  <i className="bi bi-shop-window fs-1 text-chocolate"></i>
+                </div>
               </div>
-              <h3 className="text-chocolate mb-3">Cake Shop Owner</h3>
-              <p className="text-muted mb-4">
-                List your cakes, manage orders, and grow your business
-              </p>
-              <ul className="text-start text-muted small mb-4">
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Sell your cakes
-                </li>
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Order management
-                </li>
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Sales analytics
-                </li>
-                <li>
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Customer management
-                </li>
+              <h3 className="h4 text-chocolate fw-bold mb-3">Patisserie Owner</h3>
+              <ul className="text-start text-secondary small mb-4 ps-4 list-unstyled">
+                <li className="mb-2"><i className="bi bi-check2 text-chocolate me-2"></i>Sell your creations</li>
+                <li className="mb-2"><i className="bi bi-check2 text-chocolate me-2"></i>Manage orders</li>
+                <li className="mb-2"><i className="bi bi-check2 text-chocolate me-2"></i>Grow your business</li>
               </ul>
-              <button className="btn w-100" style={{
-                background: 'linear-gradient(135deg, #FF6B8B, #9D5CFF)',
-                border: 'none',
-                color: 'white',
-                padding: '0.75rem 2rem',
-                borderRadius: '12px',
-                fontWeight: '600'
-              }}>
-                Register as Shop Owner
-                <i className="bi bi-arrow-right ms-2"></i>
+              <button className="btn-royal-outline w-100" style={{ borderColor: 'var(--royal-chocolate)', color: 'var(--royal-chocolate)' }}>
+                Register Business
               </button>
             </div>
           </div>
         </div>
 
         <div className="text-center mt-5">
-          <p className="text-muted mb-3">
+          <p className="text-secondary mb-0">
             Already have an account?{' '}
-            <button 
+            <button
               onClick={() => navigate('/login-selection')}
-              className="btn btn-link text-decoration-none fw-bold"
-              style={{ color: '#FF6B8B' }}
+              className="btn btn-link text-gold text-decoration-none fw-bold p-0 align-baseline"
             >
-              Sign in here
+              Sign In
             </button>
           </p>
-          <button 
-            onClick={() => navigate('/')}
-            className="btn btn-link text-decoration-none"
-          >
-            <i className="bi bi-arrow-left me-1"></i>
-            Back to Home
-          </button>
         </div>
       </div>
     </div>

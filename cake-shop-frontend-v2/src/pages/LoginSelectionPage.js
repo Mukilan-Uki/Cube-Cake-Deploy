@@ -1,3 +1,4 @@
+// src/pages/LoginSelectionPage.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,116 +7,95 @@ const LoginSelectionPage = () => {
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-cream py-5">
-      <div className="glass-card p-5" style={{ maxWidth: '600px' }}>
+      <div className="glass-panel p-5 animate-fade-up" style={{ maxWidth: '700px', width: '100%' }}>
         <div className="text-center mb-5">
-          <div className="bg-gradient-to-r from-apricot to-strawberry rounded-circle p-4 d-inline-block mb-3">
-            <i className="bi bi-cake text-white fs-1"></i>
+          <div className="rounded-circle p-4 d-inline-flex mb-3 align-items-center justify-content-center animate-float"
+            style={{ background: 'var(--gradient-gold)', boxShadow: 'var(--glow-gold)', width: '100px', height: '100px' }}>
+            <i className="bi bi-cake2 text-white display-3"></i>
           </div>
-          <h1 className="font-script gradient-text display-4">Welcome to Cube Cake</h1>
-          <p className="lead text-chocolate">Choose your login type</p>
+          <h1 className="display-4 fw-bold text-chocolate mb-2">Welcome Back</h1>
+          <p className="lead text-secondary">Select your login portal</p>
         </div>
 
         <div className="row g-4">
           {/* Customer Login */}
           <div className="col-md-6">
-            <div 
-              className="glass-card p-4 text-center h-100"
-              style={{ cursor: 'pointer' }}
+            <div
+              className="glass-panel p-4 text-center h-100 position-relative overflow-hidden"
+              style={{ cursor: 'pointer', transition: 'all 0.3s ease', background: 'rgba(255,255,255,0.5)' }}
               onClick={() => navigate('/login/customer')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
+                e.currentTarget.style.borderColor = 'var(--royal-gold)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = 'transparent';
+              }}
             >
-              <div className="rounded-circle bg-apricot bg-opacity-10 p-4 d-inline-flex mb-4">
-                <i className="bi bi-person-fill fs-2 text-apricot"></i>
+              <div className="mb-4">
+                <i className="bi bi-person-circle display-4 text-gold"></i>
               </div>
-              <h3 className="text-chocolate mb-3">Customer</h3>
-              <p className="text-muted mb-4">
-                Order cakes, track deliveries, and save your favorite designs
+              <h3 className="h4 text-chocolate fw-bold mb-3">Customer</h3>
+              <p className="small text-secondary mb-4">
+                Order cakes, track deliveries, and manage your profile
               </p>
-              <ul className="text-start text-muted small mb-4">
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Browse cake gallery
-                </li>
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Design custom cakes
-                </li>
-                <li>
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Track your orders
-                </li>
-              </ul>
-              <button className="btn btn-frosting w-100">
-                Continue as Customer
-                <i className="bi bi-arrow-right ms-2"></i>
+              <button className="btn-royal w-100 small">
+                Customer Login
               </button>
             </div>
           </div>
 
           {/* Shop Owner Login */}
           <div className="col-md-6">
-            <div 
-              className="glass-card p-4 text-center h-100"
-              style={{ cursor: 'pointer' }}
+            <div
+              className="glass-panel p-4 text-center h-100 position-relative overflow-hidden"
+              style={{ cursor: 'pointer', transition: 'all 0.3s ease', background: 'rgba(255,255,255,0.5)' }}
               onClick={() => navigate('/admin/login')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
+                e.currentTarget.style.borderColor = 'var(--royal-gold)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = 'transparent';
+              }}
             >
-              <div className="rounded-circle bg-strawberry bg-opacity-10 p-4 d-inline-flex mb-4">
-                <i className="bi bi-shield-lock fs-2 text-strawberry"></i>
+              <div className="mb-4">
+                <i className="bi bi-shop display-4 text-chocolate"></i>
               </div>
-              <h3 className="text-chocolate mb-3">Shop Owner</h3>
-              <p className="text-muted mb-4">
-                Manage orders, inventory, and shop analytics (Admin access required)
+              <h3 className="h4 text-chocolate fw-bold mb-3">Shop Owner</h3>
+              <p className="small text-secondary mb-4">
+                Manage your bakery, orders, and inventory
               </p>
-              <ul className="text-start text-muted small mb-4">
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Manage cake orders
-                </li>
-                <li className="mb-2">
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Update order status
-                </li>
-                <li>
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  View shop analytics
-                </li>
-              </ul>
-              <button className="btn btn-strawberry w-100">
-                <i className="bi bi-shield-lock me-2"></i>
-                Shop Owner Login
-                <i className="bi bi-arrow-right ms-2"></i>
+              <button className="btn-royal-outline w-100 small">
+                Admin Portal
               </button>
             </div>
           </div>
         </div>
 
         <div className="text-center mt-5">
-          <p className="text-muted mb-3">Don't have an account?</p>
+          <p className="text-secondary mb-3">New to Cube Cake?</p>
           <div className="d-flex justify-content-center gap-3">
-            <button 
+            <button
               onClick={() => navigate('/register')}
-              className="btn btn-outline-apricot"
+              className="btn btn-link text-gold text-decoration-none fw-bold"
             >
-              <i className="bi bi-person-plus me-2"></i>
-              Register as Customer
+              create an Account
             </button>
-<button 
-  onClick={() => navigate('/register/shop')}  // Changed from alert to navigation
-  className="btn btn-outline-strawberry"
->
-  <i className="bi bi-shop me-2"></i>
-  Register Shop
-</button>
+            <span className="text-muted">|</span>
+            <button
+              onClick={() => navigate('/register/shop')}
+              className="btn btn-link text-chocolate text-decoration-none fw-bold"
+            >
+              Register Shop
+            </button>
           </div>
-        </div>
-
-        <div className="text-center mt-4">
-          <button 
-            onClick={() => navigate('/')}
-            className="btn btn-link text-decoration-none"
-          >
-            <i className="bi bi-arrow-left me-1"></i>
-            Back to Home
-          </button>
         </div>
       </div>
     </div>

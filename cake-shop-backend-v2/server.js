@@ -24,29 +24,26 @@ app.use((req, res, next) => {
 // Database connection
 async function connectDB() {
   try {
-    console.log('🚀 Starting MongoDB in-memory server...');
+    // Use local MongoDB instead of in-memory
+    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cake-shop';
     
-    const { MongoMemoryServer } = require('mongodb-memory-server');
-    const mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    
-    await mongoose.connect(mongoUri, {
+    await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     
     console.log('✅ MongoDB Connected Successfully!');
-    console.log(`📁 Database URI: ${mongoUri}`);
+    console.log(`📁 Database: ${MONGODB_URI}`);
     console.log(`💰 Currency: Sri Lankan Rupee (LKR)`);
     
-    // Seed initial data
+    // Seed initial data (only if database is empty)
     await seedInitialData();
     
-    return mongoServer;
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
-    console.log('💡 Using mock data mode...');
-    return null;
+    console.log('💡 Make sure MongoDB is installed and running');
+    console.log('📝 To install MongoDB: https://docs.mongodb.com/manual/installation/');
+    process.exit(1);
   }
 }
 
@@ -55,6 +52,7 @@ async function seedInitialData() {
   const Cake = require('./models/Cake');
   const User = require('./models/User');
   const Order = require('./models/Order');
+  const bcrypt = require('bcryptjs');
   
   try {
     // Check if we have cakes
@@ -152,7 +150,6 @@ async function seedInitialData() {
     if (adminCount === 0) {
       console.log('👑 Creating admin user...');
       
-      const bcrypt = require('bcryptjs');
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash('admin123', salt);
       
@@ -171,8 +168,27 @@ async function seedInitialData() {
     if (orderCount === 0) {
       console.log('📦 Seeding sample orders with LKR prices...');
       
+      // Get admin user ID for orders
+      const adminUser = await User.findOne({ email: 'admin@cubecake.com' });
+      
+      // Create a test customer if needed
+      let testCustomer = await User.findOne({ email: 'john.doe@example.com' });
+      if (!testCustomer) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('customer123', salt);
+        
+        testCustomer = await User.create({
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          phone: '0771234567',
+          password: hashedPassword,
+          role: 'customer'
+        });
+      }
+      
       const sampleOrders = [
         {
+          user: testCustomer._id,
           orderId: `ORDER-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           customerName: 'John Doe',
           phone: '0771234567',
@@ -191,6 +207,7 @@ async function seedInitialData() {
           currency: 'LKR'
         },
         {
+          user: adminUser._id,
           orderId: `ORDER-${Date.now() + 1}-${Math.floor(Math.random() * 1000)}`,
           customerName: 'Jane Smith',
           phone: '0787654321',
@@ -370,8 +387,8 @@ app.get('/', (req, res) => {
             <div>Currency Format</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value">🚀</div>
-            <div>In-Memory DB</div>
+            <div class="stat-value">🗄️</div>
+            <div>Persistent MongoDB</div>
           </div>
         </div>
         
@@ -386,10 +403,12 @@ app.get('/', (req, res) => {
           <h3 style="color: #4A2C2A;">Quick Access</h3>
           <p style="color: #666;">
             Admin Login: <strong>admin@cubecake.com</strong> / <strong>admin123</strong><br>
+            MongoDB Compass: <strong>mongodb://localhost:27017/cake-shop</strong><br>
             Frontend: <a href="http://localhost:3000" style="color: #FF6B8B;">http://localhost:3000</a>
           </p>
           <p style="color: #999; font-size: 14px; margin-top: 20px;">
             All prices are displayed in <strong>Sri Lankan Rupees (LKR)</strong><br>
+            Data persists in MongoDB
           </p>
         </div>
       </div>
@@ -427,7 +446,8 @@ async function startServer() {
       🌐 Server: http://localhost:${PORT}
       📡 API Base: http://localhost:${PORT}/api
       💰 Currency: Sri Lankan Rupee (LKR)
-      🗄️  Database: In-memory MongoDB
+      🗄️  Database: Persistent MongoDB
+      🔌 Connection: mongodb://localhost:27017/cake-shop
       
       📋 Quick Links:
          • http://localhost:${PORT}/              - Dashboard
@@ -437,6 +457,7 @@ async function startServer() {
          • http://localhost:${PORT}/api-docs      - API Documentation
       
       🔗 Frontend: http://localhost:3000
+      🔗 MongoDB Compass: mongodb://localhost:27017/cake-shop
       
       👑 Admin Login: admin@cubecake.com / admin123
       

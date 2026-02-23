@@ -14,34 +14,26 @@ const RegisterPage = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const validateForm = () => {
     const newErrors = {};
-    
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email';
     if (!formData.password) newErrors.password = 'Password is required';
-    if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
+
     setLoading(true);
     setErrors({});
 
@@ -52,31 +44,24 @@ const RegisterPage = () => {
       password: formData.password,
       role: 'customer'
     });
-    
+
     if (result.success) {
       setSuccess(true);
-      setTimeout(() => {
-        navigate('/login-selection');
-      }, 2000);
+      setTimeout(() => navigate('/login-selection'), 2000);
     } else {
       setErrors({ general: result.message || 'Registration failed' });
     }
-    
     setLoading(false);
   };
 
   if (success) {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center bg-cream">
-        <div className="glass-card p-5 text-center animate-fade-in" style={{ maxWidth: '500px' }}>
+        <div className="glass-panel p-5 text-center animate-fade-up" style={{ maxWidth: '500px' }}>
           <div className="display-1 text-success mb-3">✨</div>
-          <h2 className="font-script gradient-text mb-3">Welcome to Cube Cake!</h2>
-          <p className="lead">Your account has been created successfully!</p>
-          <p className="text-muted mb-4">Please log in with your credentials to continue.</p>
-          <div className="spinner-border text-apricot mb-3" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p>Redirecting to login page...</p>
+          <h2 className="font-script text-gold mb-3">Welcome to Cube Cake!</h2>
+          <p className="lead text-chocolate">Your account has been created.</p>
+          <div className="spinner-border text-gold mt-3" role="status"></div>
         </div>
       </div>
     );
@@ -84,163 +69,94 @@ const RegisterPage = () => {
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-cream py-5">
-      <div className="glass-card p-4 p-md-5 animate-fade-in" style={{ width: '100%', maxWidth: '550px' }}>
-        <div className="text-center mb-4">
-          <div className="bg-gradient-primary rounded-circle p-3 d-inline-block mb-3 animate-float">
-            <i className="bi bi-cake2 text-white fs-2"></i>
+      <div className="glass-panel p-4 p-md-5 animate-fade-up" style={{ width: '100%', maxWidth: '900px', display: 'flex', gap: '2rem' }}>
+
+        {/* Left Side - Visual (Hidden on mobile) */}
+        <div className="d-none d-md-flex flex-column justify-content-center align-items-center p-4 rounded-4 text-white text-center position-relative overflow-hidden"
+          style={{ flex: 1, background: 'var(--royal-chocolate)', minHeight: '500px' }}>
+          <div className="position-absolute w-100 h-100 top-0 start-0" style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1535141192574-5d4897c12636?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80")',
+            backgroundSize: 'cover', opacity: 0.3
+          }}></div>
+          <div className="position-relative z-1">
+            <i className="bi bi-cake2 display-1 text-gold mb-4 d-block"></i>
+            <h3 className="font-script text-white display-6">Join the Sweetness</h3>
+            <p className="opacity-75 mt-3">Create an account to order custom cakes and track your treats.</p>
           </div>
-          <h2 className="font-script gradient-text">Create Account</h2>
-          <p className="text-muted">Join us to start ordering delicious cakes</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {errors.general && (
-            <div className="alert alert-danger animate-fade-in">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {errors.general}
-            </div>
-          )}
+        {/* Right Side - Form */}
+        <div style={{ flex: 1.2 }}>
+          <div className="text-center mb-4">
+            <h2 className="display-6 fw-bold text-chocolate">Create Account</h2>
+            <p className="small text-secondary">Join us to start ordering delicious cakes</p>
+          </div>
 
-          <div className="row g-3">
-            <div className="col-12">
-              <label className="form-label fw-medium">Full Name *</label>
-              <div className="input-group">
-                <span className="input-group-text bg-cream border-0">
-                  <i className="bi bi-person text-chocolate"></i>
-                </span>
-                <input
-                  type="text"
-                  className={`form-control border-0 bg-cream ${errors.name ? 'is-invalid' : ''}`}
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                />
-                {errors.name && <div className="invalid-feedback">{errors.name}</div>}
-              </div>
+          <form onSubmit={handleSubmit}>
+            {errors.general && <div className="alert alert-danger mb-4 small">{errors.general}</div>}
+
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-chocolate">Full Name</label>
+              <input
+                type="text"
+                className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
             </div>
 
-            <div className="col-md-6">
-              <label className="form-label fw-medium">Email *</label>
-              <div className="input-group">
-                <span className="input-group-text bg-cream border-0">
-                  <i className="bi bi-envelope text-chocolate"></i>
-                </span>
-                <input
-                  type="email"
-                  className={`form-control border-0 bg-cream ${errors.email ? 'is-invalid' : ''}`}
-                  placeholder="your@email.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
-                {errors.email && <div className="invalid-feedback">{errors.email}</div>}
-              </div>
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-chocolate">Email Address</label>
+              <input
+                type="email"
+                className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
             </div>
 
-            <div className="col-md-6">
-              <label className="form-label fw-medium">Phone *</label>
-              <div className="input-group">
-                <span className="input-group-text bg-cream border-0">
-                  <i className="bi bi-phone text-chocolate"></i>
-                </span>
-                <input
-                  type="tel"
-                  className={`form-control border-0 bg-cream ${errors.phone ? 'is-invalid' : ''}`}
-                  placeholder="07X XXX XXXX"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                />
-                {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
-              </div>
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-chocolate">Phone Number</label>
+              <input
+                type="tel"
+                className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
             </div>
 
-            <div className="col-md-6">
-              <label className="form-label fw-medium">Password *</label>
-              <div className="input-group">
-                <span className="input-group-text bg-cream border-0">
-                  <i className="bi bi-lock text-chocolate"></i>
-                </span>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-chocolate">Password</label>
                 <input
                   type="password"
-                  className={`form-control border-0 bg-cream ${errors.password ? 'is-invalid' : ''}`}
-                  placeholder="••••••"
+                  className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
-                {errors.password && <div className="invalid-feedback">{errors.password}</div>}
               </div>
-              <small className="text-muted">Min. 6 characters</small>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label fw-medium">Confirm *</label>
-              <div className="input-group">
-                <span className="input-group-text bg-cream border-0">
-                  <i className="bi bi-lock-fill text-chocolate"></i>
-                </span>
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-chocolate">Confirm</label>
                 <input
                   type="password"
-                  className={`form-control border-0 bg-cream ${errors.confirmPassword ? 'is-invalid' : ''}`}
-                  placeholder="••••••"
+                  className={`form-control ${errors.confirmPassword ? 'is-invalid' : ''}`}
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 />
-                {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword}</div>}
               </div>
             </div>
-          </div>
 
-          <div className="form-check mt-4">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="terms"
-              required
-            />
-            <label className="form-check-label small" htmlFor="terms">
-              I agree to the{' '}
-              <Link to="/terms" className="text-decoration-none text-apricot">
-                Terms
-              </Link>{' '}
-              and{' '}
-              <Link to="/privacy" className="text-decoration-none text-apricot">
-                Privacy Policy
-              </Link>
-            </label>
-          </div>
+            <button type="submit" className="btn-royal w-100 mt-3" disabled={loading}>
+              {loading ? 'Creating Account...' : 'Sign Up'}
+            </button>
 
-          <button 
-            type="submit" 
-            className="btn btn-frosting w-100 mt-4 py-3 rounded-pill"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2"></span>
-                Creating Account...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-person-plus me-2"></i>
-                Create Account
-              </>
-            )}
-          </button>
-
-          <div className="text-center mt-4">
-            <p className="text-muted mb-2">
-              Already have an account?{' '}
-              <Link to="/login-selection" className="text-decoration-none fw-bold text-strawberry">
-                Sign In
-              </Link>
-            </p>
-            <p className="text-muted small">
-              Want to register as a shop?{' '}
-              <Link to="/register/shop" className="text-decoration-none fw-bold" style={{ color: '#9D5CFF' }}>
-                Shop Registration
-              </Link>
-            </p>
-          </div>
-        </form>
+            <div className="text-center mt-4">
+              <p className="small text-secondary mb-0">
+                Already have an account? <Link to="/login-selection" className="text-gold fw-bold text-decoration-none">Sign In</Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

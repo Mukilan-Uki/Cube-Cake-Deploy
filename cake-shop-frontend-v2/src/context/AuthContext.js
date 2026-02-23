@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     const validateToken = async () => {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
-      
+
       if (storedToken && storedUser) {
         try {
           // Verify token with backend
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
               'Authorization': `Bearer ${storedToken}`
             }
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             if (data.success) {
@@ -60,15 +60,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await fetch('http://localhost:5001/api/auth/register', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify(userData)
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // Don't auto-login - return success without setting user
         return { success: true, message: 'Registration successful! Please login.' };
@@ -76,9 +76,9 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.message };
       }
     } catch (error) {
-      return { 
-        success: false, 
-        message: `Network error: ${error.message}` 
+      return {
+        success: false,
+        message: `Network error: ${error.message}`
       };
     }
   };
@@ -87,15 +87,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await fetch('http://localhost:5001/api/auth/login', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({ email, password, rememberMe })
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -106,9 +106,9 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.message };
       }
     } catch (error) {
-      return { 
-        success: false, 
-        message: `Cannot connect to server` 
+      return {
+        success: false,
+        message: `Cannot connect to server`
       };
     }
   };
@@ -127,7 +127,11 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
-    isAuthenticated: !!user // Changed from !!user && !!token to just !!user
+    isAuthenticated: !!user, // Changed from !!user && !!token to just !!user
+    setAuthData: (userData, tokenData) => {
+      setUser(userData);
+      setToken(tokenData);
+    }
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
