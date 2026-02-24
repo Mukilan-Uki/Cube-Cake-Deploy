@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+const ProtectedRoute = ({ children, requiredRole, requireShop = false }) => {
+  const { isAuthenticated, loading, user, hasRole, isShopOwnerWithShop } = useAuth();
 
   if (loading) {
     return (
@@ -17,11 +17,17 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login-selection" replace />; // Changed from /login to /login-selection
+    return <Navigate to="/login-selection" replace />;
   }
 
-  if (adminOnly && user?.role !== 'admin') {
+  // Check for specific role if required
+  if (requiredRole && !hasRole(requiredRole)) {
     return <Navigate to="/" replace />;
+  }
+
+  // Check if shop owner has registered shop
+  if (requireShop && !isShopOwnerWithShop()) {
+    return <Navigate to="/shop/register" replace />;
   }
 
   return children;

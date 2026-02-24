@@ -1,21 +1,65 @@
 const mongoose = require('mongoose');
 
 const cakeSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  shop: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',
+    required: true
+  },
+  name: { 
+    type: String, 
+    required: true 
+  },
   description: String,
-  priceLKR: { type: Number, required: true }, // Changed from price to priceLKR
+  priceLKR: { 
+    type: Number, 
+    required: true 
+  },
   category: String,
   image: String,
-  rating: Number,
+  images: [String],
+  rating: {
+    type: Number,
+    default: 0
+  },
+  reviewCount: {
+    type: Number,
+    default: 0
+  },
   flavors: [String],
   sizes: [String],
-  isPopular: Boolean,
-  isNew: Boolean,
+  isPopular: {
+    type: Boolean,
+    default: false
+  },
+  isNew: {
+    type: Boolean,
+    default: true
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true
+  },
   currency: { 
     type: String, 
-    default: 'LKR',
-    enum: ['LKR']
+    default: 'LKR'
+  },
+  preparationTime: Number,
+  ingredients: [String],
+  allergens: [String],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
+});
+
+cakeSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 module.exports = mongoose.model('Cake', cakeSchema);

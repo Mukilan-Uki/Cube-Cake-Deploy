@@ -1,5 +1,5 @@
-// src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const navigate = useNavigate();
 
   // Validate token on load
   useEffect(() => {
@@ -39,7 +40,6 @@ export const AuthProvider = ({ children }) => {
             }
           } else {
             // Token expired or invalid - keep user data but mark as not authenticated
-            // This fixes the refresh issue
             setUser(JSON.parse(storedUser));
             setToken(storedToken);
           }
@@ -56,6 +56,7 @@ export const AuthProvider = ({ children }) => {
     validateToken();
   }, []);
 
+  // Register customer
   const register = async (userData) => {
     try {
       const response = await fetch('http://localhost:5001/api/auth/register', {
@@ -70,7 +71,6 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success) {
-        // Don't auto-login - return success without setting user
         return { success: true, message: 'Registration successful! Please login.' };
       } else {
         return { success: false, message: data.message };
@@ -83,6 +83,73 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Register shop owner (creates user only)
+  const registerShopOwner = async (userData) => {
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/register-shop-owner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setToken(data.token);
+        setUser(data.user);
+        return { success: true, data };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Network error: ${error.message}`
+      };
+    }
+  };
+
+  // Register shop (creates user AND shop in one step)
+  const registerShop = async (shopData) => {
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/register-shop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(shopData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setToken(data.token);
+        setUser(data.user);
+        
+        // Redirect to shop dashboard
+        navigate('/shop/dashboard');
+        
+        return { success: true, data };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Network error: ${error.message}`
+      };
+    }
+  };
+
+  // Login user (any role)
   const login = async (email, password, rememberMe = false) => {
     try {
       const response = await fetch('http://localhost:5001/api/auth/login', {
@@ -101,6 +168,20 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
+        
+        // Redirect based on role
+        if (data.user.role === 'super_admin') {
+          navigate('/admin');
+        } else if (data.user.role === 'shop_owner') {
+          if (data.user.shopId) {
+            navigate('/shop/dashboard');
+          } else {
+            navigate('/shop/register');
+          }
+        } else {
+          navigate('/');
+        }
+        
         return { success: true, data };
       } else {
         return { success: false, message: data.message };
@@ -113,11 +194,96 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Admin/Shop Owner login
+  const adminLogin = async (email, password) => {
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setToken(data.token);
+        setUser(data.user);
+        
+        // Redirect based on role and shop status
+        if (data.user.role === 'super_admin') {
+          navigate('/admin');
+        } else if (data.user.role === 'shop_owner') {
+          if (data.user.shopId) {
+            navigate('/shop/dashboard');
+          } else {
+            navigate('/shop/register');
+          }
+        }
+        
+        return { success: true, data };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Cannot connect to server`
+      };
+    }
+  };
+
+  // Logout
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    navigate('/');
+  };
+
+  // Update user profile
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const updatedUser = { ...user, ...profileData };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        return { success: true, message: 'Profile updated successfully' };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Network error: ${error.message}`
+      };
+    }
+  };
+
+  // Check if user has a specific role
+  const hasRole = (role) => {
+    return user?.role === role;
+  };
+
+  // Check if user is shop owner with registered shop
+  const isShopOwnerWithShop = () => {
+    return user?.role === 'shop_owner' && user?.shopId;
   };
 
   const value = {
@@ -125,9 +291,17 @@ export const AuthProvider = ({ children }) => {
     token,
     loading,
     register,
+    registerShopOwner,
+    registerShop,
     login,
+    adminLogin,
     logout,
-    isAuthenticated: !!user, // Changed from !!user && !!token to just !!user
+    updateProfile,
+    hasRole,
+    isShopOwnerWithShop,
+    isAuthenticated: !!user,
+    isShopOwner: user?.role === 'shop_owner',
+    isAdmin: user?.role === 'super_admin',
     setAuthData: (userData, tokenData) => {
       setUser(userData);
       setToken(tokenData);

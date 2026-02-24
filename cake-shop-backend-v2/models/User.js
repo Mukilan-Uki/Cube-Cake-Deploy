@@ -27,15 +27,26 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['customer', 'admin'],
+    enum: ['customer', 'shop_owner', 'super_admin'],
     default: 'customer'
   },
-  shopDetails: {
-    shopName: String,
-    address: String,
-    businessType: String,
-    isApproved: { type: Boolean, default: false }
+  shopId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop'
   },
+  shops: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop'
+  }],
+  profilePicture: {
+    type: String,
+    default: '/images/default-avatar.jpg'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  lastLogin: Date,
   createdAt: {
     type: Date,
     default: Date.now
