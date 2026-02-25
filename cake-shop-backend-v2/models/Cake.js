@@ -6,47 +6,45 @@ const cakeSchema = new mongoose.Schema({
     ref: 'Shop',
     required: true
   },
-  name: { 
-    type: String, 
-    required: true 
+  shopName: {
+    type: String,
+    required: true
   },
-  description: String,
-  priceLKR: { 
-    type: Number, 
-    required: true 
+  shopSlug: {
+    type: String,
+    required: true
   },
-  category: String,
-  image: String,
-  images: [String],
-  rating: {
+  name: {
+    type: String,
+    required: [true, 'Cake name is required'],
+    trim: true
+  },
+  description: {
+    type: String,
+    required: [true, 'Description is required']
+  },
+  priceLKR: {
     type: Number,
-    default: 0
+    required: [true, 'Price is required'],
+    min: [0, 'Price cannot be negative']
   },
-  reviewCount: {
-    type: Number,
-    default: 0
+  category: {
+    type: String,
+    required: [true, 'Category is required'],
+    enum: ['Birthday', 'Wedding', 'Anniversary', 'Special', 'Custom', 'Kids']
   },
-  flavors: [String],
-  sizes: [String],
-  isPopular: {
-    type: Boolean,
-    default: false
-  },
-  isNew: {
-    type: Boolean,
-    default: true
+  image: {
+    type: String,
+    default: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop'
   },
   isAvailable: {
     type: Boolean,
     default: true
   },
-  currency: { 
-    type: String, 
-    default: 'LKR'
+  isPopular: {
+    type: Boolean,
+    default: false
   },
-  preparationTime: Number,
-  ingredients: [String],
-  allergens: [String],
   createdAt: {
     type: Date,
     default: Date.now

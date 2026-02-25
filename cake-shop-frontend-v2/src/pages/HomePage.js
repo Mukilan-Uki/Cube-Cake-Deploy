@@ -10,7 +10,32 @@ const HomePage = () => {
   const { isAuthenticated, user } = useAuth();
   const [featuredCakes, setFeaturedCakes] = useState([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Add this state and useEffect to fetch cakes
+  const [shopCakes, setShopCakes] = useState([]);
+  const [loadingCakes, setLoadingCakes] = useState(true);
+
   const heroRef = useRef(null);
+
+  // Fetch cakes from all shops
+useEffect(() => {
+  const fetchCakes = async () => {
+    try {
+      setLoadingCakes(true);
+      const res = await fetch('http://localhost:5001/api/public/cakes?limit=8');
+      const data = await res.json();
+      if (data.success) {
+        setShopCakes(data.cakes);
+      }
+    } catch (error) {
+      console.error('Error fetching cakes:', error);
+    } finally {
+      setLoadingCakes(false);
+    }
+  };
+
+  fetchCakes();
+}, []);
 
   useEffect(() => {
     setFeaturedCakes(cakeData.slice(0, 3));
@@ -281,6 +306,67 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* // Add this section in your home page JSX after features section */}
+{/* Shop Cakes Section */}
+<section className="py-5">
+  <div className="container">
+    <div className="text-center mb-5">
+      <h2 className="display-5 fw-bold mb-3">Cakes from Our Partner Shops</h2>
+      <p className="lead text-muted">
+        Delicious creations from trusted local bakeries
+      </p>
+    </div>
+
+    {loadingCakes ? (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary"></div>
+      </div>
+    ) : shopCakes.length > 0 ? (
+      <div className="row g-4">
+        {shopCakes.map(cake => (
+          <div className="col-md-6 col-lg-3" key={cake._id}>
+            <div className="card h-100 border-0 shadow-sm hover-card">
+              <img 
+                src={cake.image} 
+                className="card-img-top" 
+                alt={cake.name}
+                style={{ height: '200px', objectFit: 'cover' }}
+              />
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start mb-2">
+                  <h6 className="card-title mb-0">{cake.name}</h6>
+                  {cake.isPopular && (
+                    <span className="badge bg-warning">Popular</span>
+                  )}
+                </div>
+                <p className="text-muted small mb-2">
+                  by <strong>{cake.shopName}</strong>
+                </p>
+                <p className="card-text text-muted small">
+                  {cake.description.substring(0, 60)}...
+                </p>
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                  <strong className="text-primary">{formatLKR(cake.priceLKR)}</strong>
+                  <button 
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => navigate(`/shops/${cake.shopSlug}`)}
+                  >
+                    View Shop
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-5">
+        <p className="text-muted">No cakes available from shops yet.</p>
+      </div>
+    )}
+  </div>
+</section>
 
       {/* --- FEATURED CAKES with Antigravity Effect --- */}
       <section className="py-6 position-relative" style={{ background: 'var(--cream-vanilla)' }}>

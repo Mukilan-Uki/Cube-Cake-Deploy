@@ -6,11 +6,8 @@ const {
   getShopOrders,
   updateOrderStatus,
   getShopSettings,
-  updateShopSettings,
-  getShopCakes,
-  addShopCake,
-  updateShopCake,
-  deleteShopCake
+  updateShopSettings
+  // Removed: getShopCakes, addShopCake, updateShopCake, deleteShopCake
 } = require('../controllers/shopController');
 const { protect, shopOwner } = require('../middleware/auth');
 
@@ -31,10 +28,10 @@ router.put('/orders/:orderId/status', updateOrderStatus);
 router.get('/settings', getShopSettings);
 router.put('/settings', updateShopSettings);
 
-// Cakes
-router.get('/cakes', getShopCakes);
-router.post('/cakes', addShopCake);
-router.put('/cakes/:cakeId', updateShopCake);
-router.delete('/cakes/:cakeId', deleteShopCake);
+// Note: Cake routes are now handled in shopCakeRoutes.js
+// GET /api/shops/cakes -> moved to shopCakeRoutes.js
+// POST /api/shops/cakes -> moved to shopCakeRoutes.js
+// PUT /api/shops/cakes/:cakeId -> moved to shopCakeRoutes.js
+// DELETE /api/shops/cakes/:cakeId -> moved to shopCakeRoutes.js
 
 module.exports = router;

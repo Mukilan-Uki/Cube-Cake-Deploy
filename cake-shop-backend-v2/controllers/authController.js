@@ -6,7 +6,7 @@ const Shop = require('../models/Shop');
 const generateToken = (id, role, shopId = null, expiresIn = '30d') => {
   return jwt.sign(
     { id, role, shopId }, 
-    process.env.JWT_SECRET || 'your-secret-key',
+    process.env.JWT_SECRET,
     { expiresIn }
   );
 };

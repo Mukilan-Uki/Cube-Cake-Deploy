@@ -7,9 +7,11 @@ const authRoutes = require('./routes/authRoutes');
 const shopRoutes = require('./routes/shopRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const publicRoutes = require('./routes/publicRoutes');
+const shopCakeRoutes = require('./routes/shopCakeRoutes'); // Add this
+const publicCakeRoutes = require('./routes/publicCakeRoutes'); // Add this
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT;
 
 // Middleware
 app.use(cors({
@@ -28,8 +30,10 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/shops', shopRoutes);
+app.use('/api/shops', shopCakeRoutes); // Add shop cake routes
 app.use('/api/orders', orderRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/public', publicCakeRoutes); // Add public cake routes
 
 // Health check
 app.get('/health', (req, res) => {
@@ -41,7 +45,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// List all routes (debug only)
+// Debug routes
 app.get('/api/routes', (req, res) => {
   const routes = [];
   
@@ -116,21 +120,21 @@ app.use((err, req, res, next) => {
 
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Internal server error'
+    message: err.message
   });
 });
 
 // Connect to MongoDB and start server
 const startServer = async () => {
   try {
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cake-shop';
+    const MONGODB_URI = process.env.MONGODB_URI;
     
     await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     
-    console.log('✅ MongoDB Connected Successfully!');
+    console.log('MongoDB Connected Successfully!');
     
     // Create default super admin if not exists
     const User = require('./models/User');
@@ -144,25 +148,24 @@ const startServer = async () => {
         password: 'admin123',
         role: 'super_admin'
       });
-      console.log('✅ Default admin created (admin@cubecake.com / admin123)');
+      console.log('Default admin created (admin@cubecake.com / admin123)');
     }
     
     app.listen(PORT, () => {
       console.log(`
-      🚀 Cube Cake Server Started!
+      Cube Cake Server Started!
       =============================
-      🌐 Port: ${PORT}
-      💰 Currency: LKR
-      📁 Database: MongoDB
+      Port: ${PORT}
+      Currency: LKR
+      Database: MongoDB
       
-      📋 Available Auth Endpoints:
-      • POST /api/auth/register - Customer registration
-      • POST /api/auth/login - User login (any role)
-      • POST /api/auth/admin/login - Shop owner login
-      • POST /api/auth/register-shop-owner - Register as shop owner
-      • POST /api/auth/register-shop - Register shop (creates user + shop)
+      Available Endpoints:
+      • Auth: /api/auth/*
+      • Shop Owner: /api/shops/*
+      • Orders: /api/orders/*
+      • Public: /api/public/*
       
-      🔗 Frontend: http://localhost:3000
+      Frontend: http://localhost:3000
       `);
     });
     

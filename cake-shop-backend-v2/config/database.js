@@ -9,13 +9,13 @@ const connectDB = async () => {
       useUnifiedTopology: true,
     });
     
-    console.log('✅ MongoDB Connected Successfully!');
-    console.log(`📁 Database: ${MONGODB_URI}`);
+    console.log('MongoDB Connected Successfully!');
+    console.log(`Database: ${MONGODB_URI}`);
     
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
-    console.log('💡 Make sure MongoDB is installed and running');
+    console.error('Database connection failed:', error.message);
+    console.log('Make sure MongoDB is installed and running');
     return false;
   }
 };

@@ -22,7 +22,8 @@ const SidebarNav = () => {
   const authItems = isAuthenticated ? [
     { path: '/profile', icon: 'bi-person-circle', label: 'Profile' },
     { path: '/my-orders', icon: 'bi-box', label: 'Orders' },
-    ...(user?.role === 'admin' ? [{ path: '/admin', icon: 'bi-speedometer2', label: 'Admin' }] : []),
+    ...(user?.role === 'super_admin' ? [{ path: '/admin', icon: 'bi-speedometer2', label: 'Admin Panel' }] : []),
+    ...(user?.role === 'shop_owner' ? [{ path: '/shop/dashboard', icon: 'bi-shop', label: 'My Shop' }] : []),
   ] : [
     { path: '/login-selection', icon: 'bi-box-arrow-in-right', label: 'Login' },
     { path: '/register', icon: 'bi-person-plus', label: 'Register' },

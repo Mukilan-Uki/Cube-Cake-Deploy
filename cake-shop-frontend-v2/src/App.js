@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -8,6 +8,7 @@ import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import SidebarNav from './components/SidebarNav';
+import ShopNavbar from './components/ShopNavbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireAuth from './components/RequireAuth';
@@ -34,6 +35,7 @@ import ShopOwnerDashboard from './pages/ShopOwnerDashboard';
 import ShopOrdersPage from './pages/ShopOrdersPage';
 import ShopCakesPage from './pages/ShopCakesPage';
 import ShopSettingsPage from './pages/ShopSettingsPage';
+import ShopOwnerCakesPage from './pages/ShopOwnerCakesPage'; // New page for cake management
 
 // Public Shop Pages
 import PublicShopPage from './pages/PublicShopPage';
@@ -54,22 +56,23 @@ function AppContent() {
     window.scrollTo(0, 0);
   }, [location]);
 
-  // Check if current route is shop owner route (no sidebar)
-  const isShopOwnerRoute = location.pathname.startsWith('/shop/') || 
-                           location.pathname === '/shop' ||
-                           location.pathname === '/admin/login' ||
-                           location.pathname === '/admin';
-
-  // Check if current route is public shop view
+  // Shop management routes get ShopNavbar (no sidebar)
+  const isShopManagementRoute = location.pathname.startsWith('/shop/') || location.pathname === '/shop';
+  // Admin routes get no sidebar
+  const isAdminRoute = location.pathname === '/admin' || location.pathname === '/admin/login';
+  // Public shop view gets no sidebar
   const isPublicShopRoute = location.pathname.startsWith('/shops/');
 
+  const isShopOwnerRoute = isShopManagementRoute || isAdminRoute;
+  const showSidebar = !isShopOwnerRoute && !isPublicShopRoute;
+
   return (
-    <div className={!isShopOwnerRoute && !isPublicShopRoute ? "d-flex" : ""}>
-      {/* Only show sidebar for non-shop routes and non-public shop routes */}
-      {!isShopOwnerRoute && !isPublicShopRoute && <SidebarNav />}
+    <div className={showSidebar ? "d-flex" : ""}>
+      {/* Only show sidebar for regular customer/public routes */}
+      {showSidebar && <SidebarNav />}
       
-      <div className={!isShopOwnerRoute && !isPublicShopRoute ? "main-content" : ""} 
-           style={!isShopOwnerRoute && !isPublicShopRoute ? {
+      <div className={showSidebar ? "main-content" : ""} 
+           style={showSidebar ? {
              flex: 1,
              marginLeft: '88px',
              width: 'calc(100% - 88px)',
@@ -78,6 +81,9 @@ function AppContent() {
              flexDirection: 'column'
            } : { width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         
+        {/* Show ShopNavbar for shop management routes */}
+        {isShopManagementRoute && <ShopNavbar />}
+
         <div style={{ flex: 1 }}>
           <Routes>
             {/* ========== PUBLIC ROUTES ========== */}
@@ -135,6 +141,12 @@ function AppContent() {
             <Route path="/shop/cakes" element={
               <ProtectedRoute requiredRole="shop_owner">
                 <ShopCakesPage />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/shop/my-cakes" element={
+              <ProtectedRoute requiredRole="shop_owner">
+                <ShopOwnerCakesPage />
               </ProtectedRoute>
             } />
 

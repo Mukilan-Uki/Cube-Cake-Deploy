@@ -6,7 +6,7 @@ const isShopOwner = async (req, res, next) => {
     });
   }
 
-  if (req.user.role !== 'shop_owner' && req.user.role !== 'super_admin') {
+  if (req.user.role !== 'shop_owner') {
     return res.status(403).json({
       success: false,
       message: 'Access denied. Shop owner privileges required.'

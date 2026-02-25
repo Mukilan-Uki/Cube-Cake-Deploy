@@ -111,7 +111,7 @@ const Navbar = () => {
                         <i className="bi bi-box me-2"></i> My Orders
                       </Link>
                     </li>
-                    {user?.role === 'admin' && (
+                    {(user?.role === 'super_admin') && (
                       <li>
                         <Link className="dropdown-item rounded-2 py-2" to="/admin">
                           <i className="bi bi-speedometer2 me-2"></i> Admin

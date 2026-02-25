@@ -49,7 +49,13 @@ const registerShop = async (req, res, next) => {
       admins: [req.user.id],
       email,
       phone,
-      address,
+      address: {
+        street: address,
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'Sri Lanka'
+      },
       businessType,
       operatingHours: operatingHours || [],
       settings: {
@@ -102,7 +108,8 @@ const getShopDashboard = async (req, res, next) => {
       completedOrders,
       todaysOrders,
       recentOrders,
-      revenue
+      revenue,
+      totalCakes
     ] = await Promise.all([
       Order.countDocuments({ shop: shopId }),
       Order.countDocuments({ shop: shopId, status: 'pending' }),
@@ -122,7 +129,8 @@ const getShopDashboard = async (req, res, next) => {
           status: { $in: ['completed', 'delivered'] }
         }},
         { $group: { _id: null, total: { $sum: '$totalPrice' } } }
-      ])
+      ]),
+      Cake.countDocuments({ shop: shopId })
     ]);
 
     res.json({
@@ -136,7 +144,8 @@ const getShopDashboard = async (req, res, next) => {
           readyOrders,
           completedOrders,
           totalRevenue: revenue[0]?.total || 0,
-          todaysOrders: todaysOrders.length
+          todaysOrders: todaysOrders.length,
+          totalCakes
         },
         todaysOrders,
         recentOrders
@@ -208,6 +217,15 @@ const updateOrderStatus = async (req, res, next) => {
       });
     }
 
+    // Validate status transition
+    const validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'completed', 'cancelled', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
     order.status = status;
     order.statusHistory.push({
       status,
@@ -216,20 +234,30 @@ const updateOrderStatus = async (req, res, next) => {
       timestamp: new Date()
     });
 
-    if (status === 'confirmed') {
-      order.confirmedAt = new Date();
-    } else if (status === 'ready') {
-      order.actualReadyTime = new Date();
-    } else if (status === 'completed' || status === 'delivered') {
-      order.paymentStatus = 'paid';
-      order.paidAt = new Date();
-    } else if (status === 'cancelled' || status === 'rejected') {
-      order.cancelledAt = new Date();
-      order.cancellationReason = note;
+    // Set timestamps based on status
+    const now = new Date();
+    switch (status) {
+      case 'confirmed':
+        order.confirmedAt = now;
+        break;
+      case 'ready':
+        order.actualReadyTime = now;
+        break;
+      case 'delivered':
+      case 'completed':
+        order.paymentStatus = 'paid';
+        order.paidAt = now;
+        break;
+      case 'cancelled':
+      case 'rejected':
+        order.cancelledAt = now;
+        order.cancellationReason = note;
+        break;
     }
 
     await order.save();
 
+    // Update shop stats if completed
     if (status === 'completed' || status === 'delivered') {
       await Shop.findByIdAndUpdate(shopId, {
         $inc: { 
@@ -289,116 +317,11 @@ const updateShopSettings = async (req, res, next) => {
   }
 };
 
-// @desc    Get shop cakes
-// @route   GET /api/shops/cakes
-// @access  Private (Shop Owner only)
-const getShopCakes = async (req, res, next) => {
-  try {
-    const cakes = await Cake.find({ shop: req.user.shopId });
-    
-    res.json({
-      success: true,
-      cakes
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Add cake to shop
-// @route   POST /api/shops/cakes
-// @access  Private (Shop Owner only)
-const addShopCake = async (req, res, next) => {
-  try {
-    const cakeData = {
-      ...req.body,
-      shop: req.user.shopId,
-      currency: 'LKR'
-    };
-
-    const cake = await Cake.create(cakeData);
-
-    res.status(201).json({
-      success: true,
-      message: 'Cake added successfully',
-      cake
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Update shop cake
-// @route   PUT /api/shops/cakes/:cakeId
-// @access  Private (Shop Owner only)
-const updateShopCake = async (req, res, next) => {
-  try {
-    const { cakeId } = req.params;
-
-    const cake = await Cake.findOneAndUpdate(
-      { _id: cakeId, shop: req.user.shopId },
-      { ...req.body, updatedAt: Date.now() },
-      { new: true, runValidators: true }
-    );
-
-    if (!cake) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cake not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Cake updated successfully',
-      cake
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Delete shop cake
-// @route   DELETE /api/shops/cakes/:cakeId
-// @access  Private (Shop Owner only)
-const deleteShopCake = async (req, res, next) => {
-  try {
-    const { cakeId } = req.params;
-
-    const cake = await Cake.findOneAndDelete({ 
-      _id: cakeId, 
-      shop: req.user.shopId 
-    });
-
-    if (!cake) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cake not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Cake deleted successfully'
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
   registerShop,
   getShopDashboard,
   getShopOrders,
   updateOrderStatus,
   getShopSettings,
-  updateShopSettings,
-  getShopCakes,
-  addShopCake,
-  updateShopCake,
-  deleteShopCake
+  updateShopSettings
 };
