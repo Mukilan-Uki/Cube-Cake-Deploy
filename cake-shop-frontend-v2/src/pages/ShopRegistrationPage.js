@@ -1,3 +1,4 @@
+import { API_CONFIG } from '../config';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -23,7 +24,7 @@ const ShopRegistrationPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register-shop', {
+      const response = await fetch(API_CONFIG.BASE_URL + '//auth/register-shop', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

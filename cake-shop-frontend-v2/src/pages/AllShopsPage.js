@@ -1,3 +1,4 @@
+import { API_CONFIG } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,8 +17,8 @@ const AllShopsPage = () => {
     try {
       setLoading(true);
       const url = city 
-        ? `http://localhost:5001/api/public/shops?city=${city}`
-        : 'http://localhost:5001/api/public/shops';
+        ? `${API_CONFIG.BASE_URL}/public/shops?city=${city}`
+        : `${API_CONFIG.BASE_URL}//public/shops`;
       
       const res = await fetch(url);
       const data = await res.json();

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { cakeData } from '../utils/cakeData';
 import { formatLKR } from '../config/currency';
+import { API_CONFIG } from '../config';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ useEffect(() => {
   const fetchCakes = async () => {
     try {
       setLoadingCakes(true);
-      const res = await fetch('http://localhost:5001/api/public/cakes?limit=8');
+      const res = await fetch(`${API_CONFIG.PUBLIC.CAKES}?limit=8`);
       const data = await res.json();
       if (data.success) {
         setShopCakes(data.cakes);
@@ -38,7 +39,10 @@ useEffect(() => {
 }, []);
 
   useEffect(() => {
-    setFeaturedCakes(cakeData.slice(0, 3));
+    // Combine custom-designed gallery cakes + static cakeData for featured section
+    const customCakes = JSON.parse(localStorage.getItem('customGalleryCakes') || '[]');
+    const combined = [...customCakes, ...cakeData];
+    setFeaturedCakes(combined.slice(0, 3));
   }, []);
 
   // Parallax effect on mouse move
@@ -434,7 +438,13 @@ useEffect(() => {
                       </div>
                       
                       <button
-                        onClick={() => navigate('/create')}
+                        onClick={() => {
+                          if (cake.isCustomDesign && cake.designData) {
+                            navigate('/order', { state: { design: cake.designData } });
+                          } else {
+                            navigate('/order', { state: { galleryCake: cake } });
+                          }
+                        }}
                         className="btn-primary-gradient btn-sm py-2 px-4"
                       >
                         Order Now

@@ -34,12 +34,15 @@ const CakeCard = ({ cake }) => {
 
   const handleBuyNow = (e) => {
     e.stopPropagation();
-    addToCart({
-      ...cake,
-      quantity: 1,
-      addedAt: new Date().toISOString()
-    });
-    navigate('/cart');
+    if (cake.isCustomDesign && cake.designData) {
+      // Custom designed cake — pass the original design data so order page shows custom details
+      navigate('/order', { state: { design: cake.designData } });
+    } else {
+      // Gallery/shop cake — pass full cake object including shopId from the shop field
+      // The shop field may be a populated object or a plain id string
+      const shopId = cake.shop?._id || cake.shop || cake.shopId || null;
+      navigate('/order', { state: { galleryCake: { ...cake, shopId } } });
+    }
   };
 
   const handleQuickView = (e) => {
@@ -144,6 +147,21 @@ const CakeCard = ({ cake }) => {
                 </span>
               )}
             </div>
+
+            {/* Shop Info */}
+            {cake.shopName && (
+              <div className="d-flex align-items-center gap-1 mb-3 p-2 rounded-3" style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)' }}>
+                <i className="bi bi-shop text-gold" style={{ fontSize: '0.85rem' }}></i>
+                <div>
+                  <span className="fw-semibold text-chocolate" style={{ fontSize: '0.8rem' }}>{cake.shopName}</span>
+                  {cake.shopLocation && (
+                    <span className="text-muted ms-1" style={{ fontSize: '0.75rem' }}>
+                      <i className="bi bi-geo-alt me-1"></i>{cake.shopLocation}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
             
             <div className="d-flex justify-content-between align-items-center">
               <div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatLKR } from '../config/currency';
+import { API_CONFIG } from '../config';
 
 const ShopOwnerCakesPage = () => {
   const navigate = useNavigate();
@@ -11,22 +12,18 @@ const ShopOwnerCakesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCake, setEditingCake] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    priceLKR: '',
-    category: 'Birthday',
-    image: '',
-    isAvailable: true,
-    isPopular: false
+    name: '', description: '', priceLKR: '', category: 'Birthday',
+    image: '', isAvailable: true, isPopular: false
   });
 
   const categories = ['Birthday', 'Wedding', 'Anniversary', 'Special', 'Custom', 'Kids'];
 
   useEffect(() => {
     if (!user || (user.role !== 'shop_owner' && user.role !== 'super_admin')) {
-      navigate('/');
-      return;
+      navigate('/'); return;
     }
     fetchCakes();
   }, [user, navigate]);
@@ -34,15 +31,11 @@ const ShopOwnerCakesPage = () => {
   const fetchCakes = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5001/api/shops/my-cakes', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await fetch(API_CONFIG.SHOPS.MY_CAKES, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success) {
-        setCakes(data.cakes);
-      }
+      if (data.success) setCakes(data.cakes);
     } catch (error) {
       console.error('Error fetching cakes:', error);
     } finally {
@@ -50,54 +43,48 @@ const ShopOwnerCakesPage = () => {
     }
   };
 
+  const showSuccess = (msg) => {
+    setSuccessMsg(msg);
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
   const handleImageChange = (e) => {
     const url = e.target.value;
-    setFormData({...formData, image: url});
+    setFormData({ ...formData, image: url });
     setImagePreview(url);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
-      const url = editingCake 
-        ? `http://localhost:5001/api/shops/cakes/${editingCake._id}`
-        : 'http://localhost:5001/api/shops/cakes';
-      
+      const url = editingCake ? API_CONFIG.SHOPS.CAKE(editingCake._id) : API_CONFIG.SHOPS.ADD_CAKE;
       const method = editingCake ? 'PUT' : 'POST';
-
       const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...formData,
-          priceLKR: parseFloat(formData.priceLKR)
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...formData, priceLKR: parseFloat(formData.priceLKR) })
       });
-
       const data = await res.json();
       if (data.success) {
         setShowModal(false);
         resetForm();
         fetchCakes();
+        showSuccess(editingCake ? 'Cake updated successfully!' : 'New cake added successfully!');
       }
     } catch (error) {
       console.error('Error saving cake:', error);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleEdit = (cake) => {
     setEditingCake(cake);
     setFormData({
-      name: cake.name,
-      description: cake.description,
-      priceLKR: cake.priceLKR,
-      category: cake.category,
-      image: cake.image || '',
-      isAvailable: cake.isAvailable,
-      isPopular: cake.isPopular || false
+      name: cake.name, description: cake.description, priceLKR: cake.priceLKR,
+      category: cake.category, image: cake.image || '',
+      isAvailable: cake.isAvailable, isPopular: cake.isPopular || false
     });
     setImagePreview(cake.image || '');
     setShowModal(true);
@@ -105,19 +92,12 @@ const ShopOwnerCakesPage = () => {
 
   const handleDelete = async (cakeId) => {
     if (!window.confirm('Are you sure you want to delete this cake?')) return;
-    
     try {
-      const res = await fetch(`http://localhost:5001/api/shops/cakes/${cakeId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await fetch(API_CONFIG.SHOPS.CAKE(cakeId), {
+        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
       });
-
       const data = await res.json();
-      if (data.success) {
-        fetchCakes();
-      }
+      if (data.success) { fetchCakes(); showSuccess('Cake deleted.'); }
     } catch (error) {
       console.error('Error deleting cake:', error);
     }
@@ -125,202 +105,138 @@ const ShopOwnerCakesPage = () => {
 
   const toggleAvailability = async (cakeId) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/shops/cakes/${cakeId}/toggle`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await fetch(API_CONFIG.SHOPS.CAKE_TOGGLE(cakeId), {
+        method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
       });
-
       const data = await res.json();
-      if (data.success) {
-        fetchCakes();
-      }
-    } catch (error) {
-      console.error('Error toggling availability:', error);
-    }
+      if (data.success) fetchCakes();
+    } catch (error) { console.error(error); }
   };
 
   const togglePopular = async (cakeId) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/shops/cakes/${cakeId}/popular`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await fetch(API_CONFIG.SHOPS.CAKE_POPULAR(cakeId), {
+        method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
       });
-
       const data = await res.json();
-      if (data.success) {
-        fetchCakes();
-      }
-    } catch (error) {
-      console.error('Error toggling popular:', error);
-    }
+      if (data.success) fetchCakes();
+    } catch (error) { console.error(error); }
   };
 
   const resetForm = () => {
     setEditingCake(null);
-    setFormData({
-      name: '',
-      description: '',
-      priceLKR: '',
-      category: 'Birthday',
-      image: '',
-      isAvailable: true,
-      isPopular: false
-    });
+    setFormData({ name:'', description:'', priceLKR:'', category:'Birthday', image:'', isAvailable:true, isPopular:false });
     setImagePreview('');
   };
 
   if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }}></div>
-      </div>
-    );
+    return <div className="loading-screen"><div className="spinner-gradient"></div><p>Loading your cakes…</p></div>;
   }
 
   return (
-    <div className="container-fluid py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+    <div className="shop-page-bg">
+      {/* Success toast */}
+      {successMsg && (
+        <div className="alert alert-success" style={{ position:'fixed', top:'80px', right:'1.5rem', zIndex:9999, boxShadow:'var(--shadow-md)', minWidth:'260px', animation:'fadeUp 0.3s ease' }}>
+          <i className="bi bi-check-circle me-2"></i>{successMsg}
+        </div>
+      )}
+
       {/* Header */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="card shadow-sm border-0">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h4 className="mb-1">
-                    <i className="bi bi-cake2 me-2 text-primary"></i>
-                    Manage My Cakes
-                  </h4>
-                  <p className="text-muted mb-0">
-                    Add and manage your cake catalog. These will appear on the public home page.
-                  </p>
-                </div>
-                <div>
-                  <button 
-                    className="btn btn-outline-secondary me-2"
-                    onClick={() => navigate('/shop/dashboard')}
-                  >
-                    <i className="bi bi-arrow-left me-2"></i>
-                    Back to Dashboard
-                  </button>
-                  <button 
-                    className="btn btn-primary"
-                    onClick={() => {
-                      resetForm();
-                      setShowModal(true);
-                    }}
-                  >
-                    <i className="bi bi-plus-circle me-2"></i>
-                    Add New Cake
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="shop-page-header">
+        <div>
+          <h2 className="shop-page-title">
+            <span className="shop-page-title-icon"><i className="bi bi-cake2"></i></span>
+            Manage My Cakes
+          </h2>
+          <p className="shop-page-subtitle">Add and manage your cake catalog — these appear on the public home page</p>
+        </div>
+        <div className="d-flex gap-2">
+          <button className="btn-outline-rose" onClick={() => navigate('/shop/dashboard')}>
+            <i className="bi bi-arrow-left me-1"></i> Dashboard
+          </button>
+          <button className="btn-rose" onClick={() => { resetForm(); setShowModal(true); }}>
+            <i className="bi bi-plus-circle me-1"></i> Add New Cake
+          </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-body">
-              <h6 className="text-muted mb-2">Total Cakes</h6>
-              <h3>{cakes.length}</h3>
+      {/* Stats row */}
+      <div className="row g-3 mb-4">
+        {[
+          { label: 'Total Cakes', value: cakes.length, icon: 'bi-grid', iconClass: 'stat-icon-rose' },
+          { label: 'Available', value: cakes.filter(c => c.isAvailable).length, icon: 'bi-eye', iconClass: 'stat-icon-green' },
+          { label: 'Popular', value: cakes.filter(c => c.isPopular).length, icon: 'bi-star', iconClass: 'stat-icon-gold' },
+        ].map((s,i) => (
+          <div className="col-4" key={i}>
+            <div className="stat-card">
+              <div><div className="stat-card-label">{s.label}</div><div className="stat-card-value">{s.value}</div></div>
+              <div className={`stat-card-icon ${s.iconClass}`}><i className={`bi ${s.icon}`}></i></div>
             </div>
           </div>
-        </div>
-        <div className="col-md-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-body">
-              <h6 className="text-muted mb-2">Available</h6>
-              <h3 className="text-success">{cakes.filter(c => c.isAvailable).length}</h3>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-body">
-              <h6 className="text-muted mb-2">Popular</h6>
-              <h3 className="text-warning">{cakes.filter(c => c.isPopular).length}</h3>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Cakes Grid */}
+      {/* Cakes Grid or Empty state */}
       {cakes.length > 0 ? (
-        <div className="row g-4">
+        <div className="row g-3">
           {cakes.map(cake => (
             <div className="col-md-6 col-lg-4" key={cake._id}>
-              <div className="card h-100 shadow-sm border-0">
-                <div className="position-relative">
-                  <img 
-                    src={cake.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop'} 
-                    className="card-img-top" 
+              <div className="card h-100" style={{overflow:'hidden'}}>
+                <div className="cake-card-img-wrap">
+                  <img
+                    src={cake.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop'}
+                    className="cake-card-img"
                     alt={cake.name}
-                    style={{ height: '200px', objectFit: 'cover' }}
                   />
-                  <div className="position-absolute top-0 end-0 m-2">
-                    {cake.isPopular && (
-                      <span className="badge bg-warning me-1">
-                        <i className="bi bi-star-fill me-1"></i>Popular
-                      </span>
-                    )}
-                    <span className={`badge ${cake.isAvailable ? 'bg-success' : 'bg-secondary'}`}>
-                      {cake.isAvailable ? 'Available' : 'Hidden'}
-                    </span>
-                  </div>
                 </div>
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <h5 className="card-title mb-0">{cake.name}</h5>
-                    <h5 className="text-primary mb-0">{formatLKR(cake.priceLKR)}</h5>
-                  </div>
-                  <p className="card-text text-muted small">
-                    {cake.description?.length > 100 
-                      ? cake.description.substring(0, 100) + '...' 
-                      : cake.description || 'No description'}
-                  </p>
-                  <div className="mb-2">
-                    <span className="badge bg-light text-dark me-2">
-                      <i className="bi bi-tag me-1"></i>
-                      {cake.category}
+                {/* Overlay badges */}
+                <div style={{position:'absolute',top:'10px',right:'10px',display:'flex',gap:'4px'}}>
+                  {cake.isPopular && (
+                    <span className="badge" style={{background:'var(--gold-mid)',color:'var(--text-dark)'}}>
+                      <i className="bi bi-star-fill me-1"></i>Popular
                     </span>
+                  )}
+                  <span className="badge" style={{background: cake.isAvailable ? '#D4EDDA' : '#F0E8E2', color: cake.isAvailable ? '#155724' : '#9B8080'}}>
+                    {cake.isAvailable ? 'Live' : 'Hidden'}
+                  </span>
+                </div>
+
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-start mb-1">
+                    <h5 style={{fontFamily:'var(--font-display)',fontWeight:700,fontSize:'1.05rem',color:'var(--text-dark)',margin:0}}>{cake.name}</h5>
+                    <span style={{fontFamily:'var(--font-display)',fontWeight:700,color:'var(--rg-primary)',fontSize:'1rem',whiteSpace:'nowrap',marginLeft:'8px'}}>{formatLKR(cake.priceLKR)}</span>
                   </div>
-                  <div className="d-flex justify-content-between align-items-center mt-3">
-                    <div>
-                      <button 
-                        className="btn btn-sm btn-outline-primary me-2"
-                        onClick={() => handleEdit(cake)}
-                        title="Edit"
-                      >
+                  <p style={{fontSize:'0.82rem',color:'var(--text-soft)',marginBottom:'0.75rem',lineHeight:1.5}}>
+                    {cake.description?.length > 90 ? cake.description.substring(0, 90) + '…' : cake.description || 'No description'}
+                  </p>
+                  <span className="shop-badge"><i className="bi bi-tag me-1"></i>{cake.category}</span>
+
+                  {/* Actions */}
+                  <div className="d-flex justify-content-between align-items-center mt-3 pt-2" style={{borderTop:'1px solid var(--linen)'}}>
+                    <div className="d-flex gap-1">
+                      <button className="btn btn-sm" style={{background:'var(--rg-blush)',color:'var(--rg-primary)',border:'none',borderRadius:'var(--radius-sm)',padding:'5px 10px'}} onClick={() => handleEdit(cake)} title="Edit">
                         <i className="bi bi-pencil"></i>
                       </button>
-                      <button 
-                        className="btn btn-sm btn-outline-danger me-2"
-                        onClick={() => handleDelete(cake._id)}
-                        title="Delete"
-                      >
+                      <button className="btn btn-sm" style={{background:'#fde8e8',color:'#c0392b',border:'none',borderRadius:'var(--radius-sm)',padding:'5px 10px'}} onClick={() => handleDelete(cake._id)} title="Delete">
                         <i className="bi bi-trash"></i>
                       </button>
-                      <button 
-                        className={`btn btn-sm ${cake.isAvailable ? 'btn-outline-warning' : 'btn-outline-success'}`}
+                      <button
+                        className="btn btn-sm"
+                        style={{background: cake.isAvailable ? '#fff3e0' : '#e8f5e9', color: cake.isAvailable ? '#e65100' : '#2e7d32', border:'none', borderRadius:'var(--radius-sm)', padding:'5px 10px'}}
                         onClick={() => toggleAvailability(cake._id)}
-                        title={cake.isAvailable ? 'Hide from public' : 'Show to public'}
+                        title={cake.isAvailable ? 'Hide' : 'Show'}
                       >
                         <i className={`bi ${cake.isAvailable ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                       </button>
                     </div>
-                    <button 
-                      className={`btn btn-sm ${cake.isPopular ? 'btn-warning' : 'btn-outline-warning'}`}
+                    <button
+                      className="btn btn-sm"
+                      style={{background: cake.isPopular ? 'var(--gold-pale)' : 'var(--cream-mid)', color: cake.isPopular ? 'var(--gold-rich)' : 'var(--text-soft)', border:'none', borderRadius:'var(--radius-sm)', padding:'5px 10px', transition:'all 0.2s'}}
                       onClick={() => togglePopular(cake._id)}
-                      title={cake.isPopular ? 'Remove from popular' : 'Mark as popular'}
+                      title={cake.isPopular ? 'Remove from popular' : 'Mark popular'}
                     >
-                      <i className="bi bi-star-fill"></i>
+                      <i className={`bi ${cake.isPopular ? 'bi-star-fill' : 'bi-star'}`}></i>
                     </button>
                   </div>
                 </div>
@@ -329,177 +245,102 @@ const ShopOwnerCakesPage = () => {
           ))}
         </div>
       ) : (
-        <div className="row">
-          <div className="col-12">
-            <div className="card shadow-sm border-0">
-              <div className="card-body text-center py-5">
-                <i className="bi bi-cake2 display-1 text-muted"></i>
-                <h5 className="mt-4">No Cakes Added Yet</h5>
-                <p className="text-muted mb-4">
-                  Start adding your delicious cakes. They will appear on the public home page with your shop name.
-                </p>
-                <button 
-                  className="btn btn-primary btn-lg"
-                  onClick={() => {
-                    resetForm();
-                    setShowModal(true);
-                  }}
-                >
-                  <i className="bi bi-plus-circle me-2"></i>
-                  Add Your First Cake
-                </button>
-              </div>
-            </div>
+        <div className="content-card">
+          <div className="content-card-body text-center py-5">
+            <div style={{fontSize:'4rem',opacity:0.2,marginBottom:'1rem'}}>🎂</div>
+            <h5 style={{fontFamily:'var(--font-display)',color:'var(--text-dark)'}}>No Cakes Added Yet</h5>
+            <p style={{color:'var(--text-soft)',maxWidth:'360px',margin:'0 auto 1.5rem'}}>
+              Start adding your delicious cakes. They will appear on the public home page with your shop name.
+            </p>
+            <button className="btn-rose" onClick={() => { resetForm(); setShowModal(true); }}>
+              <i className="bi bi-plus-circle me-2"></i>Add Your First Cake
+            </button>
           </div>
         </div>
       )}
 
-      {/* Add/Edit Cake Modal */}
+      {/* Add / Edit Modal */}
       {showModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(61,38,38,0.4)', backdropFilter:'blur(4px)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
+                  <i className={`bi ${editingCake ? 'bi-pencil-square' : 'bi-plus-circle'} me-2`} style={{color:'var(--rg-primary)'}}></i>
                   {editingCake ? 'Edit Cake' : 'Add New Cake'}
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close"
-                  onClick={() => {
-                    setShowModal(false);
-                    resetForm();
-                  }}
-                ></button>
+                <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
               </div>
               <form onSubmit={handleSubmit}>
-                <div className="modal-body">
-                  <div className="row">
-                    <div className="col-md-6">
-                      {/* Image Preview */}
-                      {imagePreview && (
-                        <div className="mb-3 text-center">
-                          <img 
-                            src={imagePreview} 
-                            alt="Preview" 
-                            className="img-fluid rounded"
-                            style={{ maxHeight: '200px', objectFit: 'cover' }}
-                          />
-                        </div>
-                      )}
-                      
+                <div className="modal-body" style={{padding:'1.5rem'}}>
+                  <div className="row g-3">
+                    {/* Left col: image */}
+                    <div className="col-md-5">
+                      <div style={{background:'var(--rg-pale)',borderRadius:'var(--radius-md)',overflow:'hidden',marginBottom:'0.75rem',height:'180px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        {imagePreview ? (
+                          <img src={imagePreview} alt="Preview" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={() => setImagePreview('')} />
+                        ) : (
+                          <div style={{textAlign:'center',color:'var(--text-soft)'}}>
+                            <i className="bi bi-image" style={{fontSize:'2.5rem',opacity:0.3}}></i>
+                            <p style={{fontSize:'0.78rem',marginTop:'0.5rem'}}>Image preview</p>
+                          </div>
+                        )}
+                      </div>
                       <div className="mb-3">
                         <label className="form-label">Image URL</label>
-                        <input 
-                          type="text" 
-                          className="form-control"
-                          value={formData.image}
-                          onChange={handleImageChange}
-                          placeholder="https://example.com/cake.jpg"
-                        />
-                        <small className="text-muted">
-                          Use any image URL from the internet
-                        </small>
+                        <input type="text" className="form-control" value={formData.image} onChange={handleImageChange} placeholder="https://example.com/cake.jpg" />
+                        <small style={{color:'var(--text-soft)',fontSize:'0.75rem'}}>Paste any image URL from the web</small>
                       </div>
-                    </div>
-                    
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Cake Name *</label>
-                        <input 
-                          type="text" 
-                          className="form-control"
-                          value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          required
-                        />
-                      </div>
-
-                      <div className="mb-3">
-                        <label className="form-label">Price (LKR) *</label>
-                        <input 
-                          type="number" 
-                          className="form-control"
-                          value={formData.priceLKR}
-                          onChange={(e) => setFormData({...formData, priceLKR: e.target.value})}
-                          required
-                          min="0"
-                        />
-                      </div>
-
-                      <div className="mb-3">
+                      <div className="mb-0">
                         <label className="form-label">Category</label>
-                        <select 
-                          className="form-select"
-                          value={formData.category}
-                          onChange={(e) => setFormData({...formData, category: e.target.value})}
-                        >
-                          {categories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
+                        <select className="form-select" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
+                          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mb-3">
-                    <label className="form-label">Description *</label>
-                    <textarea 
-                      className="form-control"
-                      rows="3"
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="form-check mb-2">
-                        <input 
-                          type="checkbox" 
-                          className="form-check-input"
-                          id="isAvailable"
-                          checked={formData.isAvailable}
-                          onChange={(e) => setFormData({...formData, isAvailable: e.target.checked})}
-                        />
-                        <label className="form-check-label" htmlFor="isAvailable">
-                          Available for order
-                        </label>
+                    {/* Right col: details */}
+                    <div className="col-md-7">
+                      <div className="mb-3">
+                        <label className="form-label">Cake Name *</label>
+                        <input type="text" className="form-control" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Strawberry Dream Cake" required />
                       </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="form-check">
-                        <input 
-                          type="checkbox" 
-                          className="form-check-input"
-                          id="isPopular"
-                          checked={formData.isPopular}
-                          onChange={(e) => setFormData({...formData, isPopular: e.target.checked})}
-                        />
-                        <label className="form-check-label" htmlFor="isPopular">
-                          Mark as Popular (shows on home page)
-                        </label>
+                      <div className="mb-3">
+                        <label className="form-label">Price (LKR) *</label>
+                        <input type="number" className="form-control" value={formData.priceLKR} onChange={(e) => setFormData({...formData, priceLKR: e.target.value})} placeholder="3500" required min="0" />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Description *</label>
+                        <textarea className="form-control" rows="4" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} placeholder="Describe your cake — flavours, ingredients, occasion…" required />
+                      </div>
+                      {/* Toggles */}
+                      <div className="d-flex gap-3 mt-1">
+                        <div style={{background:'var(--cream-warm)',borderRadius:'var(--radius-sm)',padding:'0.7rem 1rem',flex:1,border:'1.5px solid var(--cream-deep)'}}>
+                          <div className="form-check mb-0">
+                            <input type="checkbox" className="form-check-input" id="isAvailable" checked={formData.isAvailable} onChange={(e) => setFormData({...formData, isAvailable: e.target.checked})} />
+                            <label className="form-check-label" htmlFor="isAvailable" style={{fontWeight:600,fontSize:'0.85rem',color:'var(--text-dark)'}}>
+                              <i className="bi bi-eye me-1" style={{color:'var(--rg-primary)'}}></i>Available
+                            </label>
+                          </div>
+                          <small style={{color:'var(--text-soft)',fontSize:'0.75rem'}}>Visible to customers</small>
+                        </div>
+                        <div style={{background:'var(--cream-warm)',borderRadius:'var(--radius-sm)',padding:'0.7rem 1rem',flex:1,border:'1.5px solid var(--cream-deep)'}}>
+                          <div className="form-check mb-0">
+                            <input type="checkbox" className="form-check-input" id="isPopular" checked={formData.isPopular} onChange={(e) => setFormData({...formData, isPopular: e.target.checked})} />
+                            <label className="form-check-label" htmlFor="isPopular" style={{fontWeight:600,fontSize:'0.85rem',color:'var(--text-dark)'}}>
+                              <i className="bi bi-star me-1" style={{color:'var(--gold-rich)'}}></i>Popular
+                            </label>
+                          </div>
+                          <small style={{color:'var(--text-soft)',fontSize:'0.75rem'}}>Shows on home page</small>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      setShowModal(false);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary"
-                  >
-                    {editingCake ? 'Update Cake' : 'Add Cake'}
+                  <button type="button" className="btn-outline-rose" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
+                  <button type="submit" className="btn-rose" disabled={saving}>
+                    {saving ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving…</> : <><i className={`bi ${editingCake ? 'bi-check-circle' : 'bi-plus-circle'} me-1`}></i>{editingCake ? 'Update Cake' : 'Add Cake'}</>}
                   </button>
                 </div>
               </form>

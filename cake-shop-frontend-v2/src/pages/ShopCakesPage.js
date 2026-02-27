@@ -1,3 +1,4 @@
+import { API_CONFIG } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -30,7 +31,7 @@ const ShopCakesPage = () => {
   const fetchCakes = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5001/api/shops/cakes', {
+      const res = await fetch(`${API_CONFIG.BASE_URL}//shops/cakes`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -50,8 +51,8 @@ const ShopCakesPage = () => {
     e.preventDefault();
     try {
       const url = editingCake 
-        ? `http://localhost:5001/api/shops/cakes/${editingCake._id}`
-        : 'http://localhost:5001/api/shops/cakes';
+        ? `${API_CONFIG.BASE_URL}/shops/cakes/${editingCake._id}`
+        : `${API_CONFIG.BASE_URL}//shops/cakes`;
       
       const method = editingCake ? 'PUT' : 'POST';
 
@@ -103,7 +104,7 @@ const ShopCakesPage = () => {
     if (!window.confirm('Are you sure you want to delete this cake?')) return;
     
     try {
-      const res = await fetch(`http://localhost:5001/api/shops/cakes/${cakeId}`, {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/shops/cakes/${cakeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

@@ -1,5 +1,3 @@
-import { formatLKR } from '../config/currency';
-
 export const cakeData = [
   {
     id: 1,
@@ -12,7 +10,10 @@ export const cakeData = [
     flavors: ["Chocolate", "Dark Chocolate"],
     sizes: ["Small", "Medium", "Large"],
     isPopular: true,
-    isNew: false
+    isNew: false,
+    shopName: "Sweet Heaven Bakery",
+    shopLocation: "Colombo 03",
+    shopPhone: "+94 11 234 5678"
   },
   {
     id: 2,
@@ -25,7 +26,10 @@ export const cakeData = [
     flavors: ["Vanilla", "Buttercream"],
     sizes: ["Medium", "Large"],
     isPopular: true,
-    isNew: false
+    isNew: false,
+    shopName: "Bliss Cake Studio",
+    shopLocation: "Kandy City Centre",
+    shopPhone: "+94 81 222 3344"
   },
   {
     id: 3,
@@ -38,7 +42,10 @@ export const cakeData = [
     flavors: ["Strawberry", "Cream Cheese"],
     sizes: ["Small", "Medium", "Large"],
     isPopular: true,
-    isNew: true
+    isNew: true,
+    shopName: "Bliss Cake Studio",
+    shopLocation: "Kandy City Centre",
+    shopPhone: "+94 81 222 3344"
   },
   {
     id: 4,
@@ -51,7 +58,42 @@ export const cakeData = [
     flavors: ["Red Velvet", "Cream Cheese"],
     sizes: ["Medium", "Large"],
     isPopular: true,
-    isNew: false
+    isNew: false,
+    shopName: "Royal Patisserie",
+    shopLocation: "Galle Fort",
+    shopPhone: "+94 91 333 7890"
+  },
+  {
+    id: 5,
+    name: "Lemon Sunshine",
+    description: "Zesty lemon cake with lemon curd filling and whipped cream",
+    priceLKR: 10997.00,
+    category: "Birthday",
+    image: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=400&h=300&fit=crop",
+    rating: 4.7,
+    flavors: ["Lemon", "Whipped Cream"],
+    sizes: ["Small", "Medium"],
+    isPopular: false,
+    isNew: true,
+    shopName: "Sweet Heaven Bakery",
+    shopLocation: "Colombo 03",
+    shopPhone: "+94 11 234 5678"
+  },
+  {
+    id: 6,
+    name: "Matcha Serenity",
+    description: "Premium Japanese matcha cake with white chocolate ganache",
+    priceLKR: 15997.00,
+    category: "Special",
+    image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&h=300&fit=crop",
+    rating: 4.8,
+    flavors: ["Matcha", "White Chocolate"],
+    sizes: ["Medium", "Large"],
+    isPopular: true,
+    isNew: true,
+    shopName: "Royal Patisserie",
+    shopLocation: "Galle Fort",
+    shopPhone: "+94 91 333 7890"
   }
 ];
 

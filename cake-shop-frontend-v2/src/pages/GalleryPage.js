@@ -1,18 +1,43 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { cakeData, cakeCategories } from '../utils/cakeData';
 import CakeCard from '../components/CakeCard';
 import { getCategoryIcon } from '../utils/helpers';
 import { formatLKR } from '../config/currency';
 
 const GalleryPage = () => {
-  const [cakes, setCakes] = useState(cakeData);
+  const location = useLocation();
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [newDesignId, setNewDesignId] = useState(null);
+
+  // Merge static cakes + custom designed cakes from localStorage
+  const getAllCakes = () => {
+    const customCakes = JSON.parse(localStorage.getItem('customGalleryCakes') || '[]');
+    return [...customCakes, ...cakeData];
+  };
+
+  const allCakes = getAllCakes();
+  const allCategories = ['All', 'Custom', ...cakeCategories.filter(c => c !== 'All')];
+
+  const [cakes, setCakes] = useState(allCakes);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('default');
-  const [priceRange, setPriceRange] = useState(15000);
+  const [priceRange, setPriceRange] = useState(50000);
 
+  // Show success banner when navigated from builder
   useEffect(() => {
-    let filtered = [...cakeData];
+    if (location.state?.showSuccess && location.state?.newDesignId) {
+      setShowSuccessBanner(true);
+      setNewDesignId(location.state.newDesignId);
+      setTimeout(() => setShowSuccessBanner(false), 6000);
+    }
+  }, [location.state]);
+
+  // Re-read localStorage each time filters change so newly added custom cakes always appear
+  useEffect(() => {
+    const freshCakes = getAllCakes();
+    let filtered = [...freshCakes];
 
     if (searchTerm) {
       filtered = filtered.filter(cake =>
@@ -45,7 +70,7 @@ const GalleryPage = () => {
     }
 
     setCakes(filtered);
-  }, [searchTerm, selectedCategory, sortBy, priceRange]);
+  }, [searchTerm, selectedCategory, sortBy, priceRange, location.state]);
 
   return (
     <div className="container-fluid px-0">
@@ -59,6 +84,28 @@ const GalleryPage = () => {
           </p>
         </div>
       </div>
+
+      {/* Success Banner when arriving from Builder */}
+      {showSuccessBanner && (
+        <div className="container mt-4">
+          <div className="alert border-0 d-flex align-items-center gap-3 p-4 rounded-4" style={{
+            background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(255,158,109,0.15))',
+            border: '1.5px solid rgba(212,175,55,0.4) !important'
+          }}>
+            <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{
+              width: '48px', height: '48px',
+              background: 'linear-gradient(135deg, #D4AF37, #FF9E6D)'
+            }}>
+              <i className="bi bi-check-lg text-white fs-5"></i>
+            </div>
+            <div className="flex-grow-1">
+              <h6 className="fw-bold mb-1" style={{ color: '#2C1810' }}>🎂 Your cake design was added to the gallery!</h6>
+              <p className="mb-0 text-muted small">It now appears at the top of the gallery. Click "Buy Now" on your cake to place an order.</p>
+            </div>
+            <button className="btn-close" onClick={() => setShowSuccessBanner(false)}></button>
+          </div>
+        </div>
+      )}
 
       <div className="container py-4">
         <div className="glass-card p-4 mb-5">
@@ -100,7 +147,7 @@ const GalleryPage = () => {
                   type="range"
                   className="form-range flex-grow-1"
                   min="5000"
-                  max="20000"
+                  max="50000"
                   step="1000"
                   value={priceRange}
                   onChange={(e) => setPriceRange(parseInt(e.target.value))}
@@ -143,7 +190,7 @@ const GalleryPage = () => {
         <div className="mb-5">
           <h4 className="mb-3 text-chocolate">Browse by Category</h4>
           <div className="d-flex flex-wrap gap-2">
-            {cakeCategories.map(category => (
+            {allCategories.map(category => (
               <button
                 key={category}
                 className={`btn ${selectedCategory === category ? 'btn-apricot' : 'btn-outline-apricot'} d-flex align-items-center`}
@@ -153,7 +200,7 @@ const GalleryPage = () => {
                 {category}
                 {category !== 'All' && (
                   <span className="badge bg-lavender ms-2">
-                    {cakeData.filter(cake => cake.category === category).length}
+                    {allCakes.filter(cake => cake.category === category).length}
                   </span>
                 )}
               </button>

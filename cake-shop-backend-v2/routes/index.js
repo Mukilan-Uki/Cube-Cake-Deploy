@@ -6,12 +6,14 @@ const authRoutes = require('./authRoutes');
 const orderRoutes = require('./orderRoutes');
 const cakeRoutes = require('./cakeRoutes');
 const statsRoutes = require('./statsRoutes');
+const adminRoutes = require('./adminRoutes');
 
 // Register routes
 router.use('/auth', authRoutes);
 router.use('/orders', orderRoutes);
 router.use('/cakes', cakeRoutes);
 router.use('/stats', statsRoutes);
+router.use('/admin', adminRoutes);
 
 // API documentation route
 router.get('/docs', (req, res) => {

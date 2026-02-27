@@ -21,6 +21,7 @@ const getAllCakes = async (req, res) => {
 
     const [cakes, total] = await Promise.all([
       Cake.find(query)
+        .populate('shop', '_id shopName shopSlug phone address')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),

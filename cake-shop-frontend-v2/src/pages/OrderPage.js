@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiService } from '../utils/api';
 import RequireAuth from '../components/RequireAuth';
 import { formatLKR } from '../config/currency';
+import { API_CONFIG } from '../config';
 
 const OrderPageContent = () => {
   const navigate = useNavigate();
@@ -22,11 +23,18 @@ const OrderPageContent = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [design, setDesign] = useState({});
+  const [galleryCake, setGalleryCake] = useState(null); // For gallery cake orders
+  const isGalleryOrder = !!galleryCake;
+  const [defaultShopId, setDefaultShopId] = useState(null);
+  const [shopError, setShopError] = useState('');
 
-  // Load design from location state or localStorage
+  // Load design from location state or localStorage, and fetch a default shop for custom orders
   useEffect(() => {
-    // First try to get from location state
-    if (location.state?.design) {
+    // Check if this is a gallery cake order
+    if (location.state?.galleryCake) {
+      setGalleryCake(location.state.galleryCake);
+      setDesign({});
+    } else if (location.state?.design) {
       setDesign(location.state.design);
       localStorage.setItem('cakeDesign', JSON.stringify(location.state.design));
     } else {
@@ -40,6 +48,25 @@ const OrderPageContent = () => {
         }
       }
     }
+
+    // Fetch a default shop to use for custom cake orders (which have no shopId)
+    const fetchDefaultShop = async () => {
+      try {
+        const res = await fetch(`${API_CONFIG.PUBLIC.SHOPS}?limit=1`);
+        const data = await res.json();
+        if (data.success && data.shops && data.shops.length > 0) {
+          setDefaultShopId(data.shops[0]._id);
+          setShopError('');
+        } else {
+          setShopError('No shops are currently available. Please try again later.');
+        }
+      } catch (err) {
+        console.error('Could not fetch default shop:', err);
+        setShopError('Could not connect to the server. Please check your connection.');
+      }
+    };
+
+    fetchDefaultShop();
   }, [location.state]);
 
   // Redirect to login if not authenticated
@@ -85,6 +112,12 @@ const OrderPageContent = () => {
 
   // Fixed price calculation to match Builder page
   const calculateTotalPrice = () => {
+    // If this is a gallery cake order
+    if (isGalleryOrder && galleryCake) {
+      const deliveryFee = orderDetails.deliveryType === 'delivery' ? 1500.00 : 0;
+      return galleryCake.priceLKR + deliveryFee;
+    }
+
     // If no design, return 0
     if (!design || Object.keys(design).length === 0) {
       return 0;
@@ -226,14 +259,51 @@ const OrderPageContent = () => {
     const formattedDate = new Date(orderDetails.deliveryDate).toISOString();
     
     // Combine design with order details
-    const orderData = {
-      ...design,
+    // Resolve the shopId:
+    // - For gallery/shop cakes: use the shopId passed from CakeCard
+    // - For custom designs: use the defaultShopId fetched from the public API
+    const resolvedShopId = isGalleryOrder
+      ? (galleryCake.shopId || galleryCake.shop?._id || galleryCake.shop || defaultShopId)
+      : defaultShopId;
+
+    if (!resolvedShopId) {
+      alert('No shop is available to process your order. Please try again later.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const orderData = isGalleryOrder ? {
+      // Gallery cake order
+      shopId: resolvedShopId,
+      cakeDetails: {
+        base: 'vanilla',
+        frosting: 'vanilla',
+        size: 'medium',
+        layers: 2,
+        toppings: [],
+        message: galleryCake.name,
+        colors: { cake: '#F3E5AB', frosting: '#FFF5E6', decorations: '#FF6B8B' },
+        specialInstructions: `Gallery cake: ${galleryCake.name}. ${orderDetails.specialInstructions || ''}`
+      },
       ...orderDetails,
       deliveryDate: formattedDate,
-      status: 'Pending',
-      totalPrice: totalPrice,
-      currency: 'LKR',
-      orderDate: new Date().toISOString()
+      paymentMethod: orderDetails.paymentMethod,
+    } : {
+      // Custom design order
+      shopId: resolvedShopId,
+      cakeDetails: {
+        base: design.base || 'chocolate',
+        frosting: design.frosting || 'vanilla',
+        size: design.size || 'medium',
+        layers: design.layers || 2,
+        toppings: design.toppings || [],
+        message: design.message || '',
+        colors: design.colors || { cake: '#8B4513', frosting: '#FFF5E6', decorations: '#FF6B8B' },
+        specialInstructions: orderDetails.specialInstructions || ''
+      },
+      ...orderDetails,
+      deliveryDate: formattedDate,
+      paymentMethod: orderDetails.paymentMethod,
     };
 
     console.log('Submitting order:', orderData);
@@ -259,6 +329,12 @@ const OrderPageContent = () => {
 
   return (
     <div className="container py-5 mt-5">
+      {shopError && (
+        <div className="alert alert-danger mb-4" role="alert">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          {shopError}
+        </div>
+      )}
       <div className="row">
         {/* Order Summary Column */}
         <div className="col-lg-5 mb-4">
@@ -269,22 +345,97 @@ const OrderPageContent = () => {
             </h4>
             
             {/* Design Preview */}
-            <div className="text-center mb-4">
-              <div className="position-relative d-inline-block">
-                <div className="rounded-4 bg-gradient-primary p-4" style={{ 
-                  width: '120px', 
-                  height: '120px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <i className="bi bi-cake3 fs-1 text-white"></i>
+            {isGalleryOrder && galleryCake ? (
+              /* Gallery Cake Summary */
+              <>
+                <div className="text-center mb-4">
+                  <img
+                    src={galleryCake.image}
+                    alt={galleryCake.name}
+                    className="rounded-4 w-100"
+                    style={{ height: '160px', objectFit: 'cover' }}
+                  />
                 </div>
-                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-gradient-primary">
-                  {design.layers || 2} Layers
-                </span>
+                <div className="mb-4">
+                  <h5 className="fw-bold text-chocolate mb-1">{galleryCake.name}</h5>
+                  <p className="text-muted small mb-3">{galleryCake.description}</p>
+                  <div className="bg-cream p-3 rounded-3 mb-3">
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">Category:</span>
+                      <span className="fw-bold">{galleryCake.category}</span>
+                    </div>
+                    {galleryCake.flavors?.length > 0 && (
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted">Flavors:</span>
+                        <span className="fw-bold">{galleryCake.flavors.join(', ')}</span>
+                      </div>
+                    )}
+                    {galleryCake.sizes?.length > 0 && (
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted">Available Sizes:</span>
+                        <span className="fw-bold">{galleryCake.sizes.join(', ')}</span>
+                      </div>
+                    )}
+                  </div>
+                  {galleryCake.shopName && (
+                    <div className="p-3 rounded-3 mb-3" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)' }}>
+                      <div className="d-flex align-items-center gap-2 mb-1">
+                        <i className="bi bi-shop text-gold fs-5"></i>
+                        <span className="fw-bold text-chocolate">{galleryCake.shopName}</span>
+                      </div>
+                      {galleryCake.shopLocation && (
+                        <div className="small text-muted ms-4">
+                          <i className="bi bi-geo-alt me-1"></i>{galleryCake.shopLocation}
+                        </div>
+                      )}
+                      {galleryCake.shopPhone && (
+                        <div className="small text-muted ms-4">
+                          <i className="bi bi-telephone me-1"></i>{galleryCake.shopPhone}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="border-top pt-4">
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Cake Price</span>
+                    <span className="fw-medium">{formatLKR(galleryCake.priceLKR)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 pt-2 border-top">
+                    <span className="text-muted">Delivery</span>
+                    <span className="fw-medium">
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(1500) : 'FREE'}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
+                    <span>Total</span>
+                    <span className="text-gradient">{formatLKR(totalPrice)}</span>
+                  </div>
+                  <p className="text-muted small mt-3 mb-0">
+                    <i className="bi bi-info-circle me-1"></i>
+                    All prices are in Sri Lankan Rupees (LKR).
+                  </p>
+                </div>
+              </>
+            ) : (
+              /* Custom Design Summary */
+              <>
+              <div className="text-center mb-4">
+                <div className="position-relative d-inline-block">
+                  <div className="rounded-4 bg-gradient-primary p-4" style={{ 
+                    width: '120px', 
+                    height: '120px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <i className="bi bi-cake3 fs-1 text-white"></i>
+                  </div>
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-gradient-primary">
+                    {design.layers || 2} Layers
+                  </span>
+                </div>
               </div>
-            </div>
 
             {/* Design Details */}
             <div className="mb-4">
@@ -438,6 +589,8 @@ const OrderPageContent = () => {
                 All prices are in Sri Lankan Rupees (LKR). Final price includes all customizations.
               </p>
             </div>
+            </>
+            )}
 
             {/* Submit Button */}
             <button 

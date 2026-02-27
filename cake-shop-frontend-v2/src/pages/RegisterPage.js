@@ -146,8 +146,12 @@ const RegisterPage = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn-royal w-100 mt-3" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Sign Up'}
+            <button type="submit" className="btn-royal w-100 mt-3" disabled={loading} style={{ width: '100%' }}>
+              {loading ? (
+                <><span className="spinner-border spinner-border-sm me-2"></span>Creating Account...</>
+              ) : (
+                <><i className="bi bi-person-plus-fill me-2"></i>Sign Up</>
+              )}
             </button>
 
             <div className="text-center mt-4">

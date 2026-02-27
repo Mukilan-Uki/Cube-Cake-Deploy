@@ -20,64 +20,24 @@ const ShopNavbar = () => {
   };
 
   return (
-    <nav style={{
-      background: 'linear-gradient(135deg, #2C1810 0%, #4A2C2A 100%)',
-      padding: '0.75rem 1.5rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      boxShadow: '0 2px 15px rgba(0,0,0,0.3)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-    }}>
-      {/* Logo / Brand */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <Link to="/shop/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{
-            width: 38, height: 38,
-            background: 'linear-gradient(135deg, #D4AF37, #F1D06E)',
-            borderRadius: 10,
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <i className="bi bi-shop text-dark fs-5"></i>
+    <nav className="shop-navbar">
+      {/* Left: Brand + Nav Links */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <Link to="/shop/dashboard" className="shop-navbar-brand">
+          <div className="shop-navbar-logo">
+            <i className="bi bi-shop"></i>
           </div>
-          <span style={{ color: '#D4AF37', fontWeight: 700, fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>
+          <span className="shop-navbar-name">
             {user?.shopName || 'Shop Panel'}
           </span>
         </Link>
 
-        {/* Nav Links */}
-        <div style={{ display: 'flex', gap: '0.25rem', marginLeft: '1rem' }}>
+        <div className="shop-nav-links">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              style={{
-                padding: '0.4rem 0.9rem',
-                borderRadius: 8,
-                textDecoration: 'none',
-                fontSize: '0.88rem',
-                fontWeight: 500,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                color: location.pathname === item.path ? '#2C1810' : 'rgba(255,255,255,0.8)',
-                background: location.pathname === item.path ? '#D4AF37' : 'transparent',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={e => {
-                if (location.pathname !== item.path) {
-                  e.currentTarget.style.background = 'rgba(212,175,55,0.15)';
-                  e.currentTarget.style.color = '#D4AF37';
-                }
-              }}
-              onMouseLeave={e => {
-                if (location.pathname !== item.path) {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
-                }
-              }}
+              className={`shop-nav-link ${location.pathname === item.path ? 'active' : ''}`}
             >
               <i className={`bi ${item.icon}`}></i>
               {item.label}
@@ -86,67 +46,24 @@ const ShopNavbar = () => {
         </div>
       </div>
 
-      {/* Right Side */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <Link
-          to="/"
-          style={{
-            color: 'rgba(255,255,255,0.6)',
-            textDecoration: 'none',
-            fontSize: '0.82rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.3rem'
-          }}
-        >
+      {/* Right: Store link, user info, logout */}
+      <div className="shop-nav-right">
+        <Link to="/" className="shop-nav-store-link">
           <i className="bi bi-globe2"></i>
           View Store
         </Link>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.4rem 0.8rem',
-          background: 'rgba(255,255,255,0.07)',
-          borderRadius: 10,
-          border: '1px solid rgba(212,175,55,0.2)'
-        }}>
-          <div style={{
-            width: 28, height: 28,
-            background: 'linear-gradient(135deg, #D4AF37, #F1D06E)',
-            borderRadius: 7,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 700, fontSize: '0.8rem', color: '#2C1810'
-          }}>
+        <div className="shop-nav-user">
+          <div className="shop-nav-avatar">
             {user?.name?.charAt(0)?.toUpperCase() || 'S'}
           </div>
           <div>
-            <div style={{ color: 'white', fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>
-              {user?.name?.split(' ')[0] || 'Owner'}
-            </div>
-            <div style={{ color: '#D4AF37', fontSize: '0.7rem', opacity: 0.8 }}>Shop Owner</div>
+            <div className="shop-nav-user-name">{user?.name?.split(' ')[0] || 'Owner'}</div>
+            <div className="shop-nav-user-role">Shop Owner</div>
           </div>
         </div>
 
-        <button
-          onClick={handleLogout}
-          style={{
-            background: 'rgba(255,107,107,0.15)',
-            border: '1px solid rgba(255,107,107,0.3)',
-            color: '#FF6B6B',
-            borderRadius: 8,
-            padding: '0.4rem 0.9rem',
-            cursor: 'pointer',
-            fontSize: '0.85rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,107,107,0.25)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,107,107,0.15)'}
-        >
+        <button className="shop-nav-logout" onClick={handleLogout}>
           <i className="bi bi-box-arrow-right"></i>
           Logout
         </button>

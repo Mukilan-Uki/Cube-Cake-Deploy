@@ -1,3 +1,4 @@
+import { API_CONFIG } from '../config';
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedUser) {
         try {
           // Verify token with backend
-          const response = await fetch('http://localhost:5001/api/auth/me', {
+          const response = await fetch(API_CONFIG.BASE_URL + '/auth/me', {
             headers: {
               'Authorization': `Bearer ${storedToken}`
             }
@@ -59,7 +60,7 @@ export const AuthProvider = ({ children }) => {
   // Register customer
   const register = async (userData) => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +87,7 @@ export const AuthProvider = ({ children }) => {
   // Register shop owner (creates user only)
   const registerShopOwner = async (userData) => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register-shop-owner', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/register-shop-owner', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ export const AuthProvider = ({ children }) => {
   // Register shop (creates user AND shop in one step)
   const registerShop = async (shopData) => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register-shop', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/register-shop', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ export const AuthProvider = ({ children }) => {
   // Login user (any role)
   const login = async (email, password, rememberMe = false) => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +198,7 @@ export const AuthProvider = ({ children }) => {
   // Admin/Shop Owner login
   const adminLogin = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/admin/login', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -249,7 +250,7 @@ export const AuthProvider = ({ children }) => {
   // Update user profile
   const updateProfile = async (profileData) => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/profile', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -9,6 +9,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const publicRoutes = require('./routes/publicRoutes');
 const shopCakeRoutes = require('./routes/shopCakeRoutes'); // Add this
 const publicCakeRoutes = require('./routes/publicCakeRoutes'); // Add this
+const adminRoutes = require('./routes/adminRoutes');  // import it
 
 const app = express();
 const PORT = process.env.PORT;
@@ -34,6 +35,7 @@ app.use('/api/shops', shopCakeRoutes); // Add shop cake routes
 app.use('/api/orders', orderRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/public', publicCakeRoutes); // Add public cake routes
+app.use('/api/admin', adminRoutes);                   // mount it
 
 // Health check
 app.get('/health', (req, res) => {

@@ -1,3 +1,4 @@
+import { API_CONFIG } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatLKR } from '../config/currency';
@@ -17,7 +18,7 @@ const PublicShopPage = () => {
   const fetchShopData = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5001/api/public/shops/${shopSlug}`);
+      const res = await fetch(`${API_CONFIG.BASE_URL}/public/shops/${shopSlug}`);
       const data = await res.json();
       if (data.success) {
         setShop(data.shop);

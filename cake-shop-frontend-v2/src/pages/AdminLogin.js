@@ -1,4 +1,5 @@
 // src/pages/AdminLogin.js
+import { API_CONFIG } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +22,7 @@ const AdminLogin = () => {
 
   const checkBackendStatus = async () => {
     try {
-      const response = await fetch('http://localhost:5001/health');
+      const response = await fetch('${API_CONFIG.BACKEND_URL}/health');
       if (response.ok) {
         setBackendStatus('online');
       } else {
@@ -38,7 +39,7 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/admin/login', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}//auth/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
