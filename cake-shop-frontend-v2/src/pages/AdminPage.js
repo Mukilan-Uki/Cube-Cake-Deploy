@@ -453,6 +453,251 @@ const OrdersTab = ({ token }) => {
   );
 };
 
+const CakesTab = ({ token }) => {
+  const [cakes, setCakes] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCake, setEditingCake] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [actionMsg, setActionMsg] = useState('');
+  const [formData, setFormData] = useState({
+    name: '', description: '', priceLKR: '', category: 'Birthday',
+    image: '', isAvailable: true, isPopular: false, shopId: ''
+  });
+
+  const categories = ['Birthday', 'Wedding', 'Anniversary', 'Special', 'Custom', 'Kids'];
+
+  const fetchCakes = useCallback(() => {
+    setLoading(true);
+    fetch(API_CONFIG.PUBLIC.CAKES + '?limit=100')
+      .then(r => r.json())
+      .then(d => { if (d.success) setCakes(d.cakes); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchCakes();
+    // Fetch shops for dropdown
+    fetch(API_CONFIG.ADMIN.SHOPS, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setShops(d.shops.filter(s => s.isVerified)); })
+      .catch(console.error);
+  }, [fetchCakes, token]);
+
+  const showMsg = (msg) => { setActionMsg(msg); setTimeout(() => setActionMsg(''), 3000); };
+
+  const resetForm = () => {
+    setEditingCake(null);
+    setFormData({ name:'', description:'', priceLKR:'', category:'Birthday', image:'', isAvailable:true, isPopular:false, shopId:'' });
+    setImagePreview('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.shopId) { showMsg('❌ Please select a shop'); return; }
+    setSaving(true);
+    const url = editingCake
+      ? API_CONFIG.ADMIN.CAKE(editingCake._id)
+      : API_CONFIG.ADMIN.CAKES;
+    const method = editingCake ? 'PUT' : 'POST';
+    try {
+      const r = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ...formData, priceLKR: parseFloat(formData.priceLKR) })
+      });
+      const d = await r.json();
+      if (d.success) {
+        setShowModal(false);
+        resetForm();
+        fetchCakes();
+        showMsg(editingCake ? '✅ Cake updated!' : '✅ Cake added successfully!');
+      } else {
+        showMsg(`❌ ${d.message}`);
+      }
+    } catch (err) { showMsg('❌ Error saving cake'); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async (cakeId) => {
+    if (!window.confirm('Delete this cake?')) return;
+    const r = await fetch(API_CONFIG.ADMIN.CAKE(cakeId), {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    const d = await r.json();
+    if (d.success) { fetchCakes(); showMsg('✅ Cake deleted'); }
+    else showMsg(`❌ ${d.message}`);
+  };
+
+  const handleEdit = (cake) => {
+    setEditingCake(cake);
+    setFormData({
+      name: cake.name, description: cake.description, priceLKR: cake.priceLKR,
+      category: cake.category, image: cake.image || '',
+      isAvailable: cake.isAvailable, isPopular: cake.isPopular || false,
+      shopId: cake.shop?._id || cake.shop || ''
+    });
+    setImagePreview(cake.image || '');
+    setShowModal(true);
+  };
+
+  return (
+    <div>
+      {actionMsg && <div className="alert alert-info mb-3">{actionMsg}</div>}
+
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <strong style={{color:'var(--text-dark)'}}>All Shop Cakes</strong>
+          <small style={{color:'var(--text-soft)',marginLeft:'0.5rem'}}>({cakes.length} total)</small>
+        </div>
+        <button className="btn-rose" onClick={() => { resetForm(); setShowModal(true); }}>
+          <i className="bi bi-plus-circle me-1"></i> Add Cake
+        </button>
+      </div>
+
+      {loading ? <div className="loading-screen" style={{height:'200px'}}><div className="spinner-gradient"></div></div> : (
+        <div className="row g-3">
+          {cakes.length > 0 ? cakes.map(cake => (
+            <div className="col-md-6 col-lg-4" key={cake._id}>
+              <div className="content-card h-100" style={{padding:0,overflow:'hidden'}}>
+                <div style={{height:'160px',overflow:'hidden',position:'relative'}}>
+                  <img src={cake.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop'}
+                    alt={cake.name} style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                  <div style={{position:'absolute',top:'8px',right:'8px',display:'flex',gap:'4px'}}>
+                    {cake.isPopular && <span className="badge" style={{background:'var(--gold-mid)',color:'var(--text-dark)',fontSize:'0.7rem'}}>⭐ Popular</span>}
+                    <span className="badge" style={{background: cake.isAvailable ? '#D4EDDA' : '#F8D7DA', color: cake.isAvailable ? '#155724' : '#721C24', fontSize:'0.7rem'}}>
+                      {cake.isAvailable ? 'Live' : 'Hidden'}
+                    </span>
+                  </div>
+                </div>
+                <div style={{padding:'1rem'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'0.25rem'}}>
+                    <strong style={{color:'var(--text-dark)',fontSize:'0.95rem'}}>{cake.name}</strong>
+                    <strong style={{color:'var(--rg-primary)',fontSize:'0.9rem',whiteSpace:'nowrap',marginLeft:'8px'}}>{formatLKR(cake.priceLKR)}</strong>
+                  </div>
+                  <small style={{color:'var(--text-soft)'}}><i className="bi bi-shop me-1"></i>{cake.shopName}</small>
+                  <p style={{fontSize:'0.8rem',color:'var(--text-soft)',margin:'0.5rem 0',lineHeight:1.4}}>
+                    {cake.description?.length > 70 ? cake.description.substring(0,70)+'…' : cake.description}
+                  </p>
+                  <div style={{display:'flex',gap:'6px',marginTop:'0.75rem'}}>
+                    <button className="btn btn-sm" style={{background:'var(--rg-blush)',color:'var(--rg-primary)',border:'none',borderRadius:'var(--radius-sm)',padding:'4px 10px',fontSize:'0.78rem'}} onClick={() => handleEdit(cake)}>
+                      <i className="bi bi-pencil me-1"></i>Edit
+                    </button>
+                    <button className="btn btn-sm" style={{background:'#fde8e8',color:'#c0392b',border:'none',borderRadius:'var(--radius-sm)',padding:'4px 10px',fontSize:'0.78rem'}} onClick={() => handleDelete(cake._id)}>
+                      <i className="bi bi-trash me-1"></i>Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )) : (
+            <div className="col-12 text-center py-5">
+              <div style={{fontSize:'3rem',opacity:0.2}}>🎂</div>
+              <p className="text-muted mt-2">No cakes added yet. Click "Add Cake" to get started.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Add/Edit Cake Modal */}
+      {showModal && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(61,38,38,0.4)', backdropFilter:'blur(4px)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className={`bi ${editingCake ? 'bi-pencil-square' : 'bi-plus-circle'} me-2`} style={{color:'var(--rg-primary)'}}></i>
+                  {editingCake ? 'Edit Cake' : 'Add New Cake (Admin)'}
+                </h5>
+                <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
+              </div>
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body" style={{padding:'1.5rem'}}>
+                  <div className="row g-3">
+                    <div className="col-md-5">
+                      <div style={{background:'var(--rg-pale)',borderRadius:'var(--radius-md)',overflow:'hidden',marginBottom:'0.75rem',height:'160px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        {imagePreview ? (
+                          <img src={imagePreview} alt="Preview" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={() => setImagePreview('')} />
+                        ) : (
+                          <div style={{textAlign:'center',color:'var(--text-soft)'}}>
+                            <i className="bi bi-image" style={{fontSize:'2rem',opacity:0.3}}></i>
+                            <p style={{fontSize:'0.75rem',marginTop:'0.4rem'}}>Image preview</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label" style={{fontSize:'0.83rem'}}>Image URL</label>
+                        <input type="text" className="form-control" value={formData.image}
+                          onChange={e => { setFormData({...formData, image: e.target.value}); setImagePreview(e.target.value); }}
+                          placeholder="https://example.com/cake.jpg" />
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label" style={{fontSize:'0.83rem'}}>Category</label>
+                        <select className="form-select" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="form-label" style={{fontSize:'0.83rem'}}>Assign to Shop *</label>
+                        <select className="form-select" value={formData.shopId} onChange={e => setFormData({...formData, shopId: e.target.value})} required>
+                          <option value="">— Select a verified shop —</option>
+                          {shops.map(s => <option key={s._id} value={s._id}>{s.shopName}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="col-md-7">
+                      <div className="mb-3">
+                        <label className="form-label">Cake Name *</label>
+                        <input type="text" className="form-control" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Royal Chocolate Cake" required />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Price (LKR) *</label>
+                        <input type="number" className="form-control" value={formData.priceLKR} onChange={e => setFormData({...formData, priceLKR: e.target.value})} placeholder="3500" required min="0" />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Description *</label>
+                        <textarea className="form-control" rows="4" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Describe the cake..." required />
+                      </div>
+                      <div className="d-flex gap-3">
+                        <div style={{background:'var(--cream-warm)',borderRadius:'var(--radius-sm)',padding:'0.6rem 1rem',flex:1,border:'1.5px solid var(--cream-deep)'}}>
+                          <div className="form-check mb-0">
+                            <input type="checkbox" className="form-check-input" id="adminIsAvailable" checked={formData.isAvailable} onChange={e => setFormData({...formData, isAvailable: e.target.checked})} />
+                            <label className="form-check-label" htmlFor="adminIsAvailable" style={{fontWeight:600,fontSize:'0.83rem'}}>
+                              <i className="bi bi-eye me-1" style={{color:'var(--rg-primary)'}}></i>Available
+                            </label>
+                          </div>
+                        </div>
+                        <div style={{background:'var(--cream-warm)',borderRadius:'var(--radius-sm)',padding:'0.6rem 1rem',flex:1,border:'1.5px solid var(--cream-deep)'}}>
+                          <div className="form-check mb-0">
+                            <input type="checkbox" className="form-check-input" id="adminIsPopular" checked={formData.isPopular} onChange={e => setFormData({...formData, isPopular: e.target.checked})} />
+                            <label className="form-check-label" htmlFor="adminIsPopular" style={{fontWeight:600,fontSize:'0.83rem'}}>
+                              <i className="bi bi-star me-1" style={{color:'var(--gold-rich)'}}></i>Popular
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn-outline-rose" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
+                  <button type="submit" className="btn-rose" disabled={saving}>
+                    {saving ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving…</> : <><i className={`bi ${editingCake ? 'bi-check-circle' : 'bi-plus-circle'} me-1`}></i>{editingCake ? 'Update' : 'Add Cake'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 // ─── MAIN ADMIN PAGE ────────────────────────────────────
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -477,6 +722,7 @@ const AdminPage = () => {
     { key: 'shops',    label: 'Shops',    icon: 'bi-shop' },
     { key: 'users',    label: 'Users',    icon: 'bi-people' },
     { key: 'orders',   label: 'Orders',   icon: 'bi-bag-check' },
+    { key: 'cakes',    label: 'Cakes',    icon: 'bi-cake2' },
   ];
 
   return (
@@ -532,6 +778,7 @@ const AdminPage = () => {
         {activeTab === 'shops'    && <ShopsTab token={token} />}
         {activeTab === 'users'    && <UsersTab token={token} />}
         {activeTab === 'orders'   && <OrdersTab token={token} />}
+        {activeTab === 'cakes'    && <CakesTab token={token} />}
       </div>
     </div>
   );

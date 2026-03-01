@@ -162,4 +162,62 @@ router.get('/stats', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ─── CAKE MANAGEMENT (Admin) ──────────────────────────
+const Cake = require('../models/Cake');
+
+// GET all cakes (admin)
+router.get('/cakes', async (req, res, next) => {
+  try {
+    const cakes = await Cake.find().populate('shop', 'shopName shopSlug').sort({ createdAt: -1 });
+    res.json({ success: true, cakes });
+  } catch (err) { next(err); }
+});
+
+// POST create cake (admin assigns to a shop)
+router.post('/cakes', async (req, res, next) => {
+  try {
+    const { shopId, name, description, priceLKR, category, image, isAvailable, isPopular } = req.body;
+    const shop = await Shop.findById(shopId);
+    if (!shop) return res.status(404).json({ success: false, message: 'Shop not found' });
+
+    const cake = await Cake.create({
+      shop: shop._id,
+      shopName: shop.shopName,
+      shopSlug: shop.shopSlug,
+      name, description, priceLKR, category, image, isAvailable, isPopular
+    });
+    res.status(201).json({ success: true, message: 'Cake created', cake });
+  } catch (err) { next(err); }
+});
+
+// PUT update cake (admin)
+router.put('/cakes/:cakeId', async (req, res, next) => {
+  try {
+    const { shopId, ...rest } = req.body;
+    const updateData = { ...rest, updatedAt: Date.now() };
+    // If shopId changed, update shop details
+    if (shopId) {
+      const shop = await Shop.findById(shopId);
+      if (shop) {
+        updateData.shop = shop._id;
+        updateData.shopName = shop.shopName;
+        updateData.shopSlug = shop.shopSlug;
+      }
+    }
+    const cake = await Cake.findByIdAndUpdate(req.params.cakeId, updateData, { new: true });
+    if (!cake) return res.status(404).json({ success: false, message: 'Cake not found' });
+    res.json({ success: true, message: 'Cake updated', cake });
+  } catch (err) { next(err); }
+});
+
+// DELETE cake (admin)
+router.delete('/cakes/:cakeId', async (req, res, next) => {
+  try {
+    const cake = await Cake.findByIdAndDelete(req.params.cakeId);
+    if (!cake) return res.status(404).json({ success: false, message: 'Cake not found' });
+    res.json({ success: true, message: 'Cake deleted' });
+  } catch (err) { next(err); }
+});
+
+
 module.exports = router;

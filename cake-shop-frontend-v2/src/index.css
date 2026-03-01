@@ -271,3 +271,18 @@ html{scroll-behavior:smooth;}
   .shop-nav-links{display:none;}
   .stat-card-value{font-size:1.6rem;}
 }
+
+/* ─── Partner Cake Cards ─────────────────────────────── */
+.hover-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+}
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12) !important;
+}
+
+/* ─── Featured Cake Overlay Fix ─────────────────────── */
+.featured-cake-wrap:hover .featured-hover-overlay {
+  opacity: 1 !important;
+}

@@ -363,8 +363,10 @@ const SidebarNav = () => {
             {isAuthenticated && isHovered && (
               <div className="user-section">
                 <div className="d-flex align-items-center gap-2">
-                  <div className="user-avatar">
-                    {user?.name?.charAt(0) || 'U'}
+                  <div className="user-avatar" style={{ overflow: 'hidden', padding: 0 }}>
+                    {user?.profilePicture ? (
+                      <img src={user.profilePicture} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = user?.name?.charAt(0) || 'U'; }} />
+                    ) : (user?.name?.charAt(0) || 'U')}
                   </div>
                   <div>
                     <div className="user-name">{user?.name?.split(' ')[0]}</div>

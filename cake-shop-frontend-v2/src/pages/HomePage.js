@@ -311,66 +311,98 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* // Add this section in your home page JSX after features section */}
-{/* Shop Cakes Section */}
-<section className="py-5">
-  <div className="container">
-    <div className="text-center mb-5">
-      <h2 className="display-5 fw-bold mb-3">Cakes from Our Partner Shops</h2>
-      <p className="lead text-muted">
-        Delicious creations from trusted local bakeries
-      </p>
-    </div>
+      {/* Partner Shops Cakes Section */}
+      <section className="py-6 position-relative" style={{ background: 'linear-gradient(180deg, #fff 0%, var(--cream-vanilla) 100%)' }}>
+        <div className="container py-5">
+          <div className="text-center mb-5">
+            <span className="text-gradient text-uppercase fw-bold small" style={{ letterSpacing: '3px' }}>
+              Partner Bakeries
+            </span>
+            <h2 className="display-4 mt-2">
+              Cakes from Our <span className="font-script text-gradient">Partner Shops</span>
+            </h2>
+            <p className="lead text-muted mt-2">Handcrafted delights from trusted local bakeries</p>
+          </div>
 
-    {loadingCakes ? (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary"></div>
-      </div>
-    ) : shopCakes.length > 0 ? (
-      <div className="row g-4">
-        {shopCakes.map(cake => (
-          <div className="col-md-6 col-lg-3" key={cake._id}>
-            <div className="card h-100 border-0 shadow-sm hover-card">
-              <img 
-                src={cake.image} 
-                className="card-img-top" 
-                alt={cake.name}
-                style={{ height: '200px', objectFit: 'cover' }}
-              />
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <h6 className="card-title mb-0">{cake.name}</h6>
-                  {cake.isPopular && (
-                    <span className="badge bg-warning">Popular</span>
-                  )}
+          {loadingCakes ? (
+            <div className="text-center py-5">
+              <div className="spinner-border" style={{ color: 'var(--apricot, #FF9E6D)' }}></div>
+            </div>
+          ) : shopCakes.length > 0 ? (
+            <div className="row g-4">
+              {shopCakes.map(cake => (
+                <div className="col-md-6 col-lg-3" key={cake._id}>
+                  <div className="glass-panel h-100 p-0 overflow-hidden hover-antigravity" style={{ borderRadius: '20px' }}>
+                    <div className="position-relative overflow-hidden" style={{ height: '200px' }}>
+                      <img
+                        src={cake.image}
+                        alt={cake.name}
+                        className="w-100 h-100"
+                        style={{ objectFit: 'cover', transition: 'transform 0.5s ease' }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                      />
+                      {cake.isPopular && (
+                        <div className="position-absolute top-0 end-0 m-2">
+                          <span className="badge px-3 py-2 rounded-pill" style={{ background: 'var(--gradient-sunset, linear-gradient(135deg,#FF9E6D,#FF6B8B))', color: '#fff', fontSize: '0.72rem' }}>
+                            <i className="bi bi-fire me-1"></i>Popular
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h6 className="fw-bold mb-1" style={{ color: '#2C1810' }}>{cake.name}</h6>
+                      <p className="small mb-1" style={{ color: '#9D5CFF' }}>
+                        <i className="bi bi-shop me-1"></i><strong>{cake.shopName}</strong>
+                      </p>
+                      <p className="text-muted small mb-3" style={{ lineHeight: 1.4 }}>
+                        {cake.description?.substring(0, 65)}...
+                      </p>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="fw-bold" style={{ color: '#FF6B8B', fontSize: '1rem' }}>{formatLKR(cake.priceLKR)}</span>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-sm rounded-pill px-3"
+                            style={{ background: 'var(--cream-vanilla, #FFF5E6)', border: '1px solid #FF9E6D', color: '#FF6B8B', fontSize: '0.78rem' }}
+                            onClick={() => navigate(`/shops/${cake.shopSlug}`)}
+                          >
+                            Shop
+                          </button>
+                          <button
+                            className="btn btn-sm rounded-pill px-3"
+                            style={{ background: 'linear-gradient(135deg,#FF9E6D,#FF6B8B)', border: 'none', color: '#fff', fontSize: '0.78rem' }}
+                            onClick={() => navigate('/order', { state: { galleryCake: { ...cake, shopId: cake.shop } } })}
+                          >
+                            Order
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-muted small mb-2">
-                  by <strong>{cake.shopName}</strong>
-                </p>
-                <p className="card-text text-muted small">
-                  {cake.description.substring(0, 60)}...
-                </p>
-                <div className="d-flex justify-content-between align-items-center mt-3">
-                  <strong className="text-primary">{formatLKR(cake.priceLKR)}</strong>
-                  <button 
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => navigate(`/shops/${cake.shopSlug}`)}
-                  >
-                    View Shop
-                  </button>
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-5">
+              <div className="glass-panel d-inline-block p-5">
+                <div style={{ fontSize: '3rem', opacity: 0.2 }}>🎂</div>
+                <p className="text-muted mt-3">No cakes from partner shops yet.</p>
+                <button className="btn btn-sm rounded-pill px-4" style={{ background: 'linear-gradient(135deg,#FF9E6D,#FF6B8B)', color: '#fff', border: 'none' }} onClick={() => navigate('/shops')}>
+                  Browse Shops
+                </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="text-center py-5">
-        <p className="text-muted">No cakes available from shops yet.</p>
-      </div>
-    )}
-  </div>
-</section>
+          )}
+
+          {shopCakes.length > 0 && (
+            <div className="text-center mt-5">
+              <button onClick={() => navigate('/gallery')} className="btn-glass px-5 py-3">
+                <i className="bi bi-grid me-2"></i>View Full Gallery
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* --- FEATURED CAKES with Antigravity Effect --- */}
       <section className="py-6 position-relative" style={{ background: 'var(--cream-vanilla)' }}>
@@ -399,7 +431,7 @@ useEffect(() => {
                 <div className="glass-panel overflow-hidden border-0 h-100 p-0 hover-antigravity" style={{
                   animationDelay: `${index * 0.2}s`
                 }}>
-                  <div className="position-relative overflow-hidden" style={{ height: '300px' }}>
+                  <div className="position-relative overflow-hidden featured-cake-wrap" style={{ height: '300px' }}>
                     <img
                       src={cake.image}
                       alt={cake.name}
@@ -416,13 +448,23 @@ useEffect(() => {
                     </div>
                     
                     {/* Hover Overlay */}
-                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{
+                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center featured-hover-overlay" style={{
                       background: 'linear-gradient(135deg, rgba(255,107,139,0.9), rgba(157,92,255,0.9))',
                       opacity: 0,
-                      transition: 'opacity 0.3s ease'
+                      transition: 'opacity 0.3s ease',
+                      zIndex: 2
                     }}>
-                      <button className="btn btn-light rounded-pill px-4 py-2 magnetic-hover">
-                        Quick View
+                      <button
+                        className="btn btn-light rounded-pill px-4 py-2 magnetic-hover"
+                        onClick={() => {
+                          if (cake.isCustomDesign && cake.designData) {
+                            navigate('/order', { state: { design: cake.designData } });
+                          } else {
+                            navigate('/order', { state: { galleryCake: cake } });
+                          }
+                        }}
+                      >
+                        <i className="bi bi-bag me-2"></i>Order Now
                       </button>
                     </div>
                   </div>
@@ -515,8 +557,12 @@ useEffect(() => {
           .animate-bounce {
             animation: bounce 2s infinite;
           }
-          .hover-antigravity:hover .position-absolute {
+          .hover-antigravity:hover .featured-hover-overlay {
             opacity: 1 !important;
+          }
+          .hover-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
           }
         `
       }} />

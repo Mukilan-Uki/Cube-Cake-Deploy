@@ -233,7 +233,7 @@ const BuilderPage = () => {
     }
     
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     const design = {
       ...cakeDesign,
@@ -243,52 +243,13 @@ const BuilderPage = () => {
       createdAt: new Date().toISOString()
     };
 
-    // Build a gallery-compatible cake object from the design
-    const baseNames = { chocolate: 'Chocolate', vanilla: 'Vanilla', 'red-velvet': 'Red Velvet', carrot: 'Carrot', lemon: 'Lemon' };
-    const frostingNames = { vanilla: 'Vanilla Buttercream', chocolate: 'Chocolate Ganache', 'cream-cheese': 'Cream Cheese', strawberry: 'Strawberry', matcha: 'Matcha' };
-    const sizeNames = { small: 'Small (6")', medium: 'Medium (8")', large: 'Large (10")', xl: 'Extra Large (12")' };
-    const cakeImages = {
-      chocolate: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop',
-      vanilla: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=300&fit=crop',
-      'red-velvet': 'https://images.unsplash.com/photo-1603532648955-039310d9ed75?w=400&h=300&fit=crop',
-      carrot: 'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=400&h=300&fit=crop',
-      lemon: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=400&h=300&fit=crop'
-    };
-
-    const galleryCake = {
-      id: `custom-${design.designId}`,
-      name: design.message ? `"${design.message}" Cake` : `Custom ${baseNames[design.base] || 'Cake'}`,
-      description: `A custom ${sizeNames[design.size] || ''} ${baseNames[design.base] || ''} cake with ${frostingNames[design.frosting] || ''} frosting and ${design.layers} layers.`,
-      priceLKR: design.finalPriceLKR,
-      category: 'Custom',
-      image: cakeImages[design.base] || cakeImages.chocolate,
-      rating: 5.0,
-      flavors: [baseNames[design.base] || 'Custom', frostingNames[design.frosting] || 'Custom'],
-      sizes: [sizeNames[design.size] || 'Medium'],
-      isPopular: false,
-      isNew: true,
-      isCustomDesign: true,
-      shopName: 'Your Custom Design',
-      shopLocation: 'Made by You',
-      shopPhone: '',
-      designData: design,
-      createdAt: design.createdAt
-    };
-
-    // Save to gallery (localStorage)
-    const existingGallery = JSON.parse(localStorage.getItem('customGalleryCakes') || '[]');
-    existingGallery.unshift(galleryCake);
-    localStorage.setItem('customGalleryCakes', JSON.stringify(existingGallery));
-
-    // Also keep the raw design in localStorage for order page fallback
+    // Save design to localStorage as fallback for order page
     localStorage.setItem('cakeDesign', JSON.stringify(design));
-    console.log('Design saved to gallery:', galleryCake);
     
     setIsSaving(false);
-    // Go to gallery so user sees their new design listed there
-    navigate('/gallery', { state: { newDesignId: galleryCake.id, showSuccess: true } });
+    // Go directly to order page — custom designs do NOT save to gallery
+    navigate('/order', { state: { design } });
   };
-
   const templates = [
     {
       name: 'Birthday Classic',
@@ -463,8 +424,8 @@ const BuilderPage = () => {
                       </>
                     ) : (
                       <>
-                        <i className="bi bi-image me-2"></i>
-                        Save to Gallery - {formatLKR(priceDetails.totalLKR)}
+                        <i className="bi bi-bag-check me-2"></i>
+                        Proceed to Order — {formatLKR(priceDetails.totalLKR)}
                       </>
                     )}
                   </button>
@@ -694,7 +655,7 @@ const BuilderPage = () => {
                   onClick={handleSaveDesign}
                   disabled={isSaving}
                 >
-                  {isSaving ? 'Saving to Gallery...' : `Save to Gallery (${formatLKR(priceDetails.totalLKR)})`}
+                  {isSaving ? 'Saving to Gallery...' : `Proceed to Order (${formatLKR(priceDetails.totalLKR)})`}
                 </button>
               )}
             </div>

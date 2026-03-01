@@ -55,6 +55,8 @@ export const API_CONFIG = {
     SHOPS:              `${API_BASE_URL}/admin/shops`,
     SHOP_VERIFY: (id)=> `${API_BASE_URL}/admin/shops/${id}/verify`,
     SHOP_TOGGLE: (id)=> `${API_BASE_URL}/admin/shops/${id}/toggle`,
+    CAKES:              `${API_BASE_URL}/admin/cakes`,
+    CAKE: (id)=>        `${API_BASE_URL}/admin/cakes/${id}`,
   },
 
   // Public endpoints

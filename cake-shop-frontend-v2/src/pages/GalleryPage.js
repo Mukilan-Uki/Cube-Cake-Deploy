@@ -1,43 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { cakeData, cakeCategories } from '../utils/cakeData';
 import CakeCard from '../components/CakeCard';
 import { getCategoryIcon } from '../utils/helpers';
 import { formatLKR } from '../config/currency';
+import { API_CONFIG } from '../config';
 
 const GalleryPage = () => {
-  const location = useLocation();
-  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
-  const [newDesignId, setNewDesignId] = useState(null);
-
-  // Merge static cakes + custom designed cakes from localStorage
-  const getAllCakes = () => {
-    const customCakes = JSON.parse(localStorage.getItem('customGalleryCakes') || '[]');
-    return [...customCakes, ...cakeData];
-  };
-
-  const allCakes = getAllCakes();
-  const allCategories = ['All', 'Custom', ...cakeCategories.filter(c => c !== 'All')];
-
-  const [cakes, setCakes] = useState(allCakes);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('default');
   const [priceRange, setPriceRange] = useState(50000);
+  const [cakes, setCakes] = useState([]);
+  const [allCakes, setAllCakes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Show success banner when navigated from builder
-  useEffect(() => {
-    if (location.state?.showSuccess && location.state?.newDesignId) {
-      setShowSuccessBanner(true);
-      setNewDesignId(location.state.newDesignId);
-      setTimeout(() => setShowSuccessBanner(false), 6000);
-    }
-  }, [location.state]);
+  const allCategories = ['All', ...cakeCategories.filter(c => c !== 'All')];
 
-  // Re-read localStorage each time filters change so newly added custom cakes always appear
+  // Fetch shop cakes from API and merge with static data
   useEffect(() => {
-    const freshCakes = getAllCakes();
-    let filtered = [...freshCakes];
+    const fetchAndMerge = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_CONFIG.PUBLIC.CAKES}?limit=100`);
+        const data = await res.json();
+        let shopCakes = [];
+        if (data.success && data.cakes) {
+          // Normalize shop cakes to match the CakeCard expected format
+          shopCakes = data.cakes.map(c => ({
+            id: c._id,
+            _id: c._id,
+            name: c.name,
+            description: c.description,
+            priceLKR: c.priceLKR,
+            category: c.category,
+            image: c.image,
+            rating: 4.5,
+            isNew: false,
+            isPopular: c.isPopular || false,
+            shopName: c.shopName,
+            shopSlug: c.shopSlug,
+            shop: c.shop,
+            shopId: c.shop,
+            flavors: [c.category],
+            sizes: ['Standard'],
+            isShopCake: true
+          }));
+        }
+        const merged = [...shopCakes, ...cakeData];
+        setAllCakes(merged);
+      } catch (err) {
+        console.error('Error fetching shop cakes:', err);
+        setAllCakes([...cakeData]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAndMerge();
+  }, []);
+
+  // Apply filters
+  useEffect(() => {
+    let filtered = [...allCakes];
 
     if (searchTerm) {
       filtered = filtered.filter(cake =>
@@ -63,14 +88,14 @@ const GalleryPage = () => {
         filtered.sort((a, b) => b.rating - a.rating);
         break;
       case 'newest':
-        filtered.sort((a, b) => b.isNew - a.isNew);
+        filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
         break;
       default:
-        filtered.sort((a, b) => b.isPopular - a.isPopular);
+        filtered.sort((a, b) => (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0));
     }
 
     setCakes(filtered);
-  }, [searchTerm, selectedCategory, sortBy, priceRange, location.state]);
+  }, [searchTerm, selectedCategory, sortBy, priceRange, allCakes]);
 
   return (
     <div className="container-fluid px-0">
@@ -84,28 +109,6 @@ const GalleryPage = () => {
           </p>
         </div>
       </div>
-
-      {/* Success Banner when arriving from Builder */}
-      {showSuccessBanner && (
-        <div className="container mt-4">
-          <div className="alert border-0 d-flex align-items-center gap-3 p-4 rounded-4" style={{
-            background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(255,158,109,0.15))',
-            border: '1.5px solid rgba(212,175,55,0.4) !important'
-          }}>
-            <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{
-              width: '48px', height: '48px',
-              background: 'linear-gradient(135deg, #D4AF37, #FF9E6D)'
-            }}>
-              <i className="bi bi-check-lg text-white fs-5"></i>
-            </div>
-            <div className="flex-grow-1">
-              <h6 className="fw-bold mb-1" style={{ color: '#2C1810' }}>🎂 Your cake design was added to the gallery!</h6>
-              <p className="mb-0 text-muted small">It now appears at the top of the gallery. Click "Buy Now" on your cake to place an order.</p>
-            </div>
-            <button className="btn-close" onClick={() => setShowSuccessBanner(false)}></button>
-          </div>
-        </div>
-      )}
 
       <div className="container py-4">
         <div className="glass-card p-4 mb-5">
@@ -161,7 +164,7 @@ const GalleryPage = () => {
                 {selectedCategory !== 'All' && (
                   <span className="badge bg-apricot d-flex align-items-center gap-1">
                     {selectedCategory}
-                    <button 
+                    <button
                       className="btn-close btn-close-white btn-sm ms-1"
                       onClick={() => setSelectedCategory('All')}
                     ></button>
@@ -170,7 +173,7 @@ const GalleryPage = () => {
                 {searchTerm && (
                   <span className="badge bg-strawberry d-flex align-items-center gap-1">
                     Search: "{searchTerm}"
-                    <button 
+                    <button
                       className="btn-close btn-close-white btn-sm ms-1"
                       onClick={() => setSearchTerm('')}
                     ></button>
@@ -208,11 +211,16 @@ const GalleryPage = () => {
           </div>
         </div>
 
-        {cakes.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border" style={{ color: 'var(--apricot)' }}></div>
+            <p className="mt-3 text-muted">Loading cakes...</p>
+          </div>
+        ) : cakes.length > 0 ? (
           <>
             <div className="row">
               {cakes.map(cake => (
-                <CakeCard key={cake.id} cake={cake} />
+                <CakeCard key={cake.id || cake._id} cake={cake} />
               ))}
             </div>
 
@@ -234,7 +242,7 @@ const GalleryPage = () => {
                 <div>
                   <h5 className="text-chocolate mb-1">Average Rating</h5>
                   <span className="fs-3 fw-bold text-lavender">
-                    {(cakes.reduce((sum, cake) => sum + cake.rating, 0) / cakes.length).toFixed(1)}
+                    {(cakes.reduce((sum, cake) => sum + (cake.rating || 4.5), 0) / cakes.length).toFixed(1)}
                   </span>
                   <i className="bi bi-star-fill text-warning ms-1"></i>
                 </div>
@@ -249,12 +257,12 @@ const GalleryPage = () => {
               <p className="text-muted mb-4">
                 Try adjusting your filters or search term
               </p>
-              <button 
+              <button
                 className="btn btn-frosting"
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedCategory('All');
-                  setPriceRange(15000);
+                  setPriceRange(50000);
                   setSortBy('default');
                 }}
               >
