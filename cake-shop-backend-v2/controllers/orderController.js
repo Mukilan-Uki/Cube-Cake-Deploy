@@ -308,7 +308,7 @@ const cancelOrder = async (req, res, next) => {
       timestamp: new Date()
     });
     order.cancelledAt = new Date();
-    order.cancellationReason = reason || 'No reason provided';
+    order.cancellationReason = reason;
 
     await order.save();
 

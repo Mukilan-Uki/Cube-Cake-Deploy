@@ -3,6 +3,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+// seedData is only run manually via: npm run seed
+
 const authRoutes = require('./routes/authRoutes');
 const shopRoutes = require('./routes/shopRoutes');
 const orderRoutes = require('./routes/orderRoutes');
@@ -35,7 +37,7 @@ app.use('/api/shops', shopCakeRoutes); // Add shop cake routes
 app.use('/api/orders', orderRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/public', publicCakeRoutes); // Add public cake routes
-app.use('/api/admin', adminRoutes);                   // mount it
+app.use('/api/admin', adminRoutes); // mount it
 
 // Health check
 app.get('/health', (req, res) => {
@@ -50,7 +52,7 @@ app.get('/health', (req, res) => {
 // Debug routes
 app.get('/api/routes', (req, res) => {
   const routes = [];
-  
+
   app._router.stack.forEach(middleware => {
     if (middleware.route) {
       routes.push({
@@ -70,7 +72,7 @@ app.get('/api/routes', (req, res) => {
       });
     }
   });
-  
+
   res.json({
     success: true,
     routes
@@ -81,7 +83,7 @@ app.get('/api/routes', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     message: 'Cube Cake API',
-    version: '1.0.0',
+    version: '2.0.0',
     currency: 'LKR',
     endpoints: {
       auth: '/api/auth',
@@ -104,7 +106,7 @@ app.use((req, res) => {
 // Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  
+
   if (err.name === 'ValidationError') {
     const messages = Object.values(err.errors).map(e => e.message);
     return res.status(400).json({
@@ -130,18 +132,19 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     const MONGODB_URI = process.env.MONGODB_URI;
-    
+
     await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    
+
     console.log('MongoDB Connected Successfully!');
-    
+
+
     // Create default super admin if not exists
     const User = require('./models/User');
     const adminExists = await User.findOne({ email: 'admin@cubecake.com' });
-    
+
     if (!adminExists) {
       await User.create({
         name: 'Super Admin',
@@ -152,7 +155,7 @@ const startServer = async () => {
       });
       console.log('Default admin created (admin@cubecake.com / admin123)');
     }
-    
+
     app.listen(PORT, () => {
       console.log(`
       Cube Cake Server Started!
@@ -170,7 +173,7 @@ const startServer = async () => {
       Frontend: http://localhost:3000
       `);
     });
-    
+
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);

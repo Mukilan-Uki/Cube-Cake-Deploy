@@ -72,7 +72,7 @@ const LoginSelectionPage = () => {
               <p className="small text-secondary mb-4">
                 Manage your bakery, orders, and inventory
               </p>
-              <button className="btn-royal-outline w-100 small">
+              <button className="btn-royal w-100 small">
                 Admin Portal
               </button>
             </div>

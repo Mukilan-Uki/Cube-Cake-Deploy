@@ -165,7 +165,7 @@ const adminLogin = async (req, res, next) => {
     user.lastLogin = Date.now();
     await user.save();
 
-    console.log('✅ Shop owner logged in:', user.email, 'Role:', user.role);
+    console.log('Shop owner logged in:', user.email, 'Role:', user.role);
 
     res.json({
       success: true,

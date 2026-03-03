@@ -19,11 +19,11 @@ const shopSchema = new mongoose.Schema({
   },
   logo: {
     type: String,
-    default: '/images/default-shop-logo.jpg'
+    default: '/images/front.png'
   },
   coverImage: {
     type: String,
-    default: '/images/default-cover.jpg'
+    default: '/images/cover.png'
   },
   
   owner: {

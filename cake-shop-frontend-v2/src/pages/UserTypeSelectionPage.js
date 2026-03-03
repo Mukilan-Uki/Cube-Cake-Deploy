@@ -76,7 +76,7 @@ const UserTypeSelectionPage = () => {
                 <li className="mb-2"><i className="bi bi-check2 text-chocolate me-2"></i>Manage orders</li>
                 <li className="mb-2"><i className="bi bi-check2 text-chocolate me-2"></i>Grow your business</li>
               </ul>
-              <button className="btn-royal-outline w-100" style={{ borderColor: 'var(--royal-chocolate)', color: 'var(--royal-chocolate)' }}>
+              <button className="btn-royal">
                 Register Business
               </button>
             </div>

@@ -14,6 +14,7 @@ const ShopRegistrationPage = () => {
     phone: '',
     address: '',
     password: '',
+    confirmPassword: '',
     businessType: 'bakery'
   });
   const [error, setError] = useState('');
@@ -24,7 +25,7 @@ const ShopRegistrationPage = () => {
     setError('');
 
     try {
-      const response = await fetch(API_CONFIG.BASE_URL + '//auth/register-shop', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/register-shop', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -34,7 +35,11 @@ const ShopRegistrationPage = () => {
 
       const data = await response.json();
 
-      if (data.success) {
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
+      else if (data.success) {
         // Save token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -144,6 +149,19 @@ const ShopRegistrationPage = () => {
                   className="form-control"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  required
+                  minLength="6"
+                />
+                <small className="text-muted">Minimum 6 characters</small>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label">Confirm Password *</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                   required
                   minLength="6"
                 />
