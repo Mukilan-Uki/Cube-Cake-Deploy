@@ -1,380 +1,191 @@
-// src/pages/HomePage.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { cakeData } from '../utils/cakeData';
 import { formatLKR } from '../config/currency';
 import { API_CONFIG } from '../config';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const [featuredCakes, setFeaturedCakes] = useState([]);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  // Add this state and useEffect to fetch cakes
   const [shopCakes, setShopCakes] = useState([]);
   const [loadingCakes, setLoadingCakes] = useState(true);
-
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const heroRef = useRef(null);
 
-  // Fetch cakes from all shops
-useEffect(() => {
-  const fetchCakes = async () => {
-    try {
-      setLoadingCakes(true);
-      const res = await fetch(`${API_CONFIG.PUBLIC.CAKES}?limit=8`);
-      const data = await res.json();
-      if (data.success) {
-        setShopCakes(data.cakes);
-      }
-    } catch (error) {
-      console.error('Error fetching cakes:', error);
-    } finally {
-      setLoadingCakes(false);
-    }
-  };
-
-  fetchCakes();
-}, []);
-
   useEffect(() => {
-    // Combine custom-designed gallery cakes + static cakeData for featured section
-    const customCakes = JSON.parse(localStorage.getItem('customGalleryCakes') || '[]');
-    const combined = [...customCakes, ...cakeData];
-    setFeaturedCakes(combined.slice(0, 3));
+    const fetchCakes = async () => {
+      try {
+        const res = await fetch(`${API_CONFIG.PUBLIC.CAKES}?limit=8`);
+        const data = await res.json();
+        if (data.success) setShopCakes(data.cakes);
+      } catch (e) { console.error(e); }
+      finally { setLoadingCakes(false); }
+    };
+    fetchCakes();
   }, []);
 
-  // Parallax effect on mouse move
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouse = (e) => {
       if (heroRef.current) {
-        const { clientX, clientY } = e;
         const { width, height, left, top } = heroRef.current.getBoundingClientRect();
-        const x = (clientX - left) / width - 0.5;
-        const y = (clientY - top) / height - 0.5;
-        setMousePosition({ x, y });
+        setMousePos({ x: (e.clientX - left) / width - 0.5, y: (e.clientY - top) / height - 0.5 });
       }
     };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouse);
+    return () => window.removeEventListener('mousemove', handleMouse);
   }, []);
 
   const features = [
-    { icon: 'bi-gem', title: 'Premium Quality', desc: 'Finest ingredients, handcrafted daily', color: '#FF9E6D' },
-    { icon: 'bi-palette', title: 'Custom Design', desc: 'Create your unique masterpiece', color: '#FF6B8B' },
-    { icon: 'bi-truck', title: 'White Glove', desc: 'Concierge delivery service', color: '#9D5CFF' },
-    { icon: 'bi-star', title: 'Award Winning', desc: 'Recognized for excellence', color: '#6A11CB' }
+    { icon: 'bi-gem', title: 'Premium Ingredients', desc: 'Finest quality, sourced fresh every day', accent: '#D4AF37' },
+    { icon: 'bi-palette', title: 'Custom Design', desc: 'Craft your own unique masterpiece online', accent: '#FF6B8B' },
+    { icon: 'bi-truck', title: 'Island-Wide Delivery', desc: 'Reliable delivery across Sri Lanka', accent: '#9D5CFF' },
+    { icon: 'bi-shield-check', title: 'Satisfaction Guaranteed', desc: '100% happiness or we make it right', accent: '#FF9E6D' },
   ];
 
-  // Generate floating particles
-  const particles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    delay: `${Math.random() * 5}s`,
-    size: Math.random() * 6 + 2,
-    color: i % 3 === 0 ? '#FF9E6D' : i % 3 === 1 ? '#FF6B8B' : '#9D5CFF'
-  }));
-
   return (
-    <div className="overflow-hidden">
-      {/* --- HERO SECTION with Antigravity Effect --- */}
-      <section ref={heroRef} className="hero-section position-relative" style={{ minHeight: '100vh' }}>
-        {/* Animated Background Elements */}
-        <div className="hero-background">
-          <div className="floating-element floating-element-1" style={{
-            transform: `translate(${mousePosition.x * 30}px, ${mousePosition.y * 30}px)`
-          }}></div>
-          <div className="floating-element floating-element-2" style={{
-            transform: `translate(${mousePosition.x * -20}px, ${mousePosition.y * -20}px)`
-          }}></div>
-          <div className="floating-element floating-element-3" style={{
-            transform: `translate(${mousePosition.x * 40}px, ${mousePosition.y * 40}px)`
-          }}></div>
-          
-          {/* Floating Particles */}
-          {particles.map(particle => (
-            <div
-              key={particle.id}
-              className="particle"
-              style={{
-                left: particle.left,
-                top: particle.top,
-                width: `${particle.size}px`,
-                height: `${particle.size}px`,
-                background: particle.color,
-                animationDelay: particle.delay,
-                animationDuration: `${Math.random() * 10 + 5}s`
-              }}
-            ></div>
-          ))}
-        </div>
+    <div style={{ overflowX: 'hidden', fontFamily: "'Poppins', sans-serif" }}>
+      {/* ===== HERO ===== */}
+      <section ref={heroRef} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0a06 0%, #1a0f08 50%, #2c1510 100%)', position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+        {/* Ambient blobs */}
+        <div style={{ position:'absolute', top:'5%', right:'10%', width:500, height:500, background:'radial-gradient(circle,rgba(212,175,55,0.15) 0%,transparent 70%)', borderRadius:'50%', filter:'blur(60px)', transform:`translate(${mousePos.x*20}px,${mousePos.y*20}px)`, transition:'transform 0.3s ease', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', bottom:'10%', left:'5%', width:400, height:400, background:'radial-gradient(circle,rgba(255,107,139,0.12) 0%,transparent 70%)', borderRadius:'50%', filter:'blur(60px)', transform:`translate(${mousePos.x*-15}px,${mousePos.y*-15}px)`, transition:'transform 0.3s ease', pointerEvents:'none' }} />
 
-        <div className="container position-relative z-1" style={{ paddingTop: '80px' }}>
-          <div className="row align-items-center min-vh-100">
+        <div className="container" style={{ paddingTop: 80, position: 'relative', zIndex: 1 }}>
+          <div className="row align-items-center" style={{ minHeight: '90vh' }}>
             <div className="col-lg-6">
-              <div className="animate-fade-up">
-                {isAuthenticated && user && (
-                  <div className="mb-4 d-inline-block">
-                    <div className="glass-panel px-4 py-2 rounded-pill d-flex align-items-center magnetic-hover">
-                      <i className="bi bi-crown text-gold me-2"></i>
-                      <span className="small fw-bold text-chocolate">Welcome back, {user?.name?.split(' ')[0]}</span>
-                    </div>
+              {isAuthenticated && user && (
+                <div style={{ display:'inline-flex', alignItems:'center', gap:'0.5rem', background:'rgba(212,175,55,0.12)', border:'1px solid rgba(212,175,55,0.25)', borderRadius:50, padding:'0.4rem 1rem', marginBottom:'1.5rem' }}>
+                  <i className="bi bi-crown" style={{ color:'#D4AF37' }}></i>
+                  <span style={{ color:'#D4AF37', fontSize:'0.85rem', fontWeight:600 }}>Welcome back, {user?.name?.split(' ')[0]}</span>
+                </div>
+              )}
+
+              <div style={{ fontSize:'0.75rem', color:'rgba(255,255,255,0.4)', letterSpacing:4, textTransform:'uppercase', marginBottom:'1rem' }}>Artisan Bakery • Sri Lanka</div>
+
+              <h1 style={{ color:'white', fontWeight:800, lineHeight:1.1, marginBottom:'1.5rem', fontSize:'clamp(2.5rem, 6vw, 4.5rem)' }}>
+                Where Every Cake<br />
+                <span style={{ background:'linear-gradient(135deg,#D4AF37,#F1D06E)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', fontFamily:"'Playfair Display',serif", fontStyle:'italic' }}>Tells a Story</span>
+              </h1>
+
+              <p style={{ color:'rgba(255,255,255,0.55)', fontSize:'1.15rem', lineHeight:1.7, maxWidth:520, marginBottom:'2.5rem' }}>
+                Handcrafted cakes made with love, from our partner bakeries across Sri Lanka. Design your dream cake or choose from our curated collection.
+              </p>
+
+              <div style={{ display:'flex', gap:'1rem', flexWrap:'wrap', marginBottom:'3rem' }}>
+                <button onClick={() => navigate('/create')} style={{ padding:'0.85rem 2rem', background:'linear-gradient(135deg,#D4AF37,#F1D06E)', border:'none', borderRadius:50, color:'#1a0f08', fontWeight:700, fontSize:'1rem', cursor:'pointer', boxShadow:'0 8px 25px rgba(212,175,55,0.35)', transition:'all 0.2s', fontFamily:'inherit' }}
+                  onMouseEnter={e=>{e.target.style.transform='translateY(-2px)';e.target.style.boxShadow='0 12px 30px rgba(212,175,55,0.45)'}}
+                  onMouseLeave={e=>{e.target.style.transform='translateY(0)';e.target.style.boxShadow='0 8px 25px rgba(212,175,55,0.35)'}}>
+                  <i className="bi bi-palette me-2"></i>Design a Cake
+                </button>
+                <button onClick={() => navigate('/gallery')} style={{ padding:'0.85rem 2rem', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:50, color:'white', fontWeight:600, fontSize:'1rem', cursor:'pointer', backdropFilter:'blur(10px)', transition:'all 0.2s', fontFamily:'inherit' }}
+                  onMouseEnter={e=>{e.target.style.background='rgba(255,255,255,0.12)'}}
+                  onMouseLeave={e=>{e.target.style.background='rgba(255,255,255,0.07)'}}>
+                  <i className="bi bi-grid me-2"></i>Browse Gallery
+                </button>
+              </div>
+
+              <div style={{ display:'flex', gap:'3rem' }}>
+                {[{ v:'2,500+', l:'Happy Clients' },{ v:'50+', l:'Flavors' },{ v:'15+', l:'Partner Shops' }].map((s,i) => (
+                  <div key={i}>
+                    <div style={{ color:'#D4AF37', fontWeight:800, fontSize:'1.75rem', lineHeight:1 }}>{s.v}</div>
+                    <div style={{ color:'rgba(255,255,255,0.4)', fontSize:'0.8rem', marginTop:'0.25rem' }}>{s.l}</div>
                   </div>
-                )}
-
-                <h1 className="display-1 mb-4" style={{ fontSize: 'calc(3rem + 2vw)', lineHeight: 1.1 }}>
-                  <span className="font-script d-block mb-2" style={{
-                    fontSize: '0.4em',
-                    background: 'var(--gradient-sunset)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}>
-                    Artisan Bakery
-                  </span>
-                  <span className="fw-bold" style={{ color: '#2C1810' }}>Where Cakes</span> <br />
-                  <span className="fw-bold text-gradient">Become Art</span>
-                </h1>
-
-                <p className="lead mb-5" style={{ 
-                  maxWidth: '550px',
-                  fontSize: '1.2rem',
-                  color: '#4A2C2A',
-                  opacity: 0.8
-                }}>
-                  Experience gravity-defying designs and ethereal flavors. 
-                  Each creation is a masterpiece of culinary art.
-                </p>
-
-                <div className="d-flex flex-wrap gap-3">
-                  <button
-                    onClick={() => navigate('/create')}
-                    className="btn-primary-gradient px-5 py-3 magnetic-hover"
-                  >
-                    <i className="bi bi-magic me-2"></i>
-                    Start Creating
-                  </button>
-
-                  <button
-                    onClick={() => navigate('/gallery')}
-                    className="btn-glass px-5 py-3"
-                  >
-                    View Gallery
-                  </button>
-                </div>
-
-                {/* Stats with Animation */}
-                <div className="d-flex gap-5 mt-5 pt-4">
-                  {[
-                    { value: '2.5K+', label: 'Happy Clients', color: '#FF9E6D' },
-                    { value: '50+', label: 'Signature Flavors', color: '#FF6B8B' },
-                    { value: '100%', label: 'Fresh Daily', color: '#9D5CFF' }
-                  ].map((stat, index) => (
-                    <div key={index} className="text-center hover-antigravity" style={{ cursor: 'pointer' }}>
-                      <div className="h2 fw-bold mb-0" style={{ color: stat.color }}>{stat.value}</div>
-                      <div className="small text-uppercase" style={{ letterSpacing: '1px', color: '#4A2C2A' }}>
-                        {stat.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* 3D Visual Element with Antigravity Effect */}
-            <div className="col-lg-6 d-none d-lg-block">
-              <div className="position-relative mx-auto animate-antigravity" style={{ 
-                width: '500px', 
-                height: '600px',
-                transformStyle: 'preserve-3d',
-                perspective: '1000px'
-              }}>
-                {/* Floating Cake Layers with Parallax */}
+            {/* Floating cake visual */}
+            <div className="col-lg-6 d-none d-lg-flex justify-content-center align-items-center">
+              <div style={{ position:'relative', width:420, height:480 }}>
+                {/* Glowing backdrop */}
+                <div style={{ position:'absolute', inset:0, background:'radial-gradient(circle at 50% 60%,rgba(212,175,55,0.2) 0%,transparent 70%)', borderRadius:'50%', filter:'blur(30px)' }} />
+                
+                {/* Animated cake layers */}
                 {[
-                  { bottom: 80, width: 320, height: 100, color: '#2C1810', delay: 0 },
-                  { bottom: 170, width: 280, height: 90, color: '#D4AF37', delay: 0.5 },
-                  { bottom: 250, width: 240, height: 80, color: '#FFFFFF', delay: 1 },
-                  { bottom: 320, width: 200, height: 70, color: '#FF6B8B', delay: 1.5 }
-                ].map((layer, index) => (
-                  <div
-                    key={index}
-                    className="position-absolute start-50 translate-middle-x tilt-effect"
-                    style={{
-                      bottom: `${layer.bottom}px`,
-                      width: `${layer.width}px`,
-                      height: `${layer.height}px`,
-                      background: layer.color,
-                      borderRadius: '20px',
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                      transform: `translateX(-50%) translateZ(${index * 20}px) rotate(${mousePosition.x * 2}deg)`,
-                      transition: 'transform 0.3s ease',
-                      animation: `antigravity-float ${5 + index}s ease-in-out infinite`,
-                      animationDelay: `${layer.delay}s`
-                    }}
-                  >
-                    {/* Decorative Elements */}
-                    <div className="position-absolute w-100 h-100" style={{
-                      background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%)`
-                    }}></div>
-                    
-                    {/* Gold Dots */}
-                    {index === 1 && Array.from({ length: 8 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="position-absolute rounded-circle"
-                        style={{
-                          width: '8px',
-                          height: '8px',
-                          background: '#FFD700',
-                          left: `${10 + i * 12}%`,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          boxShadow: '0 0 10px gold'
-                        }}
-                      ></div>
-                    ))}
+                  { bottom:80, w:320, h:85, bg:'linear-gradient(135deg,#2c1810,#3d2015)', delay:0, r:-2 },
+                  { bottom:158, w:275, h:78, bg:'linear-gradient(135deg,#D4AF37,#a07d1d)', delay:0.4, r:1 },
+                  { bottom:228, w:235, h:72, bg:'linear-gradient(135deg,#fff,#f5e6d0)', delay:0.8, r:-1 },
+                  { bottom:292, w:190, h:65, bg:'linear-gradient(135deg,#FF6B8B,#c84a6a)', delay:1.2, r:2 },
+                ].map((layer, i) => (
+                  <div key={i} style={{
+                    position:'absolute', left:'50%', transform:`translateX(-50%) rotate(${layer.r}deg)`,
+                    bottom: layer.bottom, width: layer.w, height: layer.h,
+                    background: layer.bg, borderRadius: 16,
+                    boxShadow:'0 20px 40px rgba(0,0,0,0.4)', animation:`floatLayer ${6+i}s ease-in-out infinite`,
+                    animationDelay:`${layer.delay}s`
+                  }}>
+                    <div style={{ position:'absolute', inset:0, background:'radial-gradient(circle at 25% 25%,rgba(255,255,255,0.15) 0%,transparent 50%)', borderRadius:'inherit' }} />
                   </div>
                 ))}
 
-                {/* Floating Toppings */}
-                <div className="position-absolute top-0 start-0 w-100 h-100">
-                  {['🍓', '🍫', '✨', '🌸'].map((emoji, index) => (
-                    <div
-                      key={index}
-                      className="position-absolute animate-antigravity"
-                      style={{
-                        fontSize: '2rem',
-                        left: `${20 + index * 20}%`,
-                        top: `${30 + index * 10}%`,
-                        animationDelay: `${index * 0.5}s`,
-                        filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.2))',
-                        transform: `rotate(${mousePosition.x * 10}deg)`
-                      }}
-                    >
-                      {emoji}
-                    </div>
-                  ))}
-                </div>
+                {/* Floating emojis */}
+                {['🍓','🍫','✨','🌸','🎂'].map((e,i) => (
+                  <div key={i} style={{
+                    position:'absolute', fontSize:'1.8rem',
+                    left:`${15+i*17}%`, top:`${20+i*12}%`,
+                    animation:`floatEmoji ${4+i*0.5}s ease-in-out infinite`,
+                    animationDelay:`${i*0.3}s`,
+                    filter:'drop-shadow(0 8px 15px rgba(0,0,0,0.3))',
+                    transform:`rotate(${mousePos.x*8}deg)`
+                  }}>{e}</div>
+                ))}
+
+                {/* Plate */}
+                <div style={{ position:'absolute', bottom:50, left:'50%', transform:'translateX(-50%)', width:360, height:20, background:'radial-gradient(ellipse,rgba(255,255,255,0.12) 0%,transparent 70%)', borderRadius:'50%', filter:'blur(8px)' }} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="position-absolute bottom-0 start-50 translate-middle-x mb-5 animate-bounce">
-          <div className="text-center">
-            <span className="small text-uppercase" style={{ letterSpacing: '2px', color: '#4A2C2A' }}>Scroll</span>
-            <div className="mt-2">
-              <i className="bi bi-arrow-down fs-4" style={{ color: '#FF6B8B' }}></i>
-            </div>
-          </div>
+        {/* Scroll hint */}
+        <div style={{ position:'absolute', bottom:30, left:'50%', transform:'translateX(-50%)', textAlign:'center', animation:'bounce 2s infinite' }}>
+          <div style={{ color:'rgba(255,255,255,0.3)', fontSize:'0.7rem', letterSpacing:2, textTransform:'uppercase', marginBottom:'0.5rem' }}>Scroll</div>
+          <i className="bi bi-chevron-down" style={{ color:'rgba(255,255,255,0.3)', fontSize:'1.2rem' }} />
         </div>
       </section>
 
-      {/* --- FEATURES SECTION with Antigravity Cards --- */}
-      <section className="py-6 position-relative" style={{ background: 'white' }}>
-        <div className="container py-5">
-          <div className="text-center mb-5">
-            <span className="text-gradient text-uppercase fw-bold small" style={{ letterSpacing: '3px' }}>
-              Why Choose Us
-            </span>
-            <h2 className="display-4 mt-2">
-              The Art of <span className="font-script text-gradient">Exceptional</span> Cakes
+      {/* ===== PARTNER SHOPS CAKES ===== */}
+      <section style={{ background:'#faf7f4', padding:'6rem 0' }}>
+        <div className="container">
+          <div style={{ textAlign:'center', marginBottom:'3.5rem' }}>
+            <div style={{ fontSize:'0.72rem', color:'#D4AF37', letterSpacing:4, textTransform:'uppercase', fontWeight:700, marginBottom:'0.75rem' }}>From Our Network</div>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2rem,4vw,2.75rem)', fontWeight:700, color:'#1a0f08', marginBottom:'0.75rem' }}>
+              Handpicked Cakes from<br /><span style={{ color:'#D4AF37', fontStyle:'italic' }}>Trusted Bakeries</span>
             </h2>
-          </div>
-
-          <div className="row g-4">
-            {features.map((feature, index) => (
-              <div className="col-md-6 col-lg-3" key={index}>
-                <div className="glass-panel h-100 p-4 text-center hover-antigravity position-relative overflow-hidden">
-                  {/* Background Glow */}
-                  <div className="position-absolute top-0 start-0 w-100 h-100" style={{
-                    background: `radial-gradient(circle at 50% 50%, ${feature.color}20 0%, transparent 70%)`,
-                    opacity: 0,
-                    transition: 'opacity 0.3s ease'
-                  }}></div>
-                  
-                  <div className="mb-4 d-inline-flex p-3 rounded-circle magnetic-hover" style={{
-                    background: `${feature.color}15`
-                  }}>
-                    <i className={`bi ${feature.icon} fs-2`} style={{ color: feature.color }}></i>
-                  </div>
-                  
-                  <h4 className="h5 fw-bold mb-3" style={{ color: '#2C1810' }}>{feature.title}</h4>
-                  <p className="text-secondary small mb-0">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Partner Shops Cakes Section */}
-      <section className="py-6 position-relative" style={{ background: 'linear-gradient(180deg, #fff 0%, var(--cream-vanilla) 100%)' }}>
-        <div className="container py-5">
-          <div className="text-center mb-5">
-            <span className="text-gradient text-uppercase fw-bold small" style={{ letterSpacing: '3px' }}>
-              Partner Bakeries
-            </span>
-            <h2 className="display-4 mt-2">
-              Cakes from Our <span className="font-script text-gradient">Partner Shops</span>
-            </h2>
-            <p className="lead text-muted mt-2">Handcrafted delights from trusted local bakeries</p>
+            <p style={{ color:'#6b5c52', fontSize:'1rem', maxWidth:500, margin:'0 auto' }}>Discover beautiful cakes crafted by our verified partner shops across Sri Lanka</p>
           </div>
 
           {loadingCakes ? (
-            <div className="text-center py-5">
-              <div className="spinner-border" style={{ color: 'var(--apricot, #FF9E6D)' }}></div>
+            <div style={{ textAlign:'center', padding:'3rem' }}>
+              <div className="spinner-border" style={{ color:'#D4AF37', width:'3rem', height:'3rem' }}></div>
             </div>
           ) : shopCakes.length > 0 ? (
             <div className="row g-4">
               {shopCakes.map(cake => (
-                <div className="col-md-6 col-lg-3" key={cake._id}>
-                  <div className="glass-panel h-100 p-0 overflow-hidden hover-antigravity" style={{ borderRadius: '20px' }}>
-                    <div className="position-relative overflow-hidden" style={{ height: '200px' }}>
-                      <img
-                        src={cake.image}
-                        alt={cake.name}
-                        className="w-100 h-100"
-                        style={{ objectFit: 'cover', transition: 'transform 0.5s ease' }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                      />
+                <div className="col-sm-6 col-lg-3" key={cake._id}>
+                  <div style={{ background:'white', borderRadius:20, overflow:'hidden', boxShadow:'0 4px 20px rgba(0,0,0,0.06)', transition:'all 0.3s', cursor:'pointer' }}
+                    onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-6px)';e.currentTarget.style.boxShadow='0 16px 40px rgba(0,0,0,0.12)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.06)'}}>
+                    <div style={{ position:'relative', height:200, overflow:'hidden' }}>
+                      <img src={cake.image} alt={cake.name} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s' }}
+                        onMouseEnter={e=>e.target.style.transform='scale(1.08)'} onMouseLeave={e=>e.target.style.transform='scale(1)'} />
                       {cake.isPopular && (
-                        <div className="position-absolute top-0 end-0 m-2">
-                          <span className="badge px-3 py-2 rounded-pill" style={{ background: 'var(--gradient-sunset, linear-gradient(135deg,#FF9E6D,#FF6B8B))', color: '#fff', fontSize: '0.72rem' }}>
-                            <i className="bi bi-fire me-1"></i>Popular
-                          </span>
+                        <div style={{ position:'absolute', top:12, right:12, background:'linear-gradient(135deg,#D4AF37,#F1D06E)', borderRadius:50, padding:'0.2rem 0.75rem', fontSize:'0.72rem', fontWeight:700, color:'#1a0f08' }}>
+                          🔥 Popular
                         </div>
                       )}
                     </div>
-                    <div className="p-4">
-                      <h6 className="fw-bold mb-1" style={{ color: '#2C1810' }}>{cake.name}</h6>
-                      <p className="small mb-1" style={{ color: '#9D5CFF' }}>
-                        <i className="bi bi-shop me-1"></i><strong>{cake.shopName}</strong>
+                    <div style={{ padding:'1.25rem' }}>
+                      <h6 style={{ fontWeight:700, color:'#1a0f08', marginBottom:'0.25rem', fontSize:'0.95rem' }}>{cake.name}</h6>
+                      <p style={{ color:'#9D5CFF', fontSize:'0.78rem', fontWeight:600, marginBottom:'0.5rem' }}>
+                        <i className="bi bi-shop me-1"></i>{cake.shopName}
                       </p>
-                      <p className="text-muted small mb-3" style={{ lineHeight: 1.4 }}>
-                        {cake.description?.substring(0, 65)}...
-                      </p>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <span className="fw-bold" style={{ color: '#FF6B8B', fontSize: '1rem' }}>{formatLKR(cake.priceLKR)}</span>
-                        <div className="d-flex gap-2">
-                          <button
-                            className="btn btn-sm rounded-pill px-3"
-                            style={{ background: 'var(--cream-vanilla, #FFF5E6)', border: '1px solid #FF9E6D', color: '#FF6B8B', fontSize: '0.78rem' }}
-                            onClick={() => navigate(`/shops/${cake.shopSlug}`)}
-                          >
-                            Shop
-                          </button>
-                          <button
-                            className="btn btn-sm rounded-pill px-3"
-                            style={{ background: 'linear-gradient(135deg,#FF9E6D,#FF6B8B)', border: 'none', color: '#fff', fontSize: '0.78rem' }}
-                            onClick={() => navigate('/order', { state: { galleryCake: { ...cake, shopId: cake.shop } } })}
-                          >
-                            Order
-                          </button>
+                      <p style={{ color:'#8a7060', fontSize:'0.82rem', lineHeight:1.4, marginBottom:'1rem' }}>{cake.description?.substring(0,60)}...</p>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <span style={{ color:'#FF6B8B', fontWeight:800, fontSize:'1rem' }}>{formatLKR(cake.priceLKR)}</span>
+                        <div style={{ display:'flex', gap:'0.5rem' }}>
+                          <button onClick={() => navigate(`/shops/${cake.shopSlug}`)} style={{ padding:'0.35rem 0.75rem', background:'#faf7f4', border:'1px solid #e8ddd5', borderRadius:50, color:'#6b5c52', fontSize:'0.75rem', cursor:'pointer', fontFamily:'inherit' }}>Shop</button>
+                          <button onClick={() => navigate('/order', { state: { galleryCake: {...cake, shopId: cake.shop} } })} style={{ padding:'0.35rem 0.75rem', background:'linear-gradient(135deg,#FF9E6D,#FF6B8B)', border:'none', borderRadius:50, color:'white', fontSize:'0.75rem', fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Order</button>
                         </div>
                       </div>
                     </div>
@@ -383,20 +194,18 @@ useEffect(() => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-5">
-              <div className="glass-panel d-inline-block p-5">
-                <div style={{ fontSize: '3rem', opacity: 0.2 }}>🎂</div>
-                <p className="text-muted mt-3">No cakes from partner shops yet.</p>
-                <button className="btn btn-sm rounded-pill px-4" style={{ background: 'linear-gradient(135deg,#FF9E6D,#FF6B8B)', color: '#fff', border: 'none' }} onClick={() => navigate('/shops')}>
-                  Browse Shops
-                </button>
-              </div>
+            <div style={{ textAlign:'center', padding:'4rem', background:'white', borderRadius:20 }}>
+              <div style={{ fontSize:'3rem', marginBottom:'1rem', opacity:0.3 }}>🎂</div>
+              <p style={{ color:'#8a7060' }}>No cakes from partner shops yet.</p>
+              <button onClick={() => navigate('/shops')} style={{ padding:'0.6rem 1.5rem', background:'linear-gradient(135deg,#D4AF37,#F1D06E)', border:'none', borderRadius:50, color:'#1a0f08', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Browse Shops</button>
             </div>
           )}
 
           {shopCakes.length > 0 && (
-            <div className="text-center mt-5">
-              <button onClick={() => navigate('/gallery')} className="btn-glass px-5 py-3">
+            <div style={{ textAlign:'center', marginTop:'3rem' }}>
+              <button onClick={() => navigate('/gallery')} style={{ padding:'0.85rem 2.5rem', background:'transparent', border:'2px solid #D4AF37', borderRadius:50, color:'#D4AF37', fontWeight:700, fontSize:'0.95rem', cursor:'pointer', transition:'all 0.2s', fontFamily:'inherit' }}
+                onMouseEnter={e=>{e.target.style.background='#D4AF37';e.target.style.color='#1a0f08'}}
+                onMouseLeave={e=>{e.target.style.background='transparent';e.target.style.color='#D4AF37'}}>
                 <i className="bi bi-grid me-2"></i>View Full Gallery
               </button>
             </div>
@@ -404,95 +213,26 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* --- FEATURED CAKES with Antigravity Effect --- */}
-      <section className="py-6 position-relative" style={{ background: 'var(--cream-vanilla)' }}>
-        <div className="container py-5">
-          <div className="d-flex justify-content-between align-items-end mb-5">
-            <div>
-              <span className="text-gradient text-uppercase fw-bold small" style={{ letterSpacing: '3px' }}>
-                Curated Selection
-              </span>
-              <h2 className="display-4 mt-2">
-                This Month's <span className="font-script text-gradient">Favorites</span>
-              </h2>
-            </div>
-            <button 
-              onClick={() => navigate('/gallery')} 
-              className="btn btn-link text-decoration-none fw-bold magnetic-hover"
-              style={{ color: '#FF6B8B' }}
-            >
-              View All <i className="bi bi-arrow-right ms-2"></i>
-            </button>
+      {/* ===== WHY CHOOSE US ===== */}
+      <section style={{ background:'white', padding:'6rem 0' }}>
+        <div className="container">
+          <div style={{ textAlign:'center', marginBottom:'3.5rem' }}>
+            <div style={{ fontSize:'0.72rem', color:'#FF6B8B', letterSpacing:4, textTransform:'uppercase', fontWeight:700, marginBottom:'0.75rem' }}>Why Choose Us</div>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2rem,4vw,2.75rem)', fontWeight:700, color:'#1a0f08', marginBottom:'0.5rem' }}>
+              The Art of <span style={{ color:'#D4AF37', fontStyle:'italic' }}>Exceptional</span> Cakes
+            </h2>
           </div>
-
           <div className="row g-4">
-            {featuredCakes.map((cake, index) => (
-              <div className="col-md-4" key={cake.id}>
-                <div className="glass-panel overflow-hidden border-0 h-100 p-0 hover-antigravity" style={{
-                  animationDelay: `${index * 0.2}s`
-                }}>
-                  <div className="position-relative overflow-hidden featured-cake-wrap" style={{ height: '300px' }}>
-                    <img
-                      src={cake.image}
-                      alt={cake.name}
-                      className="w-100 h-100"
-                      style={{ 
-                        objectFit: 'cover',
-                        transition: 'transform 0.6s ease'
-                      }}
-                    />
-                    <div className="position-absolute top-0 end-0 m-3">
-                      <span className="badge bg-white text-dark shadow-sm px-3 py-2 rounded-pill">
-                        <i className="bi bi-star-fill text-warning me-1"></i> {cake.rating}
-                      </span>
-                    </div>
-                    
-                    {/* Hover Overlay */}
-                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center featured-hover-overlay" style={{
-                      background: 'linear-gradient(135deg, rgba(255,107,139,0.9), rgba(157,92,255,0.9))',
-                      opacity: 0,
-                      transition: 'opacity 0.3s ease',
-                      zIndex: 2
-                    }}>
-                      <button
-                        className="btn btn-light rounded-pill px-4 py-2 magnetic-hover"
-                        onClick={() => {
-                          if (cake.isCustomDesign && cake.designData) {
-                            navigate('/order', { state: { design: cake.designData } });
-                          } else {
-                            navigate('/order', { state: { galleryCake: cake } });
-                          }
-                        }}
-                      >
-                        <i className="bi bi-bag me-2"></i>Order Now
-                      </button>
-                    </div>
+            {features.map((f,i) => (
+              <div className="col-sm-6 col-lg-3" key={i}>
+                <div style={{ background:'#faf7f4', borderRadius:20, padding:'2rem', height:'100%', border:'1px solid #f0e8e0', transition:'all 0.3s', textAlign:'center' }}
+                  onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-6px)';e.currentTarget.style.boxShadow=`0 16px 40px ${f.accent}25`;e.currentTarget.style.borderColor=f.accent+'44'}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='none';e.currentTarget.style.borderColor='#f0e8e0'}}>
+                  <div style={{ width:64, height:64, margin:'0 auto 1.25rem', background:`${f.accent}15`, borderRadius:18, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <i className={`bi ${f.icon}`} style={{ color:f.accent, fontSize:'1.75rem' }}></i>
                   </div>
-                  
-                  <div className="p-4">
-                    <h4 className="h5 fw-bold mb-2" style={{ color: '#2C1810' }}>{cake.name}</h4>
-                    <p className="text-secondary small mb-3">{cake.description.substring(0, 60)}...</p>
-                    
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <span className="h5 fw-bold mb-0 text-gradient">{formatLKR(cake.priceLKR)}</span>
-                        <span className="text-muted small ms-1">LKR</span>
-                      </div>
-                      
-                      <button
-                        onClick={() => {
-                          if (cake.isCustomDesign && cake.designData) {
-                            navigate('/order', { state: { design: cake.designData } });
-                          } else {
-                            navigate('/order', { state: { galleryCake: cake } });
-                          }
-                        }}
-                        className="btn-primary-gradient btn-sm py-2 px-4"
-                      >
-                        Order Now
-                      </button>
-                    </div>
-                  </div>
+                  <h4 style={{ fontWeight:700, color:'#1a0f08', fontSize:'1rem', marginBottom:'0.5rem' }}>{f.title}</h4>
+                  <p style={{ color:'#8a7060', fontSize:'0.875rem', margin:0, lineHeight:1.5 }}>{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -500,72 +240,50 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* --- CTA SECTION with Antigravity Effect --- */}
-      <section className="py-6 position-relative text-white overflow-hidden" style={{ 
-        background: 'linear-gradient(135deg, #2C1810 0%, #4A2C2A 100%)'
-      }}>
-        {/* Floating Elements */}
-        <div className="position-absolute top-0 start-0 w-100 h-100">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="position-absolute rounded-circle animate-antigravity"
-              style={{
-                width: `${Math.random() * 100 + 50}px`,
-                height: `${Math.random() * 100 + 50}px`,
-                background: `radial-gradient(circle, ${i % 2 ? '#FF9E6D' : '#FF6B8B'}20 0%, transparent 70%)`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.5}s`,
-                filter: 'blur(20px)'
-              }}
-            ></div>
-          ))}
-        </div>
-
-        <div className="container py-5 position-relative z-1 text-center">
+      {/* ===== CTA ===== */}
+      <section style={{ background:'linear-gradient(135deg,#1a0f08 0%,#2c1810 100%)', padding:'6rem 0', position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', top:'10%', left:'10%', width:300, height:300, background:'radial-gradient(circle,rgba(212,175,55,0.15) 0%,transparent 70%)', borderRadius:'50%', filter:'blur(50px)', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', bottom:'10%', right:'10%', width:250, height:250, background:'radial-gradient(circle,rgba(255,107,139,0.12) 0%,transparent 70%)', borderRadius:'50%', filter:'blur(50px)', pointerEvents:'none' }} />
+        <div className="container" style={{ position:'relative', zIndex:1, textAlign:'center' }}>
           <div className="row justify-content-center">
-            <div className="col-lg-8">
-              <h2 className="display-3 fw-bold mb-4 font-script" style={{ color: '#D4AF37' }}>
-                Ready to Create Magic?
+            <div className="col-lg-7">
+              <div style={{ fontSize:'0.72rem', color:'rgba(212,175,55,0.7)', letterSpacing:4, textTransform:'uppercase', fontWeight:700, marginBottom:'1rem' }}>Start Creating</div>
+              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'white', fontWeight:700, marginBottom:'1.25rem', lineHeight:1.2 }}>
+                Your Dream Cake<br /><span style={{ color:'#D4AF37', fontStyle:'italic' }}>Awaits You</span>
               </h2>
-              <p className="lead mb-5 opacity-75" style={{ fontSize: '1.3rem' }}>
-                Book a consultation with our master pastry chefs and bring your dream cake to life.
-                From wedding towers to birthday masterpieces.
+              <p style={{ color:'rgba(255,255,255,0.5)', fontSize:'1.1rem', lineHeight:1.7, marginBottom:'2.5rem' }}>
+                Design it from scratch with our builder, or browse hundreds of cakes from partner shops island-wide.
               </p>
-              <button
-                onClick={() => navigate('/create')}
-                className="btn-primary-gradient btn-lg px-5 py-3 magnetic-hover"
-                style={{ fontSize: '1.2rem' }}
-              >
-                <i className="bi bi-stars me-2"></i>
-                Start Your Journey
-              </button>
+              <div style={{ display:'flex', gap:'1rem', justifyContent:'center', flexWrap:'wrap' }}>
+                <button onClick={() => navigate('/create')} style={{ padding:'0.9rem 2.5rem', background:'linear-gradient(135deg,#D4AF37,#F1D06E)', border:'none', borderRadius:50, color:'#1a0f08', fontWeight:700, fontSize:'1rem', cursor:'pointer', boxShadow:'0 8px 25px rgba(212,175,55,0.35)', transition:'all 0.2s', fontFamily:'inherit' }}
+                  onMouseEnter={e=>e.target.style.transform='translateY(-2px)'} onMouseLeave={e=>e.target.style.transform='translateY(0)'}>
+                  <i className="bi bi-stars me-2"></i>Start Designing
+                </button>
+                <button onClick={() => navigate('/gallery')} style={{ padding:'0.9rem 2.5rem', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:50, color:'white', fontWeight:600, fontSize:'1rem', cursor:'pointer', backdropFilter:'blur(10px)', transition:'all 0.2s', fontFamily:'inherit' }}
+                  onMouseEnter={e=>e.target.style.background='rgba(255,255,255,0.14)'} onMouseLeave={e=>e.target.style.background='rgba(255,255,255,0.08)'}>
+                  <i className="bi bi-grid me-2"></i>Explore Gallery
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .py-6 { padding-top: 6rem; padding-bottom: 6rem; }
-          @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-20px); }
-            60% { transform: translateY(-10px); }
-          }
-          .animate-bounce {
-            animation: bounce 2s infinite;
-          }
-          .hover-antigravity:hover .featured-hover-overlay {
-            opacity: 1 !important;
-          }
-          .hover-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-          }
-        `
-      }} />
+      <style>{`
+        @keyframes floatLayer {
+          0%,100%{transform:translateX(-50%) translateY(0) rotate(0deg)}
+          50%{transform:translateX(-50%) translateY(-15px) rotate(0.5deg)}
+        }
+        @keyframes floatEmoji {
+          0%,100%{transform:translateY(0)}
+          50%{transform:translateY(-12px)}
+        }
+        @keyframes bounce {
+          0%,20%,50%,80%,100%{transform:translateX(-50%) translateY(0)}
+          40%{transform:translateX(-50%) translateY(-10px)}
+          60%{transform:translateX(-50%) translateY(-5px)}
+        }
+      `}</style>
     </div>
   );
 };

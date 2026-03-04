@@ -2,6 +2,31 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatLKR } from '../config/currency';
 
+// Canvas helper functions
+const adjustColor = (hex, amount) => {
+  try {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
+    const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  } catch { return hex; }
+};
+
+const roundedRect = (ctx, x, y, w, h, r) => {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+};
+
 const BuilderPage = () => {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
@@ -140,58 +165,195 @@ const BuilderPage = () => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const cakeWidth = 200;
-    const cakeHeight = 150;
+    const cakeWidth = 220;
+    const layerH = 55;
+    const cakeHeight = cakeDesign.layers * layerH;
     const cakeX = (canvas.width - cakeWidth) / 2;
-    const cakeY = (canvas.height - cakeHeight) / 2;
+    const baseY = canvas.height - 80;
+    const cakeTopY = baseY - cakeHeight;
 
-    const layerHeight = cakeHeight / cakeDesign.layers;
-    for (let i = 0; i < cakeDesign.layers; i++) {
-      ctx.fillStyle = cakeDesign.colors.cake;
-      ctx.fillRect(cakeX, cakeY + i * layerHeight, cakeWidth, layerHeight - 2);
-      
-      if (i < cakeDesign.layers - 1) {
-        ctx.fillStyle = cakeDesign.colors.frosting;
-        ctx.fillRect(cakeX + 5, cakeY + (i + 1) * layerHeight - 2, cakeWidth - 10, 4);
-      }
-    }
-
-    // Frosting on top
-    ctx.fillStyle = cakeDesign.colors.frosting;
+    // Draw shadow/plate
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(cakeX, cakeY);
-    ctx.lineTo(cakeX + cakeWidth, cakeY);
-    for (let x = cakeX; x <= cakeX + cakeWidth; x += 10) {
-      const yOffset = Math.sin(x / 20) * 5;
-      ctx.lineTo(x, cakeY - 15 + yOffset);
-    }
-    ctx.lineTo(cakeX, cakeY - 15);
-    ctx.closePath();
+    ctx.ellipse(canvas.width / 2, baseY + 10, cakeWidth / 2 + 20, 14, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
     ctx.fill();
+    ctx.restore();
+
+    // Draw each layer with 3D-ish effect
+    for (let i = cakeDesign.layers - 1; i >= 0; i--) {
+      const layerY = cakeTopY + i * layerH;
+      const isFrosted = i < cakeDesign.layers - 1;
+
+      // Side shadow
+      ctx.save();
+      const sideGrad = ctx.createLinearGradient(cakeX, 0, cakeX + cakeWidth, 0);
+      sideGrad.addColorStop(0, 'rgba(0,0,0,0.2)');
+      sideGrad.addColorStop(0.15, 'rgba(0,0,0,0)');
+      sideGrad.addColorStop(0.85, 'rgba(0,0,0,0)');
+      sideGrad.addColorStop(1, 'rgba(0,0,0,0.25)');
+
+      // Main layer
+      const layerGrad = ctx.createLinearGradient(cakeX, layerY, cakeX, layerY + layerH);
+      layerGrad.addColorStop(0, cakeDesign.colors.cake);
+      layerGrad.addColorStop(0.3, adjustColor(cakeDesign.colors.cake, 30));
+      layerGrad.addColorStop(1, adjustColor(cakeDesign.colors.cake, -30));
+      ctx.fillStyle = layerGrad;
+      roundedRect(ctx, cakeX, layerY, cakeWidth, layerH, 6);
+      ctx.fill();
+
+      // Overlay shadow
+      ctx.fillStyle = sideGrad;
+      roundedRect(ctx, cakeX, layerY, cakeWidth, layerH, 6);
+      ctx.fill();
+
+      // Top highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      roundedRect(ctx, cakeX + 4, layerY + 2, cakeWidth - 8, 8, 3);
+      ctx.fill();
+
+      // Frosting between layers
+      if (i > 0) {
+        const frostGrad = ctx.createLinearGradient(cakeX, layerY - 6, cakeX, layerY + 2);
+        frostGrad.addColorStop(0, cakeDesign.colors.frosting);
+        frostGrad.addColorStop(1, adjustColor(cakeDesign.colors.frosting, -20));
+        ctx.fillStyle = frostGrad;
+        roundedRect(ctx, cakeX + 2, layerY - 5, cakeWidth - 4, 8, 3);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Top frosting (wavy drips)
+    const topY = cakeTopY;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cakeX, topY);
+    for (let x = cakeX; x <= cakeX + cakeWidth; x += 8) {
+      const wave = Math.sin((x - cakeX) / 18) * 6;
+      ctx.lineTo(x, topY - 12 + wave);
+    }
+    ctx.lineTo(cakeX + cakeWidth, topY);
+    ctx.lineTo(cakeX, topY);
+    ctx.closePath();
+    const frostGrad = ctx.createLinearGradient(0, topY - 18, 0, topY + 4);
+    frostGrad.addColorStop(0, cakeDesign.colors.frosting);
+    frostGrad.addColorStop(1, adjustColor(cakeDesign.colors.frosting, -15));
+    ctx.fillStyle = frostGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // Drips on sides
+    for (let d = 0; d < 5; d++) {
+      const drx = cakeX + 20 + d * 40 + Math.sin(d * 2.3) * 10;
+      const drLen = 15 + Math.sin(d * 1.7) * 10;
+      ctx.save();
+      ctx.fillStyle = cakeDesign.colors.frosting;
+      ctx.beginPath();
+      ctx.ellipse(drx, topY + drLen / 2, 5, drLen / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
 
     // Draw toppings
+    const toppingColors = {
+      'sprinkles': ['#FF6B8B', '#FF9E6D', '#9D5CFF', '#4CAF50', '#FFD700'],
+      'berries': '#CC2200',
+      'flowers': '#FF69B4',
+      'chocolate-chips': '#3B1A08',
+      'nuts': '#8B6914',
+      'gold-leaf': '#D4AF37'
+    };
+
     cakeDesign.toppings.forEach(toppingId => {
-      ctx.fillStyle = cakeDesign.colors.decorations;
+      ctx.save();
       if (toppingId === 'sprinkles') {
-        for (let i = 0; i < 30; i++) {
-          ctx.fillRect(cakeX + Math.random() * cakeWidth, cakeY - 10 + Math.random() * 20, 2, 6);
+        const colors = toppingColors.sprinkles;
+        for (let s = 0; s < 20; s++) {
+          ctx.fillStyle = colors[s % colors.length];
+          const sx = cakeX + 15 + Math.random() * (cakeWidth - 30);
+          const sy = topY - 5 + Math.random() * 8;
+          ctx.save();
+          ctx.translate(sx, sy);
+          ctx.rotate(Math.random() * Math.PI);
+          ctx.fillRect(-4, -1.5, 8, 3);
+          ctx.restore();
         }
       } else if (toppingId === 'berries') {
-        for (let i = 0; i < 6; i++) {
+        for (let b = 0; b < 7; b++) {
+          const bx = cakeX + 20 + b * 26 + (b % 2) * 10;
+          const by = topY - 10;
           ctx.beginPath();
-          ctx.arc(cakeX + 30 + i * 25, cakeY - 10, 4, 0, Math.PI * 2);
+          ctx.arc(bx, by, 7, 0, Math.PI * 2);
+          ctx.fillStyle = '#CC2200';
+          ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          ctx.beginPath();
+          ctx.arc(bx - 2, by - 2, 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#228B22';
+          ctx.fillRect(bx - 1, by - 13, 2, 6);
+        }
+      } else if (toppingId === 'flowers') {
+        for (let f = 0; f < 5; f++) {
+          const fx = cakeX + 25 + f * 38;
+          const fy = topY - 12;
+          for (let p = 0; p < 5; p++) {
+            const angle = (p / 5) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(fx + Math.cos(angle) * 6, fy + Math.sin(angle) * 6, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#FF69B4';
+            ctx.fill();
+          }
+          ctx.beginPath();
+          ctx.arc(fx, fy, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#FFD700';
           ctx.fill();
         }
+      } else if (toppingId === 'chocolate-chips') {
+        for (let c = 0; c < 12; c++) {
+          const cx2 = cakeX + 15 + Math.random() * (cakeWidth - 30);
+          const cy = topY - 4 + Math.random() * 6;
+          ctx.beginPath();
+          ctx.arc(cx2, cy, 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#3B1A08';
+          ctx.fill();
+        }
+      } else if (toppingId === 'gold-leaf') {
+        ctx.globalAlpha = 0.85;
+        for (let g = 0; g < 6; g++) {
+          const gx = cakeX + 20 + g * 30 + Math.sin(g) * 8;
+          const gy = topY - 8;
+          ctx.save();
+          ctx.translate(gx, gy);
+          ctx.rotate(Math.random() * 0.5 - 0.25);
+          const leafGrad = ctx.createLinearGradient(-10, -5, 10, 5);
+          leafGrad.addColorStop(0, '#D4AF37');
+          leafGrad.addColorStop(0.5, '#F1D06E');
+          leafGrad.addColorStop(1, '#B8860B');
+          ctx.fillStyle = leafGrad;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 10, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.globalAlpha = 1;
       }
+      ctx.restore();
     });
 
-    // Draw message
+    // Message
     if (cakeDesign.message) {
-      ctx.fillStyle = '#4A2C2A';
-      ctx.font = 'bold 16px Arial';
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = adjustColor(cakeDesign.colors.cake, -80);
+      ctx.font = 'bold 13px "Playfair Display", Georgia, serif';
       ctx.textAlign = 'center';
-      ctx.fillText(cakeDesign.message, canvas.width / 2, cakeY + cakeHeight + 25);
+      ctx.fillText(cakeDesign.message.substring(0, 22), canvas.width / 2, cakeTopY + cakeHeight / 2 + 5);
+      ctx.restore();
     }
+
   }, [cakeDesign]);
 
   // Auto-save draft

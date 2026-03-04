@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { cakeData, cakeCategories } from '../utils/cakeData';
 import CakeCard from '../components/CakeCard';
 import { getCategoryIcon } from '../utils/helpers';
 import { formatLKR } from '../config/currency';
@@ -11,12 +10,11 @@ const GalleryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('default');
-  const [priceRange, setPriceRange] = useState(50000);
+  const [priceRange, setPriceRange] = useState(10000);
   const [cakes, setCakes] = useState([]);
   const [allCakes, setAllCakes] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const allCategories = ['All', ...cakeCategories.filter(c => c !== 'All')];
+  const cakeCategories = ["All", "Birthday", "Wedding", "Anniversary", "Special", "Spring"];
 
   // Fetch shop cakes from API and merge with static data
   useEffect(() => {
@@ -43,22 +41,22 @@ const GalleryPage = () => {
             shopSlug: c.shopSlug,
             shop: c.shop,
             shopId: c.shop,
-            flavors: [c.category],
             sizes: ['Standard'],
             isShopCake: true
           }));
         }
-        const merged = [...shopCakes, ...cakeData];
+        const merged = [...shopCakes];
         setAllCakes(merged);
       } catch (err) {
         console.error('Error fetching shop cakes:', err);
-        setAllCakes([...cakeData]);
       } finally {
         setLoading(false);
       }
     };
     fetchAndMerge();
   }, []);
+
+  const allCategories = ['All', ...cakeCategories.filter(c => c !== 'All')];
 
   // Apply filters
   useEffect(() => {
@@ -149,9 +147,9 @@ const GalleryPage = () => {
                 <input
                   type="range"
                   className="form-range flex-grow-1"
-                  min="5000"
-                  max="50000"
-                  step="1000"
+                  min="50"
+                  max="20000"
+                  step="500"
                   value={priceRange}
                   onChange={(e) => setPriceRange(parseInt(e.target.value))}
                   style={{ accentColor: 'var(--apricot)' }}
@@ -201,11 +199,6 @@ const GalleryPage = () => {
               >
                 <i className={`bi ${getCategoryIcon(category)} me-2`}></i>
                 {category}
-                {category !== 'All' && (
-                  <span className="badge bg-lavender ms-2">
-                    {allCakes.filter(cake => cake.category === category).length}
-                  </span>
-                )}
               </button>
             ))}
           </div>

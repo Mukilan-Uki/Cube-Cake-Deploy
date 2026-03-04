@@ -292,7 +292,7 @@ const SidebarNav = () => {
         }
       `}</style>
 
-      <div 
+      <div
         className="sidebar-container"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {

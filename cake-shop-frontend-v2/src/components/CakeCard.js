@@ -136,14 +136,10 @@ const CakeCard = ({ cake }) => {
             </p>
             
             <div className="d-flex flex-wrap gap-2 mb-3">
-              <span className="badge bg-cream text-chocolate">
-                <i className="bi bi-tag me-1"></i>
-                {cake.category}
-              </span>
-              {cake.flavors && (
+              {cake.category && (
                 <span className="badge bg-cream text-chocolate">
-                  <i className="bi bi-droplet me-1"></i>
-                  {cake.flavors[0]}
+                  <i className="bi bi-tag me-1"></i>
+                  {cake.category}
                 </span>
               )}
             </div>

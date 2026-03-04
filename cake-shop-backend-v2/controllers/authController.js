@@ -5,7 +5,7 @@ const Shop = require('../models/Shop');
 // Generate JWT Token
 const generateToken = (id, role, shopId = null, expiresIn = '30d') => {
   return jwt.sign(
-    { id, role, shopId }, 
+    { id, role, shopId },
     process.env.JWT_SECRET,
     { expiresIn }
   );
@@ -76,7 +76,7 @@ const login = async (req, res, next) => {
     }
 
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
-    
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -93,8 +93,8 @@ const login = async (req, res, next) => {
     }
 
     const token = generateToken(
-      user._id, 
-      user.role, 
+      user._id,
+      user.role,
       user.shopId,
       rememberMe ? '30d' : '1d'
     );
@@ -135,7 +135,7 @@ const adminLogin = async (req, res, next) => {
       });
     }
 
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       email: email.toLowerCase(),
       role: { $in: ['shop_owner', 'super_admin'] }
     }).select('+password');
@@ -156,8 +156,8 @@ const adminLogin = async (req, res, next) => {
     }
 
     const token = generateToken(
-      user._id, 
-      user.role, 
+      user._id,
+      user.role,
       user.shopId,
       '8h'
     );
@@ -347,7 +347,7 @@ const getProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id)
       .populate('shopId', 'shopName shopSlug logo isVerified');
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -364,7 +364,8 @@ const getProfile = async (req, res, next) => {
         phone: user.phone,
         role: user.role,
         shopId: user.shopId,
-        shop: user.shopId
+        shop: user.shopId,
+        profilePicture: user.profilePicture || ''
       }
     });
 
@@ -378,11 +379,16 @@ const getProfile = async (req, res, next) => {
 // @access  Private
 const updateProfile = async (req, res, next) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, profilePicture } = req.body;
+
+    const updateData = { name, phone, updatedAt: Date.now() };
+    if (profilePicture !== undefined) {
+      updateData.profilePicture = profilePicture;
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { name, phone, updatedAt: Date.now() },
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -401,7 +407,8 @@ const updateProfile = async (req, res, next) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role
+        role: user.role,
+        profilePicture: user.profilePicture || ''
       }
     });
 

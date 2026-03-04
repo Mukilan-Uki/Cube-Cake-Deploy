@@ -30,7 +30,14 @@ export const AuthProvider = ({ children }) => {
           if (response.ok) {
             const data = await response.json();
             if (data.success) {
-              setUser(data.user);
+              // Preserve profilePicture from localStorage since the backend may not store it
+              const localUser = JSON.parse(storedUser);
+              const mergedUser = {
+                ...data.user,
+                profilePicture: data.user.profilePicture || localUser.profilePicture || ''
+              };
+              localStorage.setItem('user', JSON.stringify(mergedUser));
+              setUser(mergedUser);
               setToken(storedToken);
             } else {
               // Invalid token - clear storage
@@ -134,10 +141,10 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
-        
+
         // Redirect to shop dashboard
         navigate('/shop/dashboard');
-        
+
         return { success: true, data };
       } else {
         return { success: false, message: data.message };
@@ -169,7 +176,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
-        
+
         // Redirect based on role
         if (data.user.role === 'super_admin') {
           navigate('/admin');
@@ -182,7 +189,7 @@ export const AuthProvider = ({ children }) => {
         } else {
           navigate('/');
         }
-        
+
         return { success: true, data };
       } else {
         return { success: false, message: data.message };
@@ -214,7 +221,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
-        
+
         // Redirect based on role and shop status
         if (data.user.role === 'super_admin') {
           navigate('/admin');
@@ -225,7 +232,7 @@ export const AuthProvider = ({ children }) => {
             navigate('/shop/register');
           }
         }
-        
+
         return { success: true, data };
       } else {
         return { success: false, message: data.message };

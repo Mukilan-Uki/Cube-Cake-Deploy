@@ -78,6 +78,23 @@ const MyOrdersPage = () => {
     });
   };
 
+  const cancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order? This cannot be undone.')) return;
+    try {
+      const result = await apiService.cancelOrder(orderId);
+      if (result.success) {
+        setOrders(prev => prev.map(o => 
+          (o.orderId === orderId || o._id === orderId) ? { ...o, status: 'Cancelled' } : o
+        ));
+        alert('Order cancelled successfully.');
+      } else {
+        alert(result.message || 'Could not cancel this order. Please contact support.');
+      }
+    } catch (err) {
+      alert('Error cancelling order. Please try again.');
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -310,17 +327,13 @@ Payment: ${order.paymentMethod || 'Cash'}`);
                           </button>
                         )}
                         
-                        {order.status === 'Pending' && (
+                        {(order.status === 'Pending' || order.status === 'pending') && (
                           <button 
                             className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                            onClick={() => {
-                              if (window.confirm('Are you sure you want to cancel this order?')) {
-                                alert('Order cancellation requested. Our team will contact you shortly.');
-                              }
-                            }}
+                            onClick={() => cancelOrder(order.orderId || order._id)}
                           >
                             <i className="bi bi-x-circle me-1"></i>
-                            Cancel
+                            Cancel Order
                           </button>
                         )}
                       </div>

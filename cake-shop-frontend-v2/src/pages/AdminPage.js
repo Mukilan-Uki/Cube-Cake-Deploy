@@ -727,37 +727,25 @@ const AdminPage = () => {
 
   return (
     <div style={{minHeight:'100vh',background:'var(--cream-warm)'}}>
-      {/* Admin navbar */}
-      <nav style={{background:'linear-gradient(135deg, #1a0f0c 0%, #3D2626 100%)',padding:'0.7rem 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',boxShadow:'0 2px 20px rgba(0,0,0,0.35)',position:'sticky',top:0,zIndex:1000,borderBottom:'1px solid rgba(212,175,55,0.15)'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
-          <div style={{width:36,height:36,background:'var(--grad-gold)',borderRadius:'var(--radius-sm)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'var(--shadow-gold)'}}>
-            <i className="bi bi-shield-lock" style={{color:'var(--text-dark)'}}></i>
-          </div>
-          <span style={{fontFamily:'var(--font-display)',color:'var(--gold-light)',fontWeight:700,fontSize:'1.1rem'}}>Super Admin</span>
-        </div>
-        <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
-          <Link to="/" style={{color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',display:'flex',alignItems:'center',gap:'0.3rem',textDecoration:'none'}}>
-            <i className="bi bi-globe2"></i> View Store
-          </Link>
-          <div style={{display:'flex',alignItems:'center',gap:'0.5rem',padding:'0.35rem 0.75rem',background:'rgba(255,255,255,0.06)',borderRadius:'var(--radius-sm)',border:'1px solid rgba(212,175,55,0.15)'}}>
-            <div style={{width:26,height:26,background:'var(--grad-gold)',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:'0.78rem',color:'var(--text-dark)'}}>
-              {user?.name?.charAt(0)?.toUpperCase()}
-            </div>
-            <span style={{color:'white',fontSize:'0.8rem',fontWeight:600}}>{user?.name?.split(' ')[0]}</span>
-            <span style={{color:'var(--gold-light)',fontSize:'0.68rem',opacity:0.8}}>Super Admin</span>
-          </div>
-          <button onClick={() => { logout(); navigate('/'); }}
-            style={{background:'rgba(220,100,100,0.12)',border:'1px solid rgba(220,100,100,0.25)',color:'#E88888',borderRadius:'var(--radius-sm)',padding:'0.35rem 0.85rem',cursor:'pointer',fontSize:'0.82rem',display:'flex',alignItems:'center',gap:'0.35rem',fontFamily:'var(--font-body)'}}>
-            <i className="bi bi-box-arrow-right"></i> Logout
-          </button>
-        </div>
-      </nav>
-
-      {/* Page header */}
-      <div style={{background:'linear-gradient(135deg, #3D2626 0%, #6B4F50 100%)',padding:'2rem 1.75rem 1.5rem',borderBottom:'1px solid rgba(212,175,55,0.1)'}}>
+      {/* Compact header - no separate top navbar */}
+      <div style={{background:'linear-gradient(135deg, #1a0f0c 0%, #3D2626 100%)',padding:'1.5rem 1.75rem 0',borderBottom:'1px solid rgba(212,175,55,0.1)'}}>
         <div style={{maxWidth:'1400px',margin:'0 auto'}}>
-          <h1 style={{fontFamily:'var(--font-display)',color:'var(--gold-light)',fontSize:'2rem',fontWeight:700,margin:0}}>Admin Dashboard</h1>
-          <p style={{color:'rgba(255,255,255,0.5)',fontSize:'0.88rem',margin:'0.25rem 0 1.5rem'}}>Platform-wide management & oversight</p>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
+              <div style={{width:38,height:38,background:'var(--grad-gold)',borderRadius:'var(--radius-sm)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'var(--shadow-gold)'}}><i className="bi bi-shield-lock" style={{color:'var(--text-dark)'}}></i></div>
+              <div>
+                <h1 style={{fontFamily:'var(--font-display)',color:'var(--gold-light)',fontSize:'1.5rem',fontWeight:700,margin:0}}>Admin Dashboard</h1>
+                <p style={{color:'rgba(255,255,255,0.4)',fontSize:'0.75rem',margin:0}}>Platform-wide management</p>
+              </div>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
+              <Link to="/" style={{color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',display:'flex',alignItems:'center',gap:'0.3rem',textDecoration:'none'}}><i className="bi bi-globe2"></i> Store</Link>
+              <button onClick={() => { logout(); navigate('/'); }}
+                style={{background:'rgba(220,100,100,0.12)',border:'1px solid rgba(220,100,100,0.25)',color:'#E88888',borderRadius:'var(--radius-sm)',padding:'0.35rem 0.85rem',cursor:'pointer',fontSize:'0.82rem',display:'flex',alignItems:'center',gap:'0.35rem',fontFamily:'var(--font-body)'}}>
+                <i className="bi bi-box-arrow-right"></i> Logout
+              </button>
+            </div>
+          </div>
           {/* Tab nav */}
           <div style={{display:'flex',gap:'0.25rem'}}>
             {tabs.map(t => (

@@ -136,6 +136,23 @@ export const apiService = {
     }
   },
 
+  async cancelOrder(orderId) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Cancel order error:', error);
+      return { success: false, message: 'Network error' };
+    }
+  },
+
   async updateOrderStatus(orderId, status) {
     try {
       const response = await fetch(API_CONFIG.ORDERS.UPDATE_STATUS(orderId), {

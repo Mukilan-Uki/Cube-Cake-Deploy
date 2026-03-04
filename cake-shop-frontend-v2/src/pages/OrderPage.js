@@ -1,10 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../utils/api';
 import RequireAuth from '../components/RequireAuth';
 import { formatLKR } from '../config/currency';
 import { API_CONFIG } from '../config';
+
+// Canvas helpers for cake preview
+const adjustColor = (hex, amount) => {
+  try {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
+    const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  } catch { return hex; }
+};
+
+const drawMiniCake = (canvas, design) => {
+  if (!canvas || !design) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const layers = design.layers || 2;
+  const colors = design.colors || { cake: '#8B4513', frosting: '#FFF5E6', decorations: '#FF6B8B' };
+  const cakeW = 140, layerH = 35, cakeX = (canvas.width - cakeW) / 2;
+  const baseY = canvas.height - 30;
+  const topY = baseY - layers * layerH;
+
+  // Shadow
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(canvas.width/2, baseY+8, cakeW/2+10, 10, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.fill();
+  ctx.restore();
+
+  for (let i = layers - 1; i >= 0; i--) {
+    const ly = topY + i * layerH;
+    const g = ctx.createLinearGradient(cakeX, ly, cakeX+cakeW, ly+layerH);
+    g.addColorStop(0, adjustColor(colors.cake, 20));
+    g.addColorStop(1, adjustColor(colors.cake, -20));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.roundRect(cakeX, ly, cakeW, layerH-1, 4);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(cakeX+4, ly+2, cakeW-8, 6);
+    if (i > 0) {
+      ctx.fillStyle = colors.frosting;
+      ctx.fillRect(cakeX+2, ly-4, cakeW-4, 6);
+    }
+  }
+
+  // Top frosting
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cakeX, topY);
+  for (let x = cakeX; x <= cakeX+cakeW; x+=8) ctx.lineTo(x, topY - 8 + Math.sin((x-cakeX)/15)*4);
+  ctx.lineTo(cakeX+cakeW, topY); ctx.lineTo(cakeX, topY); ctx.closePath();
+  ctx.fillStyle = colors.frosting; ctx.fill();
+  ctx.restore();
+};
+
+const CakePreview = ({ design }) => {
+  const ref = useRef(null);
+  useEffect(() => { drawMiniCake(ref.current, design); }, [design]);
+  return <canvas ref={ref} width={200} height={160} style={{ width:'100%', maxWidth:200, borderRadius:12, background:'#faf7f4' }} />;
+};
 
 const OrderPageContent = () => {
   const navigate = useNavigate();
@@ -38,6 +100,35 @@ const OrderPageContent = () => {
       setDesign(location.state.design);
       localStorage.setItem('cakeDesign', JSON.stringify(location.state.design));
     } else {
+      // Check if coming from cart checkout
+      const checkoutItems = localStorage.getItem('checkoutItems');
+      if (checkoutItems) {
+        try {
+          const items = JSON.parse(checkoutItems);
+          if (items && items.length > 0) {
+            const firstItem = items[0];
+            // If it's a gallery/shop cake
+            if (firstItem.isShopCake || firstItem.shopId || firstItem.shopName) {
+              setGalleryCake({
+                ...firstItem,
+                priceLKR: items.reduce((sum, item) => sum + (item.priceLKR || 0) * (item.quantity || 1), 0),
+                name: items.length === 1 ? firstItem.name : `${items.length} cakes`,
+                description: items.map(i => i.name).join(', '),
+                image: firstItem.image
+              });
+            } else {
+              // custom cake from cart
+              setDesign({
+                ...firstItem,
+                finalPriceLKR: items.reduce((sum, item) => sum + (item.priceLKR || item.totalPrice || 0) * (item.quantity || 1), 0)
+              });
+            }
+            return;
+          }
+        } catch (error) {
+          console.error('Error loading checkout items:', error);
+        }
+      }
       // Then try localStorage
       const savedDesign = localStorage.getItem('cakeDesign');
       if (savedDesign) {
@@ -72,9 +163,9 @@ const OrderPageContent = () => {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!user) {
-      navigate('/login-selection', { 
+      navigate('/login-selection', {
         state: { from: '/order' },
-        replace: true 
+        replace: true
       });
     }
   }, [user, navigate]);
@@ -97,16 +188,16 @@ const OrderPageContent = () => {
     if (!orderDetails.phone.trim()) errors.push('Phone is required');
     if (!orderDetails.email.trim()) errors.push('Email is required');
     if (!orderDetails.deliveryDate) errors.push('Delivery date is required');
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (orderDetails.email && !emailRegex.test(orderDetails.email)) {
       errors.push('Invalid email format');
     }
-    
+
     if (orderDetails.deliveryType === 'delivery' && !orderDetails.deliveryAddress.trim()) {
       errors.push('Delivery address is required');
     }
-    
+
     return errors;
   };
 
@@ -123,63 +214,63 @@ const OrderPageContent = () => {
       return 0;
     }
 
-    // Base prices from size
+    // Base prices from size (in LKR) — must match backend calculatePrice
     const sizePrices = {
-      'small': 8997.00,
-      'medium': 11997.00,
-      'large': 17997.00,
-      'xl': 23997.00
+      'small': 1500,
+      'medium': 2500,
+      'large': 3500,
+      'xl': 5000
     };
-    
-    // Additional costs for bases
+
+    // Additional costs for base flavors
     const baseAdditional = {
-      'chocolate': 2500,
-      'vanilla': 2000,
-      'red-velvet': 3000,
-      'carrot': 2800,
-      'lemon': 2200
+      'chocolate': 250,
+      'vanilla': 200,
+      'red-velvet': 300,
+      'carrot': 280,
+      'lemon': 220
     };
-    
+
     // Additional costs for frostings
     const frostingAdditional = {
-      'vanilla': 1500,
-      'chocolate': 2000,
-      'cream-cheese': 1800,
-      'strawberry': 1600,
-      'matcha': 2200
+      'vanilla': 150,
+      'chocolate': 200,
+      'cream-cheese': 180,
+      'strawberry': 160,
+      'matcha': 220
     };
-    
+
     // Additional costs for toppings
     const toppingAdditional = {
-      'sprinkles': 800,
-      'berries': 1800,
-      'flowers': 2200,
-      'chocolate-chips': 1200,
-      'nuts': 1200,
-      'gold-leaf': 3500
+      'sprinkles': 80,
+      'berries': 180,
+      'flowers': 220,
+      'chocolate-chips': 120,
+      'nuts': 120,
+      'gold-leaf': 350
     };
-    
+
     // Calculate each component
-    const basePrice = sizePrices[design.size] || 11997.00;
+    const basePrice = sizePrices[design.size] || 2500;
     const baseExtra = baseAdditional[design.base] || 0;
     const frostingExtra = frostingAdditional[design.frosting] || 0;
-    
+
     // Calculate toppings total
     const toppingsExtra = (design.toppings || []).reduce((total, toppingId) => {
       return total + (toppingAdditional[toppingId] || 0);
     }, 0);
-    
+
     // Extra layers (first 2 are included)
     const extraLayers = Math.max(0, (design.layers || 2) - 2);
-    const layersExtra = extraLayers * 1500;
-    
+    const layersExtra = extraLayers * 150;
+
     // Delivery fee
-    const deliveryFee = orderDetails.deliveryType === 'delivery' ? 1500.00 : 0;
-    
+    const deliveryFee = orderDetails.deliveryType === 'delivery' ? 150 : 0;
+
     // Calculate total
     const total = basePrice + baseExtra + frostingExtra + toppingsExtra + layersExtra + deliveryFee;
-    
-    console.log('✅ Order Page Price Calculation:', {
+
+    console.log('Order Page Price Calculation:', {
       size: design.size,
       basePrice,
       base: design.base,
@@ -194,7 +285,7 @@ const OrderPageContent = () => {
       deliveryFee,
       TOTAL: total
     });
-    
+
     return total;
   };
 
@@ -253,11 +344,11 @@ const OrderPageContent = () => {
       alert(`Please fix:\n${errors.join('\n')}`);
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     const formattedDate = new Date(orderDetails.deliveryDate).toISOString();
-    
+
     // Combine design with order details
     // Resolve the shopId:
     // - For gallery/shop cakes: use the shopId passed from CakeCard
@@ -275,6 +366,7 @@ const OrderPageContent = () => {
     const orderData = isGalleryOrder ? {
       // Gallery cake order
       shopId: resolvedShopId,
+      galleryCakePriceLKR: galleryCake.priceLKR,
       cakeDetails: {
         base: 'vanilla',
         frosting: 'vanilla',
@@ -310,7 +402,7 @@ const OrderPageContent = () => {
 
     try {
       const result = await apiService.createOrder(orderData);
-      
+
       if (result.success) {
         // Clear design from localStorage after successful order
         localStorage.removeItem('cakeDesign');
@@ -343,7 +435,7 @@ const OrderPageContent = () => {
               <i className="bi bi-bag-heart me-2 text-gold"></i>
               Order Summary
             </h4>
-            
+
             {/* Design Preview */}
             {isGalleryOrder && galleryCake ? (
               /* Gallery Cake Summary */
@@ -404,7 +496,7 @@ const OrderPageContent = () => {
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(1500) : 'FREE'}
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(150) : 'FREE'}
                     </span>
                   </div>
                   <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
@@ -420,181 +512,168 @@ const OrderPageContent = () => {
             ) : (
               /* Custom Design Summary */
               <>
-              <div className="text-center mb-4">
-                <div className="position-relative d-inline-block">
-                  <div className="rounded-4 bg-gradient-primary p-4" style={{ 
-                    width: '120px', 
-                    height: '120px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <i className="bi bi-cake3 fs-1 text-white"></i>
-                  </div>
-                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-gradient-primary">
-                    {design.layers || 2} Layers
-                  </span>
+                <div className="text-center mb-4">
+                  <CakePreview design={design} />
                 </div>
-              </div>
 
-            {/* Design Details */}
-            <div className="mb-4">
-              <h6 className="fw-bold mb-3">Your Custom Creation</h6>
-              <div className="bg-cream p-3 rounded-3 mb-3">
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">Size:</span>
-                  <span className="fw-bold">{getSizeName(design.size)}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">Base Flavor:</span>
-                  <span className="fw-bold">{getBaseName(design.base)}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">Frosting:</span>
-                  <span className="fw-bold">{getFrostingName(design.frosting)}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">Layers:</span>
-                  <span className="fw-bold">{design.layers || 2}</span>
-                </div>
-                {design.toppings?.length > 0 && (
-                  <div className="mb-2">
-                    <span className="text-muted d-block mb-1">Toppings:</span>
-                    <div className="d-flex flex-wrap gap-1">
-                      {design.toppings.map(topping => (
-                        <span key={topping} className="badge bg-gradient-primary">
-                          {getToppingName(topping)}
-                        </span>
-                      ))}
+                {/* Design Details */}
+                <div className="mb-4">
+                  <h6 className="fw-bold mb-3">Your Custom Creation</h6>
+                  <div className="bg-cream p-3 rounded-3 mb-3">
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">Size:</span>
+                      <span className="fw-bold">{getSizeName(design.size)}</span>
                     </div>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">Base Flavor:</span>
+                      <span className="fw-bold">{getBaseName(design.base)}</span>
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">Frosting:</span>
+                      <span className="fw-bold">{getFrostingName(design.frosting)}</span>
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">Layers:</span>
+                      <span className="fw-bold">{design.layers || 2}</span>
+                    </div>
+                    {design.toppings?.length > 0 && (
+                      <div className="mb-2">
+                        <span className="text-muted d-block mb-1">Toppings:</span>
+                        <div className="d-flex flex-wrap gap-1">
+                          {design.toppings.map(topping => (
+                            <span key={topping} className="badge bg-gradient-primary">
+                              {getToppingName(topping)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              
-              {design.message && (
-                <div className="p-3 bg-cream rounded-3">
-                  <small className="text-muted d-block">Message on cake:</small>
-                  <p className="mb-0 fst-italic fw-bold">"{design.message}"</p>
-                </div>
-              )}
-            </div>
 
-            {/* Price Breakdown */}
-            <div className="border-top pt-4">
-              <h6 className="fw-bold mb-3">Price Breakdown</h6>
-              
-              {/* Base Price */}
-              <div className="d-flex justify-content-between mb-2">
-                <span className="text-muted">
-                  {getSizeName(design.size)} Base
-                </span>
-                <span className="fw-medium">
-                  {formatLKR(design.size === 'small' ? 8997 : 
-                            design.size === 'medium' ? 11997 :
-                            design.size === 'large' ? 17997 : 23997)}
-                </span>
-              </div>
-              
-              {/* Base Flavor Extra */}
-              {design.base && (
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">
-                    {getBaseName(design.base)} Flavor
-                  </span>
-                  <span className="fw-medium text-success">
-                    +{formatLKR(design.base === 'chocolate' ? 2500 :
-                               design.base === 'vanilla' ? 2000 :
-                               design.base === 'red-velvet' ? 3000 :
-                               design.base === 'carrot' ? 2800 : 2200)}
-                  </span>
+                  {design.message && (
+                    <div className="p-3 bg-cream rounded-3">
+                      <small className="text-muted d-block">Message on cake:</small>
+                      <p className="mb-0 fst-italic fw-bold">"{design.message}"</p>
+                    </div>
+                  )}
                 </div>
-              )}
-              
-              {/* Frosting Extra */}
-              {design.frosting && (
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">
-                    {getFrostingName(design.frosting)} Frosting
-                  </span>
-                  <span className="fw-medium text-success">
-                    +{formatLKR(design.frosting === 'vanilla' ? 1500 :
-                               design.frosting === 'chocolate' ? 2000 :
-                               design.frosting === 'cream-cheese' ? 1800 :
-                               design.frosting === 'strawberry' ? 1600 : 2200)}
-                  </span>
-                </div>
-              )}
-              
-              {/* Toppings */}
-              {design.toppings?.length > 0 && (
-                <div className="mb-2">
-                  <div className="d-flex justify-content-between mb-1">
-                    <span className="text-muted">Toppings:</span>
-                    <span className="fw-medium text-success">
-                      +{formatLKR(design.toppings.reduce((sum, t) => {
-                        return sum + (t === 'sprinkles' ? 800 :
-                                     t === 'berries' ? 1800 :
-                                     t === 'flowers' ? 2200 :
-                                     t === 'chocolate-chips' ? 1200 :
-                                     t === 'nuts' ? 1200 : 3500);
-                      }, 0))}
+
+                {/* Price Breakdown */}
+                <div className="border-top pt-4">
+                  <h6 className="fw-bold mb-3">Price Breakdown</h6>
+
+                  {/* Base Price */}
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">
+                      {getSizeName(design.size)} Base
+                    </span>
+                    <span className="fw-medium">
+                      {formatLKR(design.size === 'small' ? 1500 :
+                        design.size === 'medium' ? 2500 :
+                          design.size === 'large' ? 3500 : 5000)}
                     </span>
                   </div>
-                  <div className="ps-3">
-                    {design.toppings.map(topping => (
-                      <div key={topping} className="d-flex justify-content-between small">
-                        <span className="text-muted">• {getToppingName(topping)}</span>
-                        <span className="text-muted">
-                          {formatLKR(topping === 'sprinkles' ? 800 :
-                                    topping === 'berries' ? 1800 :
-                                    topping === 'flowers' ? 2200 :
-                                    topping === 'chocolate-chips' ? 1200 :
-                                    topping === 'nuts' ? 1200 : 3500)}
+
+                  {/* Base Flavor Extra */}
+                  {design.base && (
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">
+                        {getBaseName(design.base)} Flavor
+                      </span>
+                      <span className="fw-medium text-success">
+                        +{formatLKR(design.base === 'chocolate' ? 250 :
+                          design.base === 'vanilla' ? 200 :
+                            design.base === 'red-velvet' ? 300 :
+                              design.base === 'carrot' ? 280 : 220)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Frosting Extra */}
+                  {design.frosting && (
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">
+                        {getFrostingName(design.frosting)} Frosting
+                      </span>
+                      <span className="fw-medium text-success">
+                        +{formatLKR(design.frosting === 'vanilla' ? 150 :
+                          design.frosting === 'chocolate' ? 200 :
+                            design.frosting === 'cream-cheese' ? 180 :
+                              design.frosting === 'strawberry' ? 160 : 220)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Toppings */}
+                  {design.toppings?.length > 0 && (
+                    <div className="mb-2">
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="text-muted">Toppings:</span>
+                        <span className="fw-medium text-success">
+                          +{formatLKR(design.toppings.reduce((sum, t) => {
+                            return sum + (t === 'sprinkles' ? 80 :
+                              t === 'berries' ? 180 :
+                                t === 'flowers' ? 220 :
+                                  t === 'chocolate-chips' ? 120 :
+                                    t === 'nuts' ? 120 : 350);
+                          }, 0))}
                         </span>
                       </div>
-                    ))}
+                      <div className="ps-3">
+                        {design.toppings.map(topping => (
+                          <div key={topping} className="d-flex justify-content-between small">
+                            <span className="text-muted">• {getToppingName(topping)}</span>
+                            <span className="text-muted">
+                              {formatLKR(topping === 'sprinkles' ? 80 :
+                                topping === 'berries' ? 180 :
+                                  topping === 'flowers' ? 220 :
+                                    topping === 'chocolate-chips' ? 120 :
+                                      topping === 'nuts' ? 120 : 350)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Extra Layers */}
+                  {design.layers > 2 && (
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">
+                        Extra Layers ({design.layers - 2})
+                      </span>
+                      <span className="fw-medium text-success">
+                        +{formatLKR((design.layers - 2) * 150)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Delivery Fee */}
+                  <div className="d-flex justify-content-between mb-2 pt-2 border-top">
+                    <span className="text-muted">Delivery</span>
+                    <span className="fw-medium">
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(1500) : 'FREE'}
+                    </span>
                   </div>
+
+                  {/* Grand Total */}
+                  <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
+                    <span>Total</span>
+                    <span className="text-gradient">{formatLKR(totalPrice)}</span>
+                  </div>
+
+                  {/* Price Note */}
+                  <p className="text-muted small mt-3 mb-0">
+                    <i className="bi bi-info-circle me-1"></i>
+                    All prices are in Sri Lankan Rupees (LKR). Final price includes all customizations.
+                  </p>
                 </div>
-              )}
-              
-              {/* Extra Layers */}
-              {design.layers > 2 && (
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">
-                    Extra Layers ({design.layers - 2})
-                  </span>
-                  <span className="fw-medium text-success">
-                    +{formatLKR((design.layers - 2) * 1500)}
-                  </span>
-                </div>
-              )}
-              
-              {/* Delivery Fee */}
-              <div className="d-flex justify-content-between mb-2 pt-2 border-top">
-                <span className="text-muted">Delivery</span>
-                <span className="fw-medium">
-                  {orderDetails.deliveryType === 'delivery' ? formatLKR(1500) : 'FREE'}
-                </span>
-              </div>
-              
-              {/* Grand Total */}
-              <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
-                <span>Total</span>
-                <span className="text-gradient">{formatLKR(totalPrice)}</span>
-              </div>
-              
-              {/* Price Note */}
-              <p className="text-muted small mt-3 mb-0">
-                <i className="bi bi-info-circle me-1"></i>
-                All prices are in Sri Lankan Rupees (LKR). Final price includes all customizations.
-              </p>
-            </div>
-            </>
+              </>
             )}
 
             {/* Submit Button */}
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               form="orderForm"
               className="btn-primary-gradient w-100 mt-4 py-3"
               disabled={isSubmitting}
@@ -630,7 +709,7 @@ const OrderPageContent = () => {
                     type="text"
                     className="form-control"
                     value={orderDetails.customerName}
-                    onChange={(e) => setOrderDetails({...orderDetails, customerName: e.target.value})}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, customerName: e.target.value })}
                     required
                   />
                 </div>
@@ -640,7 +719,7 @@ const OrderPageContent = () => {
                     type="tel"
                     className="form-control"
                     value={orderDetails.phone}
-                    onChange={(e) => setOrderDetails({...orderDetails, phone: e.target.value})}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, phone: e.target.value })}
                     required
                   />
                 </div>
@@ -650,7 +729,7 @@ const OrderPageContent = () => {
                     type="email"
                     className="form-control"
                     value={orderDetails.email}
-                    onChange={(e) => setOrderDetails({...orderDetails, email: e.target.value})}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, email: e.target.value })}
                     required
                   />
                 </div>
@@ -670,7 +749,7 @@ const OrderPageContent = () => {
                     type="date"
                     className="form-control"
                     value={orderDetails.deliveryDate}
-                    onChange={(e) => setOrderDetails({...orderDetails, deliveryDate: e.target.value})}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, deliveryDate: e.target.value })}
                     min={new Date().toISOString().split('T')[0]}
                     required
                   />
@@ -680,10 +759,10 @@ const OrderPageContent = () => {
                   <select
                     className="form-select"
                     value={orderDetails.deliveryType}
-                    onChange={(e) => setOrderDetails({...orderDetails, deliveryType: e.target.value})}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, deliveryType: e.target.value })}
                   >
                     <option value="pickup">Pickup from Shop (Free)</option>
-                    <option value="delivery">Home Delivery (+₨ 1,500)</option>
+                    <option value="delivery">Home Delivery (+₨ 150)</option>
                   </select>
                 </div>
                 {orderDetails.deliveryType === 'delivery' && (
@@ -693,7 +772,7 @@ const OrderPageContent = () => {
                       className="form-control"
                       rows="2"
                       value={orderDetails.deliveryAddress}
-                      onChange={(e) => setOrderDetails({...orderDetails, deliveryAddress: e.target.value})}
+                      onChange={(e) => setOrderDetails({ ...orderDetails, deliveryAddress: e.target.value })}
                       required
                     />
                   </div>
@@ -712,7 +791,7 @@ const OrderPageContent = () => {
                 rows="3"
                 placeholder="Any special requests? Allergies, dietary restrictions, or additional notes..."
                 value={orderDetails.specialInstructions}
-                onChange={(e) => setOrderDetails({...orderDetails, specialInstructions: e.target.value})}
+                onChange={(e) => setOrderDetails({ ...orderDetails, specialInstructions: e.target.value })}
               />
             </div>
 
@@ -732,7 +811,7 @@ const OrderPageContent = () => {
                       id="cash"
                       value="cash"
                       checked={orderDetails.paymentMethod === 'cash'}
-                      onChange={(e) => setOrderDetails({...orderDetails, paymentMethod: e.target.value})}
+                      onChange={(e) => setOrderDetails({ ...orderDetails, paymentMethod: e.target.value })}
                     />
                     <label className="form-check-label" htmlFor="cash">
                       <i className="bi bi-cash me-2"></i>
@@ -749,7 +828,7 @@ const OrderPageContent = () => {
                       id="card"
                       value="card"
                       checked={orderDetails.paymentMethod === 'card'}
-                      onChange={(e) => setOrderDetails({...orderDetails, paymentMethod: e.target.value})}
+                      onChange={(e) => setOrderDetails({ ...orderDetails, paymentMethod: e.target.value })}
                     />
                     <label className="form-check-label" htmlFor="card">
                       <i className="bi bi-credit-card me-2"></i>
@@ -766,7 +845,7 @@ const OrderPageContent = () => {
                       id="online"
                       value="online"
                       checked={orderDetails.paymentMethod === 'online'}
-                      onChange={(e) => setOrderDetails({...orderDetails, paymentMethod: e.target.value})}
+                      onChange={(e) => setOrderDetails({ ...orderDetails, paymentMethod: e.target.value })}
                     />
                     <label className="form-check-label" htmlFor="online">
                       <i className="bi bi-wifi me-2"></i>

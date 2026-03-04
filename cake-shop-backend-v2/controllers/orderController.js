@@ -6,14 +6,14 @@ const Shop = require('../models/Shop');
 // @access  Private
 const createOrder = async (req, res, next) => {
   try {
-    const { 
+    const {
       shopId,
       deliveryDate,
       deliveryType,
       deliveryAddress,
       cakeDetails,
       paymentMethod,
-      specialInstructions 
+      specialInstructions
     } = req.body;
 
     const shop = await Shop.findById(shopId);
@@ -31,8 +31,16 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    const priceBreakdown = calculatePrice(cakeDetails, shop);
-    const totalPrice = Object.values(priceBreakdown).reduce((sum, price) => sum + price, 0);
+    // If a galleryCakePriceLKR is provided (gallery/shop cake order), use it directly
+    let priceBreakdown, totalPrice;
+    if (req.body.galleryCakePriceLKR && Number(req.body.galleryCakePriceLKR) > 0) {
+      const deliveryFee = deliveryType === 'delivery' ? (shop.settings?.deliveryFee || 150) : 0;
+      priceBreakdown = { basePrice: Number(req.body.galleryCakePriceLKR), deliveryFee };
+      totalPrice = priceBreakdown.basePrice + priceBreakdown.deliveryFee;
+    } else {
+      priceBreakdown = calculatePrice(cakeDetails, shop);
+      totalPrice = Object.values(priceBreakdown).reduce((sum, price) => sum + price, 0);
+    }
 
     const orderId = `${shop.settings.orderPrefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -43,11 +51,11 @@ const createOrder = async (req, res, next) => {
       customerName: req.user.name,
       customerPhone: req.user.phone,
       customerEmail: req.user.email,
-      
+
       deliveryDate: new Date(deliveryDate),
       deliveryType,
       deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
-      
+
       cakeDetails: {
         base: cakeDetails.base,
         frosting: cakeDetails.frosting,
@@ -62,14 +70,14 @@ const createOrder = async (req, res, next) => {
         },
         specialInstructions: specialInstructions || ''
       },
-      
+
       priceBreakdown,
       totalPrice,
-      currency: shop.settings.currency || 'LKR',
-      
+      currency: shop.settings.currency,
+
       paymentMethod,
       paymentStatus: paymentMethod === 'cash' ? 'pending' : 'pending',
-      
+
       status: 'pending',
       statusHistory: [{
         status: 'pending',
@@ -77,9 +85,9 @@ const createOrder = async (req, res, next) => {
         note: 'Order placed successfully',
         timestamp: new Date()
       }],
-      
+
       estimatedReadyTime: new Date(Date.now() + (shop.settings.preparationTime || 120) * 60000),
-      
+
       customerNotes: specialInstructions || ''
     });
 
@@ -105,50 +113,55 @@ const createOrder = async (req, res, next) => {
 
 // Helper function to calculate price
 const calculatePrice = (cakeDetails, shop) => {
+  // Base prices by cake size (in LKR)
   const sizePrices = {
-    'small': 8997,
-    'medium': 11997,
-    'large': 17997,
-    'xl': 23997
+    'small': 1500,
+    'medium': 2500,
+    'large': 3500,
+    'xl': 5000
   };
-  
+
+  // Additional costs for base flavors (in LKR)
   const baseAdditional = {
-    'chocolate': 2500,
-    'vanilla': 2000,
-    'red-velvet': 3000,
-    'carrot': 2800,
-    'lemon': 2200
+    'chocolate': 250,
+    'vanilla': 200,
+    'red-velvet': 300,
+    'carrot': 280,
+    'lemon': 220
   };
-  
+
+  // Additional costs for frostings (in LKR)
   const frostingAdditional = {
-    'vanilla': 1500,
-    'chocolate': 2000,
-    'cream-cheese': 1800,
-    'strawberry': 1600,
-    'matcha': 2200
+    'vanilla': 150,
+    'chocolate': 200,
+    'cream-cheese': 180,
+    'strawberry': 160,
+    'matcha': 220
   };
-  
+
+  // Additional costs for toppings (in LKR)
   const toppingAdditional = {
-    'sprinkles': 800,
-    'berries': 1800,
-    'flowers': 2200,
-    'chocolate-chips': 1200,
-    'nuts': 1200,
-    'gold-leaf': 3500
+    'sprinkles': 80,
+    'berries': 180,
+    'flowers': 220,
+    'chocolate-chips': 120,
+    'nuts': 120,
+    'gold-leaf': 350
   };
-  
-  const basePrice = sizePrices[cakeDetails.size] || 11997;
+
+  const basePrice = sizePrices[cakeDetails.size] || sizePrices['medium'];
   const baseFlavorPrice = baseAdditional[cakeDetails.base] || 0;
   const frostingPrice = frostingAdditional[cakeDetails.frosting] || 0;
-  
+
   const toppingsPrice = (cakeDetails.toppings || []).reduce((total, toppingId) => {
     return total + (toppingAdditional[toppingId] || 0);
   }, 0);
-  
+
   const extraLayers = Math.max(0, (cakeDetails.layers || 2) - 2);
-  const layersPrice = extraLayers * 1500;
-  
-  const deliveryFee = shop.settings?.deliveryFee || 1500;
+  const layersPrice = extraLayers * 150;
+
+  // Guard against undefined deliveryFee from shop settings
+  const deliveryFee = shop.settings?.deliveryFee || 150;
 
   return {
     basePrice,
@@ -243,8 +256,8 @@ const getOrderById = async (req, res, next) => {
     }
 
     const isOwner = order.user._id.toString() === req.user.id;
-    const isShopOwner = req.user.role === 'shop_owner' && 
-                        order.shop._id.toString() === req.user.shopId?.toString();
+    const isShopOwner = req.user.role === 'shop_owner' &&
+      order.shop._id.toString() === req.user.shopId?.toString();
     const isAdmin = req.user.role === 'super_admin';
 
     if (!isOwner && !isShopOwner && !isAdmin) {
@@ -282,8 +295,8 @@ const cancelOrder = async (req, res, next) => {
     }
 
     const isOwner = order.user.toString() === req.user.id;
-    const isShopOwner = req.user.role === 'shop_owner' && 
-                        order.shop.toString() === req.user.shopId?.toString();
+    const isShopOwner = req.user.role === 'shop_owner' &&
+      order.shop.toString() === req.user.shopId?.toString();
 
     if (!isOwner && !isShopOwner) {
       return res.status(403).json({

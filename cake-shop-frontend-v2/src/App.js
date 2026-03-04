@@ -8,7 +8,7 @@ import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import SidebarNav from './components/SidebarNav';
-import ShopNavbar from './components/ShopNavbar';
+import ShopSidebarNav from './components/ShopSidebarNav';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireAuth from './components/RequireAuth';
@@ -19,14 +19,11 @@ import GalleryPage from './pages/GalleryPage';
 import BuilderPage from './pages/BuilderPage';
 import OrderPage from './pages/OrderPage';
 import SuccessPage from './pages/SuccessPage';
-import LoginSelectionPage from './pages/LoginSelectionPage';
-import UserTypeSelectionPage from './pages/UserTypeSelectionPage';
-import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import ShopRegistrationPage from './pages/ShopRegistrationPage';
 import ProfilePage from './pages/ProfilePage';
 import MyOrdersPage from './pages/MyOrdersPage';
-import AdminLogin from './pages/AdminLogin';
 import AdminPage from './pages/AdminPage';
 import CartPage from './pages/CartPage';
 
@@ -35,13 +32,12 @@ import ShopOwnerDashboard from './pages/ShopOwnerDashboard';
 import ShopOrdersPage from './pages/ShopOrdersPage';
 import ShopCakesPage from './pages/ShopCakesPage';
 import ShopSettingsPage from './pages/ShopSettingsPage';
-import ShopOwnerCakesPage from './pages/ShopOwnerCakesPage'; // New page for cake management
+import ShopOwnerCakesPage from './pages/ShopOwnerCakesPage';
 
 // Public Shop Pages
 import PublicShopPage from './pages/PublicShopPage';
 import AllShopsPage from './pages/AllShopsPage';
 
-// Add Google Fonts
 const addGoogleFonts = () => {
   const link = document.createElement('link');
   link.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap';
@@ -56,126 +52,66 @@ function AppContent() {
     window.scrollTo(0, 0);
   }, [location]);
 
-  // Shop management routes get ShopNavbar (no sidebar)
   const isShopManagementRoute = location.pathname.startsWith('/shop/') || location.pathname === '/shop';
-  // Admin routes get no sidebar
-  const isAdminRoute = location.pathname === '/admin' || location.pathname === '/admin/login';
-  // Public shop view gets no sidebar
+  const isAdminRoute = location.pathname === '/admin';
   const isPublicShopRoute = location.pathname.startsWith('/shops/');
-
   const isShopOwnerRoute = isShopManagementRoute || isAdminRoute;
   const showSidebar = !isShopOwnerRoute && !isPublicShopRoute;
 
-  return (
-    <div className={showSidebar ? "d-flex" : ""}>
-      {/* Only show sidebar for regular customer/public routes */}
-      {showSidebar && <SidebarNav />}
-      
-      <div className={showSidebar ? "main-content" : ""} 
-           style={showSidebar ? {
-             flex: 1,
-             marginLeft: '88px',
-             width: 'calc(100% - 88px)',
-             minHeight: '100vh',
-             display: 'flex',
-             flexDirection: 'column'
-           } : { width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        
-        {/* Show ShopNavbar for shop management routes */}
-        {isShopManagementRoute && <ShopNavbar />}
-
-        <div style={{ flex: 1 }}>
+  // Shop/Admin layout: collapsible sidebar sits in normal flow beside content
+  if (isShopOwnerRoute) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <ShopSidebarNav />
+        <div style={{ flex: 1, minWidth: 0, overflowX: 'hidden' }}>
           <Routes>
-            {/* ========== PUBLIC ROUTES ========== */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/gallery" element={<GalleryPage />} />
-            <Route path="/create" element={<BuilderPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/success" element={<SuccessPage />} />
-
-            {/* Public Shop Viewing Routes */}
-            <Route path="/shops" element={<AllShopsPage />} />
-            <Route path="/shops/:shopSlug" element={<PublicShopPage />} />
-
-            {/* ========== AUTH ROUTES ========== */}
-            <Route path="/register" element={<UserTypeSelectionPage />} />
-            <Route path="/register/customer" element={<RegisterPage />} />
-            <Route path="/register/shop" element={<ShopRegistrationPage />} />
-            <Route path="/login-selection" element={<LoginSelectionPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/login/customer" element={<LoginPage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-
-            {/* ========== CUSTOMER PROTECTED ROUTES ========== */}
-            <Route path="/order" element={
-              <RequireAuth>
-                <OrderPage />
-              </RequireAuth>
-            } />
-
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/my-orders" element={
-              <ProtectedRoute>
-                <MyOrdersPage />
-              </ProtectedRoute>
-            } />
-
-            {/* ========== SHOP OWNER ROUTES ========== */}
-            <Route path="/shop/dashboard" element={
-              <ProtectedRoute requiredRole="shop_owner">
-                <ShopOwnerDashboard />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/shop/orders" element={
-              <ProtectedRoute requiredRole="shop_owner">
-                <ShopOrdersPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/shop/cakes" element={
-              <ProtectedRoute requiredRole="shop_owner">
-                <ShopCakesPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/shop/my-cakes" element={
-              <ProtectedRoute requiredRole="shop_owner">
-                <ShopOwnerCakesPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/shop/settings" element={
-              <ProtectedRoute requiredRole="shop_owner">
-                <ShopSettingsPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/shop/register" element={
-              <ProtectedRoute requiredRole="shop_owner">
-                <ShopRegistrationPage />
-              </ProtectedRoute>
-            } />
-
-            {/* ========== ADMIN ROUTES ========== */}
-            <Route path="/admin" element={
-              <ProtectedRoute requiredRole="super_admin">
-                <AdminPage />
-              </ProtectedRoute>
-            } />
-
-            {/* ========== 404 ========== */}
+            <Route path="/shop/dashboard" element={<ProtectedRoute requiredRole="shop_owner"><ShopOwnerDashboard /></ProtectedRoute>} />
+            <Route path="/shop/orders"    element={<ProtectedRoute requiredRole="shop_owner"><ShopOrdersPage /></ProtectedRoute>} />
+            <Route path="/shop/cakes"     element={<ProtectedRoute requiredRole="shop_owner"><ShopCakesPage /></ProtectedRoute>} />
+            <Route path="/shop/my-cakes"  element={<ProtectedRoute requiredRole="shop_owner"><ShopOwnerCakesPage /></ProtectedRoute>} />
+            <Route path="/shop/settings"  element={<ProtectedRoute requiredRole="shop_owner"><ShopSettingsPage /></ProtectedRoute>} />
+            <Route path="/shop/register"  element={<ProtectedRoute requiredRole="shop_owner"><ShopRegistrationPage /></ProtectedRoute>} />
+            <Route path="/admin"          element={<ProtectedRoute requiredRole="super_admin"><AdminPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
-        
-        {/* Only show footer for non-shop routes */}
-        {!isShopOwnerRoute && !isPublicShopRoute && <Footer />}
+      </div>
+    );
+  }
+
+  // Customer/public layout: SidebarNav is position:fixed, so offset content with marginLeft
+  return (
+    <div style={{ minHeight: '100vh' }}>
+      {showSidebar && <SidebarNav />}
+      <div style={{
+        marginLeft: showSidebar ? '88px' : 0,
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/"                  element={<HomePage />} />
+            <Route path="/gallery"           element={<GalleryPage />} />
+            <Route path="/create"            element={<BuilderPage />} />
+            <Route path="/cart"              element={<CartPage />} />
+            <Route path="/success"           element={<SuccessPage />} />
+            <Route path="/shops"             element={<AllShopsPage />} />
+            <Route path="/shops/:shopSlug"   element={<PublicShopPage />} />
+            <Route path="/register"          element={<RegisterPage />} />
+            <Route path="/register/customer" element={<RegisterPage />} />
+            <Route path="/register/shop"     element={<ShopRegistrationPage />} />
+            <Route path="/login-selection"   element={<LoginPage />} />
+            <Route path="/login"             element={<LoginPage />} />
+            <Route path="/login/customer"    element={<LoginPage />} />
+            <Route path="/admin/login"       element={<LoginPage />} />
+            <Route path="/order"             element={<RequireAuth><OrderPage /></RequireAuth>} />
+            <Route path="/profile"           element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/my-orders"         element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+        {!isPublicShopRoute && <Footer />}
       </div>
     </div>
   );
@@ -197,7 +133,6 @@ function App() {
   );
 }
 
-// 404 Component
 const NotFound = () => (
   <div className="container py-5 text-center">
     <div className="py-5">
@@ -207,15 +142,10 @@ const NotFound = () => (
       <p className="text-secondary mb-4">The page you're looking for doesn't exist or has been moved.</p>
       <button
         className="btn btn-lg rounded-pill px-5 py-3"
-        style={{
-          background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)',
-          border: 'none',
-          color: 'white'
-        }}
+        style={{ background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)', border: 'none', color: 'white' }}
         onClick={() => window.location.href = '/'}
       >
-        <i className="bi bi-house-door me-2"></i>
-        Back to Home
+        <i className="bi bi-house-door me-2"></i>Back to Home
       </button>
     </div>
   </div>

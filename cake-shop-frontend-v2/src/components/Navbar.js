@@ -6,7 +6,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
-  
+
   const navItems = [
     { path: '/', label: 'Home', icon: 'bi-house-door' },
     { path: '/gallery', label: 'Gallery', icon: 'bi-grid-3x3-gap' },
@@ -60,11 +60,10 @@ const Navbar = () => {
           <ul className="navbar-nav mx-auto">
             {navItems.map((item) => (
               <li key={item.path} className="nav-item mx-2">
-                <Link 
+                <Link
                   to={item.path}
-                  className={`nav-link px-3 py-2 rounded-pill d-flex align-items-center ${
-                    location.pathname === item.path ? 'active' : ''
-                  }`}
+                  className={`nav-link px-3 py-2 rounded-pill d-flex align-items-center ${location.pathname === item.path ? 'active' : ''
+                    }`}
                   style={{
                     color: location.pathname === item.path ? '#FF6B8B' : '#4A2C2A',
                     fontWeight: '500',
@@ -84,28 +83,50 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {/* User Menu - When Logged In */}
+                {/* Profile avatar — direct link to profile page */}
+                <Link
+                  to="/profile"
+                  className="btn d-flex align-items-center gap-2 rounded-pill"
+                  style={{
+                    background: 'rgba(255, 158, 109, 0.1)',
+                    border: '1px solid rgba(255, 158, 109, 0.3)',
+                    padding: '0.4rem 1rem 0.4rem 0.4rem',
+                    textDecoration: 'none',
+                    color: '#4A2C2A'
+                  }}
+                >
+                  {/* Profile picture or initials avatar */}
+                  <div style={{
+                    width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+                    background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontWeight: 700, fontSize: '0.85rem'
+                  }}>
+                    {user?.profilePicture ? (
+                      <img src={user.profilePicture} alt="Profile"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={e => { e.target.style.display = 'none'; }} />
+                    ) : (
+                      <span>{user?.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                    )}
+                  </div>
+                  <span className="fw-medium">{user?.name?.split(' ')[0] || 'Account'}</span>
+                </Link>
+
+                {/* Separate dropdown for other options */}
                 <div className="dropdown">
-                  <button 
-                    className="btn d-flex align-items-center gap-2 rounded-pill" 
+                  <button
+                    className="btn rounded-pill"
                     style={{
                       background: 'rgba(255, 158, 109, 0.1)',
                       border: '1px solid rgba(255, 158, 109, 0.3)',
-                      padding: '0.5rem 1rem'
+                      padding: '0.45rem 0.7rem'
                     }}
                     data-bs-toggle="dropdown"
                   >
-                    <div className="rounded-circle bg-gradient-primary p-1">
-                      <i className="bi bi-person-circle text-white"></i>
-                    </div>
-                    <span className="fw-medium">{user?.name?.split(' ')[0] || 'Account'}</span>
                     <i className="bi bi-chevron-down small"></i>
                   </button>
                   <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2">
-                    <li>
-                      <Link className="dropdown-item rounded-2 py-2" to="/profile">
-                        <i className="bi bi-person me-2"></i> My Profile
-                      </Link>
-                    </li>
                     <li>
                       <Link className="dropdown-item rounded-2 py-2" to="/my-orders">
                         <i className="bi bi-box me-2"></i> My Orders
@@ -120,7 +141,7 @@ const Navbar = () => {
                     )}
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button 
+                      <button
                         className="dropdown-item rounded-2 py-2 text-danger"
                         onClick={handleLogout}
                       >
@@ -157,7 +178,7 @@ const Navbar = () => {
                   <i className="bi bi-box-arrow-in-right me-2"></i>
                   Sign In
                 </Link>
-                
+
                 <Link to="/register" className="btn rounded-pill px-4" style={{
                   background: 'transparent',
                   border: '2px solid #FF9E6D',
