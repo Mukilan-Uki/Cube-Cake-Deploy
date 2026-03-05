@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { formatLKR } from '../config/currency';
+import { PRICING } from '../config/pricing';
+import { useNavigate } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { useEffect } from 'react';
 
 // Canvas helper functions
 const adjustColor = (hex, amount) => {
@@ -30,7 +32,7 @@ const roundedRect = (ctx, x, y, w, h, r) => {
 const BuilderPage = () => {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
-  
+
   const [cakeDesign, setCakeDesign] = useState({
     base: 'chocolate',
     frosting: 'vanilla',
@@ -49,66 +51,37 @@ const BuilderPage = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [showPreview, setShowPreview] = useState(true);
 
-  // Updated sizes with correct pricing
-  const sizes = [
-    { id: 'small', name: 'Small', priceLKR: 8997.00, serves: '4-6 people', diameter: '6 inches' },
-    { id: 'medium', name: 'Medium', priceLKR: 11997.00, serves: '8-10 people', diameter: '8 inches' },
-    { id: 'large', name: 'Large', priceLKR: 17997.00, serves: '12-15 people', diameter: '10 inches' },
-    { id: 'xl', name: 'Extra Large', priceLKR: 23997.00, serves: '20+ people', diameter: '12 inches' }
-  ];
-
-  // Updated cake bases with correct pricing
-  const cakeBases = [
-    { id: 'chocolate', name: 'Chocolate', priceLKR: 2500, color: '#8B4513', description: 'Rich chocolate flavor' },
-    { id: 'vanilla', name: 'Vanilla', priceLKR: 2000, color: '#F3E5AB', description: 'Classic vanilla taste' },
-    { id: 'red-velvet', name: 'Red Velvet', priceLKR: 3000, color: '#8B0000', description: 'Velvety red with cream cheese' },
-    { id: 'carrot', name: 'Carrot', priceLKR: 2800, color: '#FF8C00', description: 'Moist with nuts and spices' },
-    { id: 'lemon', name: 'Lemon', priceLKR: 2200, color: '#FFFACD', description: 'Tangy citrus flavor' }
-  ];
-
-  // Updated frostings with correct pricing
-  const frostings = [
-    { id: 'vanilla', name: 'Vanilla Buttercream', priceLKR: 1500, color: '#FFF5E6', description: 'Sweet and creamy' },
-    { id: 'chocolate', name: 'Chocolate Ganache', priceLKR: 2000, color: '#4A2C2A', description: 'Rich chocolate coating' },
-    { id: 'cream-cheese', name: 'Cream Cheese', priceLKR: 1800, color: '#FFFAF0', description: 'Tangy and smooth' },
-    { id: 'strawberry', name: 'Strawberry', priceLKR: 1600, color: '#FFB6C1', description: 'Fruity and light' },
-    { id: 'matcha', name: 'Matcha', priceLKR: 2200, color: '#98FB98', description: 'Japanese green tea flavor' }
-  ];
-
-  // Updated toppings with correct pricing
-  const toppings = [
-    { id: 'sprinkles', name: 'Rainbow Sprinkles', priceLKR: 800, icon: 'bi-stars', description: 'Colorful candy sprinkles' },
-    { id: 'berries', name: 'Fresh Berries', priceLKR: 1800, icon: 'bi-berry', description: 'Strawberries, blueberries, raspberries' },
-    { id: 'flowers', name: 'Edible Flowers', priceLKR: 2200, icon: 'bi-flower1', description: 'Natural floral decorations' },
-    { id: 'chocolate-chips', name: 'Chocolate Chips', priceLKR: 1200, icon: 'bi-droplet', description: 'Dark, milk, white chocolate' },
-    { id: 'nuts', name: 'Crushed Nuts', priceLKR: 1200, icon: 'bi-tree', description: 'Almonds, walnuts, pecans' },
-    { id: 'gold-leaf', name: 'Gold Leaf', priceLKR: 3500, icon: 'bi-gem', description: 'Premium edible gold' }
-  ];
+  // Use PRICING from config
+  const sizes = PRICING.SIZES;
+  const cakeBases = PRICING.BASES;
+  const frostings = PRICING.FROSTINGS;
+  const toppings = PRICING.TOPPINGS;
 
   // Fixed price calculation function
   const calculatePrice = () => {
     // Base price from size
-    const basePriceLKR = sizes.find(s => s.id === cakeDesign.size)?.priceLKR || 11997.00;
-    
+    const sizeData = sizes.find(s => s.id === cakeDesign.size) || sizes[1];
+    const basePriceLKR = sizeData.priceLKR;
+
     // Cake base flavor price
     const baseCakeLKR = cakeBases.find(b => b.id === cakeDesign.base)?.priceLKR || 0;
-    
+
     // Frosting price
     const frostingPriceLKR = frostings.find(f => f.id === cakeDesign.frosting)?.priceLKR || 0;
-    
+
     // Toppings price
     const toppingsPriceLKR = cakeDesign.toppings.reduce((total, toppingId) => {
       const topping = toppings.find(t => t.id === toppingId);
       return total + (topping?.priceLKR || 0);
     }, 0);
-    
+
     // Extra layers price (first 2 layers are included)
     const extraLayers = Math.max(0, cakeDesign.layers - 2);
-    const layersPriceLKR = extraLayers * 1500;
-    
+    const layersPriceLKR = extraLayers * PRICING.EXTRA_LAYER_PRICE;
+
     // Calculate total
     const totalLKR = basePriceLKR + baseCakeLKR + frostingPriceLKR + toppingsPriceLKR + layersPriceLKR;
-    
+
     console.log('Builder Price Breakdown:', {
       size: cakeDesign.size,
       basePriceLKR,
@@ -118,7 +91,7 @@ const BuilderPage = () => {
       layersPriceLKR,
       totalLKR
     });
-    
+
     return {
       totalLKR,
       breakdown: {
@@ -393,10 +366,10 @@ const BuilderPage = () => {
       alert(`Please fix the following:\n${errors.join('\n')}`);
       return;
     }
-    
+
     setIsSaving(true);
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     const design = {
       ...cakeDesign,
       finalPriceLKR: priceDetails.totalLKR,
@@ -407,7 +380,7 @@ const BuilderPage = () => {
 
     // Save design to localStorage as fallback for order page
     localStorage.setItem('cakeDesign', JSON.stringify(design));
-    
+
     setIsSaving(false);
     // Go directly to order page — custom designs do NOT save to gallery
     navigate('/order', { state: { design } });
@@ -491,7 +464,7 @@ const BuilderPage = () => {
                     Live Preview
                   </h4>
                   <div className="text-center mb-3">
-                    <canvas 
+                    <canvas
                       ref={canvasRef}
                       width={400}
                       height={300}
@@ -504,7 +477,7 @@ const BuilderPage = () => {
                 {/* Order Summary */}
                 <div className="glass-panel p-4">
                   <h4 className="text-chocolate mb-3">Order Summary</h4>
-                  
+
                   <div className="mb-3">
                     <div className="d-flex justify-content-between mb-2">
                       <span>Cake Size</span>
@@ -526,9 +499,9 @@ const BuilderPage = () => {
                       <span>Toppings</span>
                       <span>{cakeDesign.toppings.length}</span>
                     </div>
-                    
+
                     <hr />
-                    
+
                     {/* Price Breakdown */}
                     <div className="mb-2">
                       <div className="d-flex justify-content-between small">
@@ -556,7 +529,7 @@ const BuilderPage = () => {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="d-flex justify-content-between fw-bold fs-5 mt-3 pt-3 border-top">
                       <span>Total</span>
                       <span className="text-gradient">{formatLKR(priceDetails.totalLKR)}</span>
@@ -574,7 +547,7 @@ const BuilderPage = () => {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     className="btn-primary-gradient w-100 mt-4 py-3"
                     onClick={handleSaveDesign}
                     disabled={isSaving}
@@ -615,7 +588,7 @@ const BuilderPage = () => {
                 <div className="row g-3">
                   {cakeBases.map(base => (
                     <div key={base.id} className="col-md-6">
-                      <div 
+                      <div
                         className={`card h-100 cursor-pointer ${cakeDesign.base === base.id ? 'border-gold border-3' : 'border-light'}`}
                         onClick={() => setCakeDesign(prev => ({ ...prev, base: base.id }))}
                         style={{ cursor: 'pointer' }}
@@ -642,7 +615,7 @@ const BuilderPage = () => {
                 <div className="row g-3">
                   {frostings.map(frosting => (
                     <div key={frosting.id} className="col-md-6">
-                      <div 
+                      <div
                         className={`card h-100 cursor-pointer ${cakeDesign.frosting === frosting.id ? 'border-gold border-3' : 'border-light'}`}
                         onClick={() => setCakeDesign(prev => ({ ...prev, frosting: frosting.id }))}
                         style={{ cursor: 'pointer' }}
@@ -690,22 +663,22 @@ const BuilderPage = () => {
                     <h5 className="text-chocolate mb-3">Number of Layers</h5>
                     <div className="text-center">
                       <div className="d-flex justify-content-center align-items-center mb-3">
-                        <button 
+                        <button
                           className="btn btn-outline-gradient rounded-circle"
-                          onClick={() => setCakeDesign(prev => ({ 
-                            ...prev, 
-                            layers: Math.max(1, prev.layers - 1) 
+                          onClick={() => setCakeDesign(prev => ({
+                            ...prev,
+                            layers: Math.max(1, prev.layers - 1)
                           }))}
                           style={{ width: '50px', height: '50px' }}
                         >
                           <i className="bi bi-dash"></i>
                         </button>
                         <span className="mx-4 fs-1 fw-bold">{cakeDesign.layers}</span>
-                        <button 
+                        <button
                           className="btn btn-outline-gradient rounded-circle"
-                          onClick={() => setCakeDesign(prev => ({ 
-                            ...prev, 
-                            layers: Math.min(5, prev.layers + 1) 
+                          onClick={() => setCakeDesign(prev => ({
+                            ...prev,
+                            layers: Math.min(5, prev.layers + 1)
                           }))}
                           style={{ width: '50px', height: '50px' }}
                         >
@@ -713,7 +686,7 @@ const BuilderPage = () => {
                         </button>
                       </div>
                       <p className="text-muted small">
-                        Base price includes 2 layers. Extra layers: +{formatLKR(1500)} each
+                        Base price includes 2 layers. Extra layers: +{formatLKR(PRICING.EXTRA_LAYER_PRICE)} each
                       </p>
                     </div>
                   </div>
@@ -728,7 +701,7 @@ const BuilderPage = () => {
                 <div className="row g-3">
                   {toppings.map(topping => (
                     <div key={topping.id} className="col-md-6 col-lg-4">
-                      <div 
+                      <div
                         className={`card h-100 cursor-pointer ${cakeDesign.toppings.includes(topping.id) ? 'border-gold border-3' : 'border-light'}`}
                         onClick={() => toggleTopping(topping.id)}
                         style={{ cursor: 'pointer' }}
@@ -794,7 +767,7 @@ const BuilderPage = () => {
 
             {/* Navigation Buttons */}
             <div className="d-flex justify-content-between mt-4">
-              <button 
+              <button
                 className="btn-outline-gradient"
                 onClick={() => setActiveStep(prev => Math.max(1, prev - 1))}
                 disabled={activeStep === 1}
@@ -802,9 +775,9 @@ const BuilderPage = () => {
                 <i className="bi bi-arrow-left me-2"></i>
                 Previous
               </button>
-              
+
               {activeStep < 5 ? (
-                <button 
+                <button
                   className="btn-primary-gradient"
                   onClick={() => setActiveStep(prev => Math.min(5, prev + 1))}
                 >
@@ -812,7 +785,7 @@ const BuilderPage = () => {
                   <i className="bi bi-arrow-right ms-2"></i>
                 </button>
               ) : (
-                <button 
+                <button
                   className="btn-primary-gradient"
                   onClick={handleSaveDesign}
                   disabled={isSaving}
@@ -828,7 +801,7 @@ const BuilderPage = () => {
               <div className="row g-3">
                 {templates.map((template, index) => (
                   <div key={index} className="col-md-4">
-                    <div 
+                    <div
                       className="glass-panel p-3 text-center"
                       onClick={() => {
                         setCakeDesign(prev => ({

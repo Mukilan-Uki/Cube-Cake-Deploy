@@ -113,40 +113,40 @@ const createOrder = async (req, res, next) => {
 
 // Helper function to calculate price
 const calculatePrice = (cakeDetails, shop) => {
-  // Base prices by cake size (in LKR)
+  // Base prices by cake size (in LKR) - MATCHES frontend PRICING.SIZES
   const sizePrices = {
-    'small': 1500,
-    'medium': 2500,
-    'large': 3500,
-    'xl': 5000
+    'small': 8997.00,
+    'medium': 11997.00,
+    'large': 17997.00,
+    'xl': 23997.00
   };
 
-  // Additional costs for base flavors (in LKR)
+  // Additional costs for base flavors (in LKR) - MATCHES frontend PRICING.BASES
   const baseAdditional = {
-    'chocolate': 250,
-    'vanilla': 200,
-    'red-velvet': 300,
-    'carrot': 280,
-    'lemon': 220
+    'chocolate': 2500,
+    'vanilla': 2000,
+    'red-velvet': 3000,
+    'carrot': 2800,
+    'lemon': 2200
   };
 
-  // Additional costs for frostings (in LKR)
+  // Additional costs for frostings (in LKR) - MATCHES frontend PRICING.FROSTINGS
   const frostingAdditional = {
-    'vanilla': 150,
-    'chocolate': 200,
-    'cream-cheese': 180,
-    'strawberry': 160,
-    'matcha': 220
+    'vanilla': 1500,
+    'chocolate': 2000,
+    'cream-cheese': 1800,
+    'strawberry': 1600,
+    'matcha': 2200
   };
 
-  // Additional costs for toppings (in LKR)
+  // Additional costs for toppings (in LKR) - MATCHES frontend PRICING.TOPPINGS
   const toppingAdditional = {
-    'sprinkles': 80,
-    'berries': 180,
-    'flowers': 220,
-    'chocolate-chips': 120,
-    'nuts': 120,
-    'gold-leaf': 350
+    'sprinkles': 800,
+    'berries': 1800,
+    'flowers': 2200,
+    'chocolate-chips': 1200,
+    'nuts': 1200,
+    'gold-leaf': 3500
   };
 
   const basePrice = sizePrices[cakeDetails.size] || sizePrices['medium'];
@@ -158,10 +158,10 @@ const calculatePrice = (cakeDetails, shop) => {
   }, 0);
 
   const extraLayers = Math.max(0, (cakeDetails.layers || 2) - 2);
-  const layersPrice = extraLayers * 150;
+  const layersPrice = extraLayers * 1500; // PRICING.EXTRA_LAYER_PRICE
 
   // Guard against undefined deliveryFee from shop settings
-  const deliveryFee = shop.settings?.deliveryFee || 150;
+  const deliveryFee = shop.settings?.deliveryFee || 1500; // MATCHES frontend PRICING.DELIVERY.FEE
 
   return {
     basePrice,

@@ -4,21 +4,22 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatLKR } from '../config/currency';
+import { PRICING } from '../config/pricing';
 
 const CartPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { 
-    cartItems, 
-    removeFromCart, 
-    updateQuantity, 
-    clearCart, 
+  const {
+    cartItems,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
     getSubtotal,
-    cartCount 
+    cartCount
   } = useCart();
 
   const subtotal = getSubtotal();
-  const deliveryFee = subtotal > 0 ? 1500 : 0;
+  const deliveryFee = subtotal > 0 ? PRICING.DELIVERY.FEE : 0;
   const total = subtotal + deliveryFee;
 
   const handleCheckout = () => {
@@ -89,7 +90,7 @@ const CartPage = () => {
             const itemPrice = item.priceLKR || item.totalPrice || 0;
             const itemName = item.name || item.customerName || 'Custom Cake';
             const itemImage = item.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop';
-            
+
             return (
               <div key={itemId} className="glass-panel p-4 mb-3 hover-antigravity">
                 <div className="row align-items-center">
@@ -101,7 +102,7 @@ const CartPage = () => {
                       style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                     />
                   </div>
-                  
+
                   <div className="col-md-4 mb-3 mb-md-0">
                     <h5 className="fw-bold text-chocolate mb-2">{itemName}</h5>
                     {item.base && (
@@ -123,7 +124,7 @@ const CartPage = () => {
                       </small>
                     )}
                   </div>
-                  
+
                   <div className="col-md-2 mb-3 mb-md-0">
                     <div className="d-flex align-items-center">
                       <button
@@ -144,13 +145,13 @@ const CartPage = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="col-md-2 mb-3 mb-md-0">
                     <div className="fw-bold text-gradient fs-5">
                       {formatLKR(itemPrice * (item.quantity || 1))}
                     </div>
                   </div>
-                  
+
                   <div className="col-md-2 text-end">
                     <button
                       className="btn btn-link text-danger"
@@ -169,7 +170,7 @@ const CartPage = () => {
         <div className="col-lg-4">
           <div className="glass-panel p-4 sticky-top" style={{ top: '100px' }}>
             <h4 className="text-chocolate mb-4">Order Summary</h4>
-            
+
             <div className="mb-3">
               <div className="d-flex justify-content-between mb-2">
                 <span className="text-muted">Subtotal</span>

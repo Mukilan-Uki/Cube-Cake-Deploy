@@ -52,7 +52,8 @@ const register = async (req, res, next) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role
+        role: user.role,
+        profilePicture: user.profilePicture || ''
       }
     });
 
@@ -112,7 +113,8 @@ const login = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        shopId: user.shopId
+        shopId: user.shopId,
+        profilePicture: user.profilePicture || ''
       }
     });
 
@@ -177,7 +179,8 @@ const adminLogin = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        shopId: user.shopId
+        shopId: user.shopId,
+        profilePicture: user.profilePicture || ''
       }
     });
 
@@ -227,7 +230,8 @@ const registerShopOwner = async (req, res, next) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role
+        role: user.role,
+        profilePicture: user.profilePicture || ''
       }
     });
 
@@ -330,7 +334,8 @@ const registerShop = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        shopId: shop._id
+        shopId: shop._id,
+        profilePicture: user.profilePicture || ''
       },
       shop
     });

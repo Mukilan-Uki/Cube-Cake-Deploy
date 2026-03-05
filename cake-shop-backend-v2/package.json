@@ -13,7 +13,7 @@
     "shop",
     "backend"
   ],
-  "author": "Your Name",
+  "author": "Mukilan",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",

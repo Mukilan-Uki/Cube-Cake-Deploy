@@ -5,6 +5,7 @@ import { apiService } from '../utils/api';
 import RequireAuth from '../components/RequireAuth';
 import { formatLKR } from '../config/currency';
 import { API_CONFIG } from '../config';
+import { PRICING, calculateCustomCakePrice } from '../config/pricing';
 
 // Canvas helpers for cake preview
 const adjustColor = (hex, amount) => {
@@ -30,25 +31,25 @@ const drawMiniCake = (canvas, design) => {
   // Shadow
   ctx.save();
   ctx.beginPath();
-  ctx.ellipse(canvas.width/2, baseY+8, cakeW/2+10, 10, 0, 0, Math.PI*2);
+  ctx.ellipse(canvas.width / 2, baseY + 8, cakeW / 2 + 10, 10, 0, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0,0,0,0.1)';
   ctx.fill();
   ctx.restore();
 
   for (let i = layers - 1; i >= 0; i--) {
     const ly = topY + i * layerH;
-    const g = ctx.createLinearGradient(cakeX, ly, cakeX+cakeW, ly+layerH);
+    const g = ctx.createLinearGradient(cakeX, ly, cakeX + cakeW, ly + layerH);
     g.addColorStop(0, adjustColor(colors.cake, 20));
     g.addColorStop(1, adjustColor(colors.cake, -20));
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.roundRect(cakeX, ly, cakeW, layerH-1, 4);
+    ctx.roundRect(cakeX, ly, cakeW, layerH - 1, 4);
     ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillRect(cakeX+4, ly+2, cakeW-8, 6);
+    ctx.fillRect(cakeX + 4, ly + 2, cakeW - 8, 6);
     if (i > 0) {
       ctx.fillStyle = colors.frosting;
-      ctx.fillRect(cakeX+2, ly-4, cakeW-4, 6);
+      ctx.fillRect(cakeX + 2, ly - 4, cakeW - 4, 6);
     }
   }
 
@@ -56,8 +57,8 @@ const drawMiniCake = (canvas, design) => {
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(cakeX, topY);
-  for (let x = cakeX; x <= cakeX+cakeW; x+=8) ctx.lineTo(x, topY - 8 + Math.sin((x-cakeX)/15)*4);
-  ctx.lineTo(cakeX+cakeW, topY); ctx.lineTo(cakeX, topY); ctx.closePath();
+  for (let x = cakeX; x <= cakeX + cakeW; x += 8) ctx.lineTo(x, topY - 8 + Math.sin((x - cakeX) / 15) * 4);
+  ctx.lineTo(cakeX + cakeW, topY); ctx.lineTo(cakeX, topY); ctx.closePath();
   ctx.fillStyle = colors.frosting; ctx.fill();
   ctx.restore();
 };
@@ -65,7 +66,7 @@ const drawMiniCake = (canvas, design) => {
 const CakePreview = ({ design }) => {
   const ref = useRef(null);
   useEffect(() => { drawMiniCake(ref.current, design); }, [design]);
-  return <canvas ref={ref} width={200} height={160} style={{ width:'100%', maxWidth:200, borderRadius:12, background:'#faf7f4' }} />;
+  return <canvas ref={ref} width={200} height={160} style={{ width: '100%', maxWidth: 200, borderRadius: 12, background: '#faf7f4' }} />;
 };
 
 const OrderPageContent = () => {
@@ -205,8 +206,8 @@ const OrderPageContent = () => {
   const calculateTotalPrice = () => {
     // If this is a gallery cake order
     if (isGalleryOrder && galleryCake) {
-      const deliveryFee = orderDetails.deliveryType === 'delivery' ? 1500.00 : 0;
-      return galleryCake.priceLKR + deliveryFee;
+      const deliveryFee = orderDetails.deliveryType === 'delivery' ? PRICING.DELIVERY.FEE : 0;
+      return (galleryCake.priceLKR || 0) + deliveryFee;
     }
 
     // If no design, return 0
@@ -214,74 +215,18 @@ const OrderPageContent = () => {
       return 0;
     }
 
-    // Base prices from size (in LKR) — must match backend calculatePrice
-    const sizePrices = {
-      'small': 1500,
-      'medium': 2500,
-      'large': 3500,
-      'xl': 5000
-    };
-
-    // Additional costs for base flavors
-    const baseAdditional = {
-      'chocolate': 250,
-      'vanilla': 200,
-      'red-velvet': 300,
-      'carrot': 280,
-      'lemon': 220
-    };
-
-    // Additional costs for frostings
-    const frostingAdditional = {
-      'vanilla': 150,
-      'chocolate': 200,
-      'cream-cheese': 180,
-      'strawberry': 160,
-      'matcha': 220
-    };
-
-    // Additional costs for toppings
-    const toppingAdditional = {
-      'sprinkles': 80,
-      'berries': 180,
-      'flowers': 220,
-      'chocolate-chips': 120,
-      'nuts': 120,
-      'gold-leaf': 350
-    };
-
-    // Calculate each component
-    const basePrice = sizePrices[design.size] || 2500;
-    const baseExtra = baseAdditional[design.base] || 0;
-    const frostingExtra = frostingAdditional[design.frosting] || 0;
-
-    // Calculate toppings total
-    const toppingsExtra = (design.toppings || []).reduce((total, toppingId) => {
-      return total + (toppingAdditional[toppingId] || 0);
-    }, 0);
-
-    // Extra layers (first 2 are included)
-    const extraLayers = Math.max(0, (design.layers || 2) - 2);
-    const layersExtra = extraLayers * 150;
+    // Use pre-calculated price from builder if available, otherwise recalculate
+    const cakePrice = design.finalPriceLKR || calculateCustomCakePrice(design);
 
     // Delivery fee
-    const deliveryFee = orderDetails.deliveryType === 'delivery' ? 150 : 0;
+    const deliveryFee = orderDetails.deliveryType === 'delivery' ? PRICING.DELIVERY.FEE : 0;
 
     // Calculate total
-    const total = basePrice + baseExtra + frostingExtra + toppingsExtra + layersExtra + deliveryFee;
+    const total = cakePrice + deliveryFee;
 
     console.log('Order Page Price Calculation:', {
-      size: design.size,
-      basePrice,
-      base: design.base,
-      baseExtra,
-      frosting: design.frosting,
-      frostingExtra,
-      toppings: design.toppings,
-      toppingsExtra,
-      layers: design.layers,
-      extraLayers,
-      layersExtra,
+      designId: design.designId,
+      cakePrice,
       deliveryFee,
       TOTAL: total
     });
@@ -496,7 +441,7 @@ const OrderPageContent = () => {
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(150) : 'FREE'}
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(PRICING.DELIVERY.FEE) : 'FREE'}
                     </span>
                   </div>
                   <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
@@ -568,9 +513,7 @@ const OrderPageContent = () => {
                       {getSizeName(design.size)} Base
                     </span>
                     <span className="fw-medium">
-                      {formatLKR(design.size === 'small' ? 1500 :
-                        design.size === 'medium' ? 2500 :
-                          design.size === 'large' ? 3500 : 5000)}
+                      {formatLKR(PRICING.SIZES.find(s => s.id === design.size)?.priceLKR || PRICING.SIZES[1].priceLKR)}
                     </span>
                   </div>
 
@@ -581,10 +524,7 @@ const OrderPageContent = () => {
                         {getBaseName(design.base)} Flavor
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR(design.base === 'chocolate' ? 250 :
-                          design.base === 'vanilla' ? 200 :
-                            design.base === 'red-velvet' ? 300 :
-                              design.base === 'carrot' ? 280 : 220)}
+                        +{formatLKR(PRICING.BASES.find(b => b.id === design.base)?.priceLKR || 0)}
                       </span>
                     </div>
                   )}
@@ -596,10 +536,7 @@ const OrderPageContent = () => {
                         {getFrostingName(design.frosting)} Frosting
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR(design.frosting === 'vanilla' ? 150 :
-                          design.frosting === 'chocolate' ? 200 :
-                            design.frosting === 'cream-cheese' ? 180 :
-                              design.frosting === 'strawberry' ? 160 : 220)}
+                        +{formatLKR(PRICING.FROSTINGS.find(f => f.id === design.frosting)?.priceLKR || 0)}
                       </span>
                     </div>
                   )}
@@ -610,12 +547,9 @@ const OrderPageContent = () => {
                       <div className="d-flex justify-content-between mb-1">
                         <span className="text-muted">Toppings:</span>
                         <span className="fw-medium text-success">
-                          +{formatLKR(design.toppings.reduce((sum, t) => {
-                            return sum + (t === 'sprinkles' ? 80 :
-                              t === 'berries' ? 180 :
-                                t === 'flowers' ? 220 :
-                                  t === 'chocolate-chips' ? 120 :
-                                    t === 'nuts' ? 120 : 350);
+                          +{formatLKR(design.toppings.reduce((sum, toppingId) => {
+                            const topping = PRICING.TOPPINGS.find(t => t.id === toppingId);
+                            return sum + (topping?.priceLKR || 0);
                           }, 0))}
                         </span>
                       </div>
@@ -624,11 +558,7 @@ const OrderPageContent = () => {
                           <div key={topping} className="d-flex justify-content-between small">
                             <span className="text-muted">• {getToppingName(topping)}</span>
                             <span className="text-muted">
-                              {formatLKR(topping === 'sprinkles' ? 80 :
-                                topping === 'berries' ? 180 :
-                                  topping === 'flowers' ? 220 :
-                                    topping === 'chocolate-chips' ? 120 :
-                                      topping === 'nuts' ? 120 : 350)}
+                              {formatLKR(PRICING.TOPPINGS.find(t => t.id === topping)?.priceLKR || 0)}
                             </span>
                           </div>
                         ))}
@@ -643,7 +573,7 @@ const OrderPageContent = () => {
                         Extra Layers ({design.layers - 2})
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR((design.layers - 2) * 150)}
+                        +{formatLKR((design.layers - 2) * PRICING.EXTRA_LAYER_PRICE)}
                       </span>
                     </div>
                   )}
@@ -652,7 +582,7 @@ const OrderPageContent = () => {
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(1500) : 'FREE'}
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(PRICING.DELIVERY.FEE) : 'FREE'}
                     </span>
                   </div>
 
@@ -762,7 +692,7 @@ const OrderPageContent = () => {
                     onChange={(e) => setOrderDetails({ ...orderDetails, deliveryType: e.target.value })}
                   >
                     <option value="pickup">Pickup from Shop (Free)</option>
-                    <option value="delivery">Home Delivery (+₨ 150)</option>
+                    <option value="delivery">Home Delivery (+₨ {PRICING.DELIVERY.FEE.toLocaleString()})</option>
                   </select>
                 </div>
                 {orderDetails.deliveryType === 'delivery' && (

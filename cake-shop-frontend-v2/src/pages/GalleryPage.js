@@ -10,7 +10,7 @@ const GalleryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('default');
-  const [priceRange, setPriceRange] = useState(10000);
+  const [priceRange, setPriceRange] = useState(30000);
   const [cakes, setCakes] = useState([]);
   const [allCakes, setAllCakes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -217,7 +217,7 @@ const GalleryPage = () => {
               ))}
             </div>
 
-            <div className="text-center mt-5">
+            <div className="text-center fixed-show mt-5" style={{position:"fixed", bottom:"30px",display:"flex", justifyContent:"center", alignItems:"center", width:"70%", zIndex:"1000"}}>
               <div className="glass-card d-inline-flex align-items-center gap-4 p-4">
                 <div>
                   <h5 className="text-chocolate mb-1">Showing</h5>

@@ -13,40 +13,35 @@ const Navbar = () => {
     { path: '/create', label: 'Design Studio', icon: 'bi-palette' },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const handleLogout = () => { logout(); navigate('/'); };
 
   return (
     <nav className="navbar navbar-expand-lg fixed-top" style={{
-      background: 'rgba(255, 255, 255, 0.85)',
-      backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgba(255, 158, 109, 0.2)',
-      padding: '1rem 0'
+      background: 'rgba(250,250,248,0.92)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      borderBottom: '1px solid rgba(13,13,13,0.08)',
+      padding: '0.85rem 0',
     }}>
       <div className="container">
         {/* Logo */}
-        <Link className="navbar-brand d-flex align-items-center" to="/">
-          <div className="position-relative">
-            <div className="rounded-circle p-2" style={{
-              background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)',
-              boxShadow: '0 8px 20px rgba(255, 107, 139, 0.3)'
-            }}>
-              <i className="bi bi-cake2 fs-3 text-white"></i>
-            </div>
-            <span className="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle">
-              <span className="visually-hidden">New</span>
-            </span>
-          </div>
-          <span className="ms-2 fw-bold" style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: '1.5rem',
-            background: 'linear-gradient(135deg, #4A2C2A, #FF6B8B)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
+        <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
+          <div style={{
+            width: 40, height: 40,
+            background: '#0D0D0D',
+            borderRadius: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            Cube Cake
+            <i className="bi bi-cake2 text-white" style={{ fontSize: '1.2rem' }}></i>
+          </div>
+          <span style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: '1.45rem',
+            fontWeight: 700,
+            color: '#0D0D0D',
+            letterSpacing: '-0.02em',
+          }}>
+            Cube<span style={{ color: '#C9933A' }}>Cake</span>
           </span>
         </Link>
 
@@ -59,48 +54,60 @@ const Navbar = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav mx-auto">
             {navItems.map((item) => (
-              <li key={item.path} className="nav-item mx-2">
+              <li key={item.path} className="nav-item mx-1">
                 <Link
                   to={item.path}
-                  className={`nav-link px-3 py-2 rounded-pill d-flex align-items-center ${location.pathname === item.path ? 'active' : ''
-                    }`}
+                  className="nav-link px-3 py-2 d-flex align-items-center"
                   style={{
-                    color: location.pathname === item.path ? '#FF6B8B' : '#4A2C2A',
-                    fontWeight: '500',
-                    transition: 'all 0.3s ease',
-                    background: location.pathname === item.path ? 'rgba(255, 107, 139, 0.1)' : 'transparent'
+                    color: location.pathname === item.path ? '#0D0D0D' : '#5A5A5A',
+                    fontWeight: location.pathname === item.path ? 600 : 500,
+                    fontSize: '0.92rem',
+                    transition: 'all 0.2s ease',
+                    borderRadius: 8,
+                    background: location.pathname === item.path ? 'rgba(13,13,13,0.06)' : 'transparent',
+                    position: 'relative',
                   }}
                 >
-                  <i className={`bi ${item.icon} me-2`}></i>
+                  <i className={`bi ${item.icon} me-2`} style={{ fontSize: '0.85rem' }}></i>
                   {item.label}
+                  {location.pathname === item.path && (
+                    <span style={{
+                      position: 'absolute', bottom: 0, left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 20, height: 2,
+                      background: '#C9933A',
+                      borderRadius: 2,
+                    }} />
+                  )}
                 </Link>
               </li>
             ))}
           </ul>
 
-          {/* Right Side - Auth Based */}
+          {/* Right Side */}
           <div className="d-flex align-items-center gap-2">
             {isAuthenticated ? (
               <>
-                {/* User Menu - When Logged In */}
-                {/* Profile avatar — direct link to profile page */}
                 <Link
                   to="/profile"
-                  className="btn d-flex align-items-center gap-2 rounded-pill"
+                  className="btn d-flex align-items-center gap-2"
                   style={{
-                    background: 'rgba(255, 158, 109, 0.1)',
-                    border: '1px solid rgba(255, 158, 109, 0.3)',
+                    background: 'transparent',
+                    border: '1.5px solid #E2E0DB',
+                    borderRadius: 50,
                     padding: '0.4rem 1rem 0.4rem 0.4rem',
                     textDecoration: 'none',
-                    color: '#4A2C2A'
+                    color: '#0D0D0D',
+                    transition: 'all 0.2s',
                   }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#0D0D0D'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#E2E0DB'}
                 >
-                  {/* Profile picture or initials avatar */}
                   <div style={{
-                    width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
-                    background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)',
+                    width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+                    background: '#0D0D0D',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontWeight: 700, fontSize: '0.85rem'
+                    color: '#FAFAF8', fontWeight: 700, fontSize: '0.8rem',
                   }}>
                     {user?.profilePicture ? (
                       <img src={user.profilePicture} alt="Profile"
@@ -110,81 +117,95 @@ const Navbar = () => {
                       <span>{user?.name?.charAt(0)?.toUpperCase() || '?'}</span>
                     )}
                   </div>
-                  <span className="fw-medium">{user?.name?.split(' ')[0] || 'Account'}</span>
+                  <span style={{ fontWeight: 500, fontSize: '0.88rem' }}>{user?.name?.split(' ')[0] || 'Account'}</span>
                 </Link>
 
-                {/* Separate dropdown for other options */}
                 <div className="dropdown">
                   <button
-                    className="btn rounded-pill"
+                    className="btn"
                     style={{
-                      background: 'rgba(255, 158, 109, 0.1)',
-                      border: '1px solid rgba(255, 158, 109, 0.3)',
-                      padding: '0.45rem 0.7rem'
+                      background: 'transparent',
+                      border: '1.5px solid #E2E0DB',
+                      borderRadius: 50,
+                      padding: '0.4rem 0.65rem',
+                      transition: 'all 0.2s',
                     }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#0D0D0D'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = '#E2E0DB'}
                     data-bs-toggle="dropdown"
                   >
-                    <i className="bi bi-chevron-down small"></i>
+                    <i className="bi bi-chevron-down" style={{ fontSize: '0.75rem' }}></i>
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2">
+                  <ul className="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" style={{ minWidth: 180 }}>
                     <li>
-                      <Link className="dropdown-item rounded-2 py-2" to="/my-orders">
+                      <Link className="dropdown-item rounded-2 py-2" to="/my-orders" style={{ fontSize: '0.88rem' }}>
                         <i className="bi bi-box me-2"></i> My Orders
                       </Link>
                     </li>
-                    {(user?.role === 'super_admin') && (
+                    {user?.role === 'super_admin' && (
                       <li>
-                        <Link className="dropdown-item rounded-2 py-2" to="/admin">
+                        <Link className="dropdown-item rounded-2 py-2" to="/admin" style={{ fontSize: '0.88rem' }}>
                           <i className="bi bi-speedometer2 me-2"></i> Admin
                         </Link>
                       </li>
                     )}
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button
-                        className="dropdown-item rounded-2 py-2 text-danger"
-                        onClick={handleLogout}
-                      >
+                      <button className="dropdown-item rounded-2 py-2 text-danger" onClick={handleLogout} style={{ fontSize: '0.88rem' }}>
                         <i className="bi bi-box-arrow-right me-2"></i> Sign Out
                       </button>
                     </li>
                   </ul>
                 </div>
 
-                {/* Cart Button */}
-                <Link to="/order" className="btn position-relative rounded-pill" style={{
-                  background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)',
+                <Link to="/order" className="btn" style={{
+                  background: '#0D0D0D',
+                  borderRadius: 50,
+                  padding: '0.5rem 1.25rem',
+                  color: '#FAFAF8',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
                   border: 'none',
-                  padding: '0.5rem 1.2rem',
-                  color: 'white',
-                  fontWeight: '500'
-                }}>
-                  <i className="bi bi-bag-heart me-1"></i>
-                  Cart
-                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-lavender" style={{ fontSize: '0.7rem' }}>
-                    0
-                  </span>
+                  transition: 'all 0.2s',
+                  position: 'relative',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#1E1E1E'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#0D0D0D'; e.currentTarget.style.transform = 'none'; }}
+                >
+                  <i className="bi bi-bag me-1"></i>Cart
                 </Link>
               </>
             ) : (
               <>
-                {/* Login/Register - When Logged Out */}
-                <Link to="/login" className="btn rounded-pill px-4" style={{
-                  background: 'linear-gradient(135deg, #FF9E6D, #FF6B8B)',
+                <Link to="/login" className="btn" style={{
+                  background: '#0D0D0D',
+                  borderRadius: 50,
+                  padding: '0.5rem 1.3rem',
+                  color: '#FAFAF8',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
                   border: 'none',
-                  color: 'white',
-                  fontWeight: '500'
-                }}>
-                  <i className="bi bi-box-arrow-in-right me-2"></i>
+                  transition: 'all 0.2s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#1E1E1E'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#0D0D0D'; e.currentTarget.style.transform = 'none'; }}
+                >
                   Sign In
                 </Link>
 
-                <Link to="/register" className="btn rounded-pill px-4" style={{
+                <Link to="/register" className="btn" style={{
                   background: 'transparent',
-                  border: '2px solid #FF9E6D',
-                  color: '#FF9E6D',
-                  fontWeight: '500'
-                }}>
+                  border: '1.5px solid #0D0D0D',
+                  borderRadius: 50,
+                  padding: '0.5rem 1.3rem',
+                  color: '#0D0D0D',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  transition: 'all 0.2s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#0D0D0D'; e.currentTarget.style.color = '#FAFAF8'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#0D0D0D'; }}
+                >
                   Register
                 </Link>
               </>
