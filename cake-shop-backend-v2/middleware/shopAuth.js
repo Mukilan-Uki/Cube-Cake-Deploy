@@ -1,26 +1,24 @@
-const isShopOwner = async (req, res, next) => {
+export const isShopOwner = async (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
-      message: 'Not authenticated'
+      message: "Not authenticated",
     });
   }
 
-  if (req.user.role !== 'shop_owner') {
+  if (req.user.role !== "shop_owner") {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. Shop owner privileges required.'
+      message: "Access denied. Shop owner privileges required.",
     });
   }
 
-  if (!req.user.shopId && req.user.role !== 'super_admin') {
+  if (!req.user.shopId && req.user.role !== "super_admin") {
     return res.status(403).json({
       success: false,
-      message: 'You need to register a shop first'
+      message: "You need to register a shop first",
     });
   }
 
   next();
 };
-
-module.exports = { isShopOwner };

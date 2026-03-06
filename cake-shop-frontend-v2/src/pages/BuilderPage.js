@@ -50,58 +50,92 @@ const BuilderPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [showPreview, setShowPreview] = useState(true);
+  const [pricingData, setPricingData] = useState(null);
 
-  // Use PRICING from config
-  const sizes = PRICING.SIZES;
-  const cakeBases = PRICING.BASES;
-  const frostings = PRICING.FROSTINGS;
-  const toppings = PRICING.TOPPINGS;
+  useEffect(() => {
+    const fetchPricingData = async () => {
+      try {
+        const response = await fetch('/api/designing-data');
+        const data = await response.json();
+        setPricingData(data);
+
+        // Ensure initial cakeDesign IDs match what's available in data
+        if (data.bases?.length > 0 && !data.bases.find(b => b.id === cakeDesign.base)) {
+          setCakeDesign(prev => ({ ...prev, base: data.bases[0].id }));
+        }
+        if (data.frostings?.length > 0 && !data.frostings.find(f => f.id === cakeDesign.frosting)) {
+          setCakeDesign(prev => ({ ...prev, frosting: data.frostings[0].id }));
+        }
+        if (data.sizes?.length > 0 && !data.sizes.find(s => s.id === cakeDesign.size)) {
+          setCakeDesign(prev => ({ ...prev, size: data.sizes[0].id }));
+        }
+      } catch (error) {
+        console.error('Error fetching pricing data:', error);
+      }
+    };
+
+    fetchPricingData();
+  }, []);
+
+  // Use pricingData if available, otherwise empty arrays
+  const sizes = pricingData?.sizes || [];
+  const cakeBases = pricingData?.bases || [];
+  const frostings = pricingData?.frostings || [];
+  const toppings = pricingData?.toppings || [];
 
   // Fixed price calculation function
   const calculatePrice = () => {
-    // Base price from size
-    const sizeData = sizes.find(s => s.id === cakeDesign.size) || sizes[1];
-    const basePriceLKR = sizeData.priceLKR;
+    // Return default if data not loaded
+    if (!pricingData || sizes.length === 0) {
+      return {
+        totalLKR: 0,
+        breakdown: { base: 0, cakeType: 0, frosting: 0, toppings: 0, layers: 0 }
+      };
+    }
 
-    // Cake base flavor price
-    const baseCakeLKR = cakeBases.find(b => b.id === cakeDesign.base)?.priceLKR || 0;
+    try {
+      // Base price from size
+      const sizeData = Array.isArray(sizes) ? (sizes.find(s => s.id === cakeDesign.size) || sizes[0]) : null;
+      const basePriceLKR = sizeData?.priceLKR || 0;
 
-    // Frosting price
-    const frostingPriceLKR = frostings.find(f => f.id === cakeDesign.frosting)?.priceLKR || 0;
+      // Cake base flavor price
+      const baseCakeLKR = Array.isArray(cakeBases) ? (cakeBases.find(b => b.id === cakeDesign.base)?.priceLKR || 0) : 0;
 
-    // Toppings price
-    const toppingsPriceLKR = cakeDesign.toppings.reduce((total, toppingId) => {
-      const topping = toppings.find(t => t.id === toppingId);
-      return total + (topping?.priceLKR || 0);
-    }, 0);
+      // Frosting price
+      const frostingPriceLKR = Array.isArray(frostings) ? (frostings.find(f => f.id === cakeDesign.frosting)?.priceLKR || 0) : 0;
 
-    // Extra layers price (first 2 layers are included)
-    const extraLayers = Math.max(0, cakeDesign.layers - 2);
-    const layersPriceLKR = extraLayers * PRICING.EXTRA_LAYER_PRICE;
+      // Toppings price
+      const toppingsPriceLKR = (Array.isArray(cakeDesign.toppings) && Array.isArray(toppings))
+        ? cakeDesign.toppings.reduce((total, toppingId) => {
+          const topping = toppings.find(t => t.id === toppingId);
+          return total + (topping?.priceLKR || 0);
+        }, 0)
+        : 0;
 
-    // Calculate total
-    const totalLKR = basePriceLKR + baseCakeLKR + frostingPriceLKR + toppingsPriceLKR + layersPriceLKR;
+      // Extra layers price (first 2 layers are included)
+      const extraLayers = Math.max(0, cakeDesign.layers - 2);
+      const layersPriceLKR = extraLayers * (pricingData?.extraLayerPrice || PRICING?.EXTRA_LAYER_PRICE || 1500);
 
-    console.log('Builder Price Breakdown:', {
-      size: cakeDesign.size,
-      basePriceLKR,
-      baseCakeLKR,
-      frostingPriceLKR,
-      toppingsPriceLKR,
-      layersPriceLKR,
-      totalLKR
-    });
+      // Calculate total
+      const totalLKR = basePriceLKR + baseCakeLKR + frostingPriceLKR + toppingsPriceLKR + layersPriceLKR;
 
-    return {
-      totalLKR,
-      breakdown: {
-        base: basePriceLKR,
-        cakeType: baseCakeLKR,
-        frosting: frostingPriceLKR,
-        toppings: toppingsPriceLKR,
-        layers: layersPriceLKR
-      }
-    };
+      return {
+        totalLKR,
+        breakdown: {
+          base: basePriceLKR,
+          cakeType: baseCakeLKR,
+          frosting: frostingPriceLKR,
+          toppings: toppingsPriceLKR,
+          layers: layersPriceLKR
+        }
+      };
+    } catch (err) {
+      console.error('Error calculating price:', err);
+      return {
+        totalLKR: 0,
+        breakdown: { base: 0, cakeType: 0, frosting: 0, toppings: 0, layers: 0 }
+      };
+    }
   };
 
   const priceDetails = calculatePrice();
@@ -326,8 +360,7 @@ const BuilderPage = () => {
       ctx.fillText(cakeDesign.message.substring(0, 22), canvas.width / 2, cakeTopY + cakeHeight / 2 + 5);
       ctx.restore();
     }
-
-  }, [cakeDesign]);
+  }, [cakeDesign, pricingData]);
 
   // Auto-save draft
   useEffect(() => {
@@ -426,6 +459,17 @@ const BuilderPage = () => {
       }
     }
   ];
+
+  if (!pricingData) {
+    return (
+      <div className="min-vh-100 d-flex flex-column align-items-center justify-content-center bg-cream">
+        <div className="spinner-border text-primary-gradient mb-3" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <h5 className="text-chocolate animate-pulse">Setting up your Cake Studio...</h5>
+      </div>
+    );
+  }
 
   return (
     <div className="container-fluid px-0">
@@ -586,7 +630,7 @@ const BuilderPage = () => {
             {activeStep === 1 && (
               <div className="glass-panel p-4">
                 <div className="row g-3">
-                  {cakeBases.map(base => (
+                  {Array.isArray(cakeBases) && cakeBases.map(base => (
                     <div key={base.id} className="col-md-6">
                       <div
                         className={`card h-100 cursor-pointer ${cakeDesign.base === base.id ? 'border-gold border-3' : 'border-light'}`}
@@ -613,7 +657,7 @@ const BuilderPage = () => {
             {activeStep === 2 && (
               <div className="glass-panel p-4">
                 <div className="row g-3">
-                  {frostings.map(frosting => (
+                  {Array.isArray(frostings) && frostings.map(frosting => (
                     <div key={frosting.id} className="col-md-6">
                       <div
                         className={`card h-100 cursor-pointer ${cakeDesign.frosting === frosting.id ? 'border-gold border-3' : 'border-light'}`}
@@ -642,7 +686,7 @@ const BuilderPage = () => {
                 <div className="row">
                   <div className="col-md-6 mb-4">
                     <h5 className="text-chocolate mb-3">Select Size</h5>
-                    {sizes.map(size => (
+                    {Array.isArray(sizes) && sizes.map(size => (
                       <button
                         key={size.id}
                         className={`btn w-100 text-start p-3 mb-2 ${cakeDesign.size === size.id ? 'btn-primary-gradient' : 'btn-outline-gradient'}`}
@@ -699,7 +743,7 @@ const BuilderPage = () => {
               <div className="glass-panel p-4">
                 <h5 className="text-chocolate mb-3">Add Toppings</h5>
                 <div className="row g-3">
-                  {toppings.map(topping => (
+                  {Array.isArray(toppings) && toppings.map(topping => (
                     <div key={topping.id} className="col-md-6 col-lg-4">
                       <div
                         className={`card h-100 cursor-pointer ${cakeDesign.toppings.includes(topping.id) ? 'border-gold border-3' : 'border-light'}`}

@@ -1,97 +1,28 @@
-// Order statuses
-const ORDER_STATUS = {
-  PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  PREPARING: 'preparing',
-  READY: 'ready',
-  OUT_FOR_DELIVERY: 'out_for_delivery',
-  DELIVERED: 'delivered',
-  COMPLETED: 'completed',
-  CANCELLED: 'cancelled',
-  REJECTED: 'rejected'
-};
-
-// Payment statuses
-const PAYMENT_STATUS = {
-  PENDING: 'pending',
-  PAID: 'paid',
-  FAILED: 'failed',
-  REFUNDED: 'refunded'
-};
-
-// Payment methods
-const PAYMENT_METHODS = {
-  CASH: 'cash',
-  CARD: 'card',
-  ONLINE: 'online'
-};
-
-// Delivery types
-const DELIVERY_TYPES = {
-  PICKUP: 'pickup',
-  DELIVERY: 'delivery'
-};
-
-// User roles
-const USER_ROLES = {
-  CUSTOMER: 'customer',
-  SHOP_OWNER: 'shop_owner',
-  SUPER_ADMIN: 'super_admin'
-};
-
-// Business types
-const BUSINESS_TYPES = {
-  BAKERY: 'bakery',
-  CAFE: 'cafe',
-  HOME_BUSINESS: 'home_business',
-  PATISSERIE: 'patisserie'
-};
-
 // Cake sizes
-const CAKE_SIZES = {
-  SMALL: { id: 'small', name: 'Small', price: 500, serves: '4-6 people' },
-  MEDIUM: { id: 'medium', name: 'Medium', price: 700, serves: '8-10 people' },
-  LARGE: { id: 'large', name: 'Large', price: 1000, serves: '12-15 people' },
-  // XL: { id: 'xl', name: 'Extra Large', price: 2000, serves: '15+ people' }
+export const sizePrices = {
+  small: { id: "small", name: "Small", price: 500, serves: "4-6 people" },
+  medium: { id: "medium", name: "Medium", price: 700, serves: "8-10 people" },
+  large: { id: "large", name: "Large", price: 1000, serves: "12-15 people" },
+  xl: { id: "xl", name: "Extra Large", price: 1500, serves: "20+ people" },
 };
 
 // Cake bases
-const CAKE_BASES = {
-  CHOCOLATE: { id: 'chocolate', name: 'Chocolate', price: 300 },
-  VANILLA: { id: 'vanilla', name: 'Vanilla', price: 100 },
-  // RED_VELVET: { id: 'red-velvet', name: 'Red Velvet', price: 1200 },
-  // CARROT: { id: 'carrot', name: 'Carrot', price: 1000 },
-  // LEMON: { id: 'lemon', name: 'Lemon', price: 1000 }
+export const baseAdditional = {
+  chocolate: { id: "chocolate", name: "Chocolate", price: 300 },
+  vanilla: { id: "vanilla", name: "Vanilla", price: 100 },
 };
 
 // Frostings
-const FROSTINGS = {
-  VANILLA: { id: 'vanilla', name: 'Vanilla Buttercream', price: 1200 },
-  CHOCOLATE: { id: 'chocolate', name: 'Chocolate Ganache', price: 1800 },
-  // CREAM_CHEESE: { id: 'cream-cheese', name: 'Cream Cheese', price: 1800 },
-  STRAWBERRY: { id: 'strawberry', name: 'Strawberry', price: 1300 },
-  // MATCHA: { id: 'matcha', name: 'Matcha', price: 2200 }
+export const frostingAdditional = {
+  vanilla: { id: "vanilla", name: "Vanilla Buttercream", price: 1200 },
+  chocolate: { id: "chocolate", name: "Chocolate Ganache", price: 1800 },
+  strawberry: { id: "strawberry", name: "Strawberry", price: 1300 },
 };
 
 // Toppings
-const TOPPINGS = {
-  SPRINKLES: { id: 'sprinkles', name: 'Rainbow Sprinkles', price: 100 },
-  // BERRIES: { id: 'berries', name: 'Fresh Berries', price: 1800 },
-  FLOWERS: { id: 'flowers', name: 'Edible Flowers', price: 200 },
-  // CHOCOLATE_CHIPS: { id: 'chocolate-chips', name: 'Chocolate Chips', price: 1200 },
-  // NUTS: { id: 'nuts', name: 'Crushed Nuts', price: 1200 },
-  // GOLD_LEAF: { id: 'gold-leaf', name: 'Gold Leaf', price: 3500 }
-};
-
-module.exports = {
-  ORDER_STATUS,
-  PAYMENT_STATUS,
-  PAYMENT_METHODS,
-  DELIVERY_TYPES,
-  USER_ROLES,
-  BUSINESS_TYPES,
-  CAKE_SIZES,
-  CAKE_BASES,
-  FROSTINGS,
-  TOPPINGS
+export const toppingAdditional = {
+  sprinkles: { id: "sprinkles", name: "Rainbow Sprinkles", price: 100 },
+  berries: { id: "berries", name: "Fresh Berries", price: 400 },
+  flowers: { id: "flowers", name: "Edible Flowers", price: 500 },
+  nuts: { id: "nuts", name: "Crushed Nuts", price: 300 },
 };

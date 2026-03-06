@@ -1,42 +1,42 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-  orderId: { 
-    type: String, 
-    required: true, 
-    unique: true 
+  orderId: {
+    type: String,
+    required: true,
+    unique: true,
   },
-  
+
   shop: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Shop',
+    ref: "Shop",
     required: true,
-    index: true
+    index: true,
   },
-  
+
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
-  
+
   customerName: { type: String, required: true },
   customerPhone: { type: String, required: true },
   customerEmail: { type: String, required: true },
-  
+
   deliveryDate: { type: Date, required: true },
-  deliveryType: { 
-    type: String, 
-    enum: ['pickup', 'delivery'], 
-    default: 'pickup' 
+  deliveryType: {
+    type: String,
+    enum: ["pickup", "delivery"],
+    default: "pickup",
   },
   deliveryAddress: {
     street: String,
     city: String,
     zipCode: String,
-    instructions: String
+    instructions: String,
   },
-  
+
   cakeDetails: {
     base: String,
     frosting: String,
@@ -45,13 +45,13 @@ const orderSchema = new mongoose.Schema({
     toppings: [String],
     message: String,
     colors: {
-      cake: { type: String, default: '#8B4513' },
-      frosting: { type: String, default: '#FFF5E6' },
-      decorations: { type: String, default: '#FF6B8B' }
+      cake: { type: String, default: "#8B4513" },
+      frosting: { type: String, default: "#FFF5E6" },
+      decorations: { type: String, default: "#FF6B8B" },
     },
-    specialInstructions: String
+    specialInstructions: String,
   },
-  
+
   priceBreakdown: {
     basePrice: { type: Number, default: 0 },
     baseFlavorPrice: { type: Number, default: 0 },
@@ -60,58 +60,66 @@ const orderSchema = new mongoose.Schema({
     layersPrice: { type: Number, default: 0 },
     deliveryFee: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
-    tax: { type: Number, default: 0 }
+    tax: { type: Number, default: 0 },
   },
   totalPrice: { type: Number, required: true },
-  currency: { 
-    type: String, 
-    default: 'LKR'
+  currency: {
+    type: String,
+    default: "LKR",
   },
-  
-  status: { 
-    type: String, 
+
+  status: {
+    type: String,
     enum: [
-      'pending', 'confirmed', 'preparing', 'ready', 
-      'out_for_delivery', 'delivered', 'completed', 
-      'cancelled', 'rejected'
-    ], 
-    default: 'pending' 
+      "pending",
+      "confirmed",
+      "preparing",
+      "ready",
+      "out_for_delivery",
+      "delivered",
+      "completed",
+      "cancelled",
+      "rejected",
+    ],
+    default: "pending",
   },
-  
-  statusHistory: [{
-    status: String,
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    note: String,
-    timestamp: { type: Date, default: Date.now }
-  }],
-  
-  paymentMethod: { 
-    type: String, 
-    enum: ['cash', 'card', 'online'], 
-    default: 'cash' 
+
+  statusHistory: [
+    {
+      status: String,
+      updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      note: String,
+      timestamp: { type: Date, default: Date.now },
+    },
+  ],
+
+  paymentMethod: {
+    type: String,
+    enum: ["cash", "card", "online"],
+    default: "cash",
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'failed', 'refunded'],
-    default: 'pending'
+    enum: ["pending", "paid", "failed", "refunded"],
+    default: "pending",
   },
   paymentId: String,
   paidAt: Date,
-  
+
   estimatedReadyTime: Date,
   actualReadyTime: Date,
   confirmedAt: Date,
   cancelledAt: Date,
   cancellationReason: String,
-  
+
   deliveryPerson: String,
   deliveryPersonPhone: String,
-  
+
   shopNotes: String,
   customerNotes: String,
-  
+
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 orderSchema.index({ shop: 1, createdAt: -1 });
@@ -119,9 +127,10 @@ orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ orderId: 1 }, { unique: true });
 
-orderSchema.pre('save', function(next) {
+orderSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+const Order = mongoose.model("Order", orderSchema);
+export default Order;

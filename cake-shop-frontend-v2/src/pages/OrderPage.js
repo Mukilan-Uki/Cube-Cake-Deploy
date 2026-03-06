@@ -90,6 +90,7 @@ const OrderPageContent = () => {
   const isGalleryOrder = !!galleryCake;
   const [defaultShopId, setDefaultShopId] = useState(null);
   const [shopError, setShopError] = useState('');
+  const [pricingData, setPricingData] = useState(null);
 
   // Load design from location state or localStorage, and fetch a default shop for custom orders
   useEffect(() => {
@@ -148,17 +149,26 @@ const OrderPageContent = () => {
         const data = await res.json();
         if (data.success && data.shops && data.shops.length > 0) {
           setDefaultShopId(data.shops[0]._id);
-          setShopError('');
         } else {
-          setShopError('No shops are currently available. Please try again later.');
+          setShopError('No shops available.');
         }
       } catch (err) {
-        console.error('Could not fetch default shop:', err);
-        setShopError('Could not connect to the server. Please check your connection.');
+        console.error('Fetch shop error:', err);
+      }
+    };
+
+    const fetchPricingData = async () => {
+      try {
+        const response = await fetch('/api/designing-data');
+        const data = await response.json();
+        setPricingData(data);
+      } catch (error) {
+        console.error('Error fetching pricing data:', error);
       }
     };
 
     fetchDefaultShop();
+    fetchPricingData();
   }, [location.state]);
 
   // Redirect to login if not authenticated
@@ -202,11 +212,10 @@ const OrderPageContent = () => {
     return errors;
   };
 
-  // Fixed price calculation to match Builder page
   const calculateTotalPrice = () => {
     // If this is a gallery cake order
     if (isGalleryOrder && galleryCake) {
-      const deliveryFee = orderDetails.deliveryType === 'delivery' ? PRICING.DELIVERY.FEE : 0;
+      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (PRICING?.DELIVERY?.FEE || 1500) : 0;
       return (galleryCake.priceLKR || 0) + deliveryFee;
     }
 
@@ -215,70 +224,62 @@ const OrderPageContent = () => {
       return 0;
     }
 
-    // Use pre-calculated price from builder if available, otherwise recalculate
-    const cakePrice = design.finalPriceLKR || calculateCustomCakePrice(design);
+    // RECACULATE based on API data if available
+    if (pricingData) {
+      const sizes = pricingData.sizes || [];
+      const bases = pricingData.bases || [];
+      const frostings = pricingData.frostings || [];
+      const toppings = pricingData.toppings || [];
 
-    // Delivery fee
-    const deliveryFee = orderDetails.deliveryType === 'delivery' ? PRICING.DELIVERY.FEE : 0;
+      const sizeData = sizes.find(s => s.id === design.size) || sizes[0];
+      const basePrice = sizeData?.priceLKR || 0;
+      const baseCake = bases.find(b => b.id === design.base)?.priceLKR || 0;
+      const frostingPrice = frostings.find(f => f.id === design.frosting)?.priceLKR || 0;
+      const toppingPrice = (design.toppings || []).reduce((sum, tid) => {
+        const topping = toppings.find(t => t.id === tid);
+        return sum + (topping?.priceLKR || 0);
+      }, 0);
+      const extraLayers = Math.max(0, (design.layers || 2) - 2);
+      const layersPrice = extraLayers * (PRICING?.EXTRA_LAYER_PRICE || 1500);
 
-    // Calculate total
-    const total = cakePrice + deliveryFee;
+      const subtotal = basePrice + baseCake + frostingPrice + toppingPrice + layersPrice;
+      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (PRICING?.DELIVERY?.FEE || 1500) : 0;
+      return subtotal + deliveryFee;
+    }
 
-    console.log('Order Page Price Calculation:', {
-      designId: design.designId,
-      cakePrice,
-      deliveryFee,
-      TOTAL: total
-    });
-
-    return total;
+    // Fallback
+    return (design.finalPriceLKR || calculateCustomCakePrice(design)) + (orderDetails.deliveryType === 'delivery' ? (PRICING?.DELIVERY?.FEE || 1500) : 0);
   };
 
   const totalPrice = calculateTotalPrice();
 
   // Helper function to get readable names
   const getSizeName = (sizeId) => {
-    const sizes = {
-      'small': 'Small (6")',
-      'medium': 'Medium (8")',
-      'large': 'Large (10")',
-      'xl': 'Extra Large (12")'
-    };
-    return sizes[sizeId] || 'Medium (8")';
+    if (pricingData?.sizes) {
+      return pricingData.sizes.find(s => s.id === sizeId)?.name || sizeId;
+    }
+    return sizeId;
   };
 
   const getBaseName = (baseId) => {
-    const bases = {
-      'chocolate': 'Chocolate',
-      'vanilla': 'Vanilla',
-      'red-velvet': 'Red Velvet',
-      'carrot': 'Carrot',
-      'lemon': 'Lemon'
-    };
-    return bases[baseId] || 'Chocolate';
+    if (pricingData?.bases) {
+      return pricingData.bases.find(b => b.id === baseId)?.name || baseId;
+    }
+    return baseId;
   };
 
   const getFrostingName = (frostingId) => {
-    const frostings = {
-      'vanilla': 'Vanilla Buttercream',
-      'chocolate': 'Chocolate Ganache',
-      'cream-cheese': 'Cream Cheese',
-      'strawberry': 'Strawberry',
-      'matcha': 'Matcha'
-    };
-    return frostings[frostingId] || 'Vanilla Buttercream';
+    if (pricingData?.frostings) {
+      return pricingData.frostings.find(f => f.id === frostingId)?.name || frostingId;
+    }
+    return frostingId;
   };
 
   const getToppingName = (toppingId) => {
-    const toppingNames = {
-      'sprinkles': 'Rainbow Sprinkles',
-      'berries': 'Fresh Berries',
-      'flowers': 'Edible Flowers',
-      'chocolate-chips': 'Chocolate Chips',
-      'nuts': 'Crushed Nuts',
-      'gold-leaf': 'Gold Leaf'
-    };
-    return toppingNames[toppingId] || toppingId;
+    if (pricingData?.toppings) {
+      return pricingData.toppings.find(t => t.id === toppingId)?.name || toppingId;
+    }
+    return toppingId;
   };
 
   const handleSubmit = async (e) => {
@@ -513,7 +514,10 @@ const OrderPageContent = () => {
                       {getSizeName(design.size)} Base
                     </span>
                     <span className="fw-medium">
-                      {formatLKR(PRICING.SIZES.find(s => s.id === design.size)?.priceLKR || PRICING.SIZES[1].priceLKR)}
+                      {formatLKR(
+                        (pricingData?.sizes?.find(s => s.id === design.size)?.priceLKR) ??
+                        (PRICING.SIZES.find(s => s.id === design.size)?.priceLKR || 0)
+                      )}
                     </span>
                   </div>
 
@@ -524,7 +528,10 @@ const OrderPageContent = () => {
                         {getBaseName(design.base)} Flavor
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR(PRICING.BASES.find(b => b.id === design.base)?.priceLKR || 0)}
+                        +{formatLKR(
+                          (pricingData?.bases?.find(b => b.id === design.base)?.priceLKR) ??
+                          (PRICING.BASES.find(b => b.id === design.base)?.priceLKR || 0)
+                        )}
                       </span>
                     </div>
                   )}
@@ -536,7 +543,10 @@ const OrderPageContent = () => {
                         {getFrostingName(design.frosting)} Frosting
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR(PRICING.FROSTINGS.find(f => f.id === design.frosting)?.priceLKR || 0)}
+                        +{formatLKR(
+                          (pricingData?.frostings?.find(f => f.id === design.frosting)?.priceLKR) ??
+                          (PRICING.FROSTINGS.find(f => f.id === design.frosting)?.priceLKR || 0)
+                        )}
                       </span>
                     </div>
                   )}
@@ -548,20 +558,23 @@ const OrderPageContent = () => {
                         <span className="text-muted">Toppings:</span>
                         <span className="fw-medium text-success">
                           +{formatLKR(design.toppings.reduce((sum, toppingId) => {
-                            const topping = PRICING.TOPPINGS.find(t => t.id === toppingId);
+                            const topping = pricingData?.toppings?.find(t => t.id === toppingId) || PRICING.TOPPINGS.find(t => t.id === toppingId);
                             return sum + (topping?.priceLKR || 0);
                           }, 0))}
                         </span>
                       </div>
                       <div className="ps-3">
-                        {design.toppings.map(topping => (
-                          <div key={topping} className="d-flex justify-content-between small">
-                            <span className="text-muted">• {getToppingName(topping)}</span>
-                            <span className="text-muted">
-                              {formatLKR(PRICING.TOPPINGS.find(t => t.id === topping)?.priceLKR || 0)}
-                            </span>
-                          </div>
-                        ))}
+                        {design.toppings.map(toppingId => {
+                          const topping = pricingData?.toppings?.find(t => t.id === toppingId) || PRICING.TOPPINGS.find(t => t.id === toppingId);
+                          return (
+                            <div key={toppingId} className="d-flex justify-content-between small">
+                              <span className="text-muted">• {topping?.name || toppingId}</span>
+                              <span className="text-muted">
+                                {formatLKR(topping?.priceLKR || 0)}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -573,7 +586,7 @@ const OrderPageContent = () => {
                         Extra Layers ({design.layers - 2})
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR((design.layers - 2) * PRICING.EXTRA_LAYER_PRICE)}
+                        +{formatLKR((design.layers - 2) * (pricingData?.extraLayerPrice || PRICING.EXTRA_LAYER_PRICE))}
                       </span>
                     </div>
                   )}
@@ -582,7 +595,7 @@ const OrderPageContent = () => {
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(PRICING.DELIVERY.FEE) : 'FREE'}
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(PRICING?.DELIVERY?.FEE || 1500) : 'FREE'}
                     </span>
                   </div>
 

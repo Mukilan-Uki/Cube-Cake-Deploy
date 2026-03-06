@@ -1,6 +1,6 @@
 // src/pages/LoginPage.js - Unified login for all user types
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
@@ -10,8 +10,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();

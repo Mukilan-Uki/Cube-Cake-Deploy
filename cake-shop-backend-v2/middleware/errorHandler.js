@@ -1,12 +1,12 @@
 const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err);
+  console.error("Error:", err);
 
   // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const messages = Object.values(err.errors).map(e => e.message);
+  if (err.name === "ValidationError") {
+    const messages = Object.values(err.errors).map((e) => e.message);
     return res.status(400).json({
       success: false,
-      message: messages.join(', ')
+      message: messages.join(", "),
     });
   }
 
@@ -14,30 +14,30 @@ const errorHandler = (err, req, res, next) => {
   if (err.code === 11000) {
     return res.status(400).json({
       success: false,
-      message: 'Duplicate field value entered'
+      message: "Duplicate field value entered",
     });
   }
 
   // JWT errors
-  if (err.name === 'JsonWebTokenError') {
+  if (err.name === "JsonWebTokenError") {
     return res.status(401).json({
       success: false,
-      message: 'Invalid token'
+      message: "Invalid token",
     });
   }
 
-  if (err.name === 'TokenExpiredError') {
+  if (err.name === "TokenExpiredError") {
     return res.status(401).json({
       success: false,
-      message: 'Token expired'
+      message: "Token expired",
     });
   }
 
   // Default error
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Internal server error'
+    message: err.message || "Internal server error",
   });
 };
 
-module.exports = errorHandler;
+export default errorHandler;

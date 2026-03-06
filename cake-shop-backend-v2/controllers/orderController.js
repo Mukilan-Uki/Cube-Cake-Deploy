@@ -1,10 +1,49 @@
-const Order = require('../models/Order');
-const Shop = require('../models/Shop');
+import Order from "../models/Order.js";
+import Shop from "../models/Shop.js";
+import { sizePrices, baseAdditional, frostingAdditional, toppingAdditional } from '../utils/constants.js'
+
+// Helper function to calculate price
+const calculatePrice = (cakeDetails, shop) => {
+  // Use lowercase ID lookup or fallback
+  const sizeData = sizePrices[cakeDetails.size?.toLowerCase()] || sizePrices.medium;
+  const basePrice = sizeData?.price || 0;
+
+  const baseFlavorData = baseAdditional[cakeDetails.base?.toLowerCase()] || { price: 0 };
+  const baseFlavorPrice = baseFlavorData.price || 0;
+
+  const frostingData = frostingAdditional[cakeDetails.frosting?.toLowerCase()] || { price: 0 };
+  const frostingPrice = frostingData.price || 0;
+
+  const toppingsPrice = (cakeDetails.toppings || []).reduce(
+    (total, toppingId) => {
+      const toppingData = toppingAdditional[toppingId?.toLowerCase()] || { price: 0 };
+      return total + (toppingData.price || 0);
+    },
+    0
+  );
+
+  const extraLayers = Math.max(0, (cakeDetails.layers || 2) - 2);
+  const layersPrice = extraLayers * 1500; // PRICING.EXTRA_LAYER_PRICE
+
+  // Guard against undefined deliveryFee from shop settings
+  const deliveryFee = shop.settings?.deliveryFee || 1500;
+
+  return {
+    basePrice: Number(basePrice),
+    baseFlavorPrice: Number(baseFlavorPrice),
+    frostingPrice: Number(frostingPrice),
+    toppingsPrice: Number(toppingsPrice),
+    layersPrice: Number(layersPrice),
+    deliveryFee: Number(deliveryFee),
+    discount: 0,
+    tax: 0,
+  };
+};
 
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
-const createOrder = async (req, res, next) => {
+export const createOrder = async (req, res, next) => {
   try {
     const {
       shopId,
@@ -13,36 +52,53 @@ const createOrder = async (req, res, next) => {
       deliveryAddress,
       cakeDetails,
       paymentMethod,
-      specialInstructions
+      specialInstructions,
     } = req.body;
 
     const shop = await Shop.findById(shopId);
     if (!shop) {
       return res.status(404).json({
         success: false,
-        message: 'Shop not found'
+        message: "Shop not found",
       });
     }
 
     if (!shop.isActive || !shop.isVerified) {
       return res.status(400).json({
         success: false,
-        message: 'This shop is currently not accepting orders'
+        message: "This shop is currently not accepting orders",
       });
     }
 
     // If a galleryCakePriceLKR is provided (gallery/shop cake order), use it directly
     let priceBreakdown, totalPrice;
-    if (req.body.galleryCakePriceLKR && Number(req.body.galleryCakePriceLKR) > 0) {
-      const deliveryFee = deliveryType === 'delivery' ? (shop.settings?.deliveryFee || 150) : 0;
-      priceBreakdown = { basePrice: Number(req.body.galleryCakePriceLKR), deliveryFee };
+    if (
+      req.body.galleryCakePriceLKR &&
+      Number(req.body.galleryCakePriceLKR) > 0
+    ) {
+      const deliveryFee =
+        deliveryType === "delivery" ? shop.settings?.deliveryFee || 150 : 0;
+      priceBreakdown = {
+        basePrice: Number(req.body.galleryCakePriceLKR),
+        deliveryFee,
+      };
       totalPrice = priceBreakdown.basePrice + priceBreakdown.deliveryFee;
     } else {
       priceBreakdown = calculatePrice(cakeDetails, shop);
-      totalPrice = Object.values(priceBreakdown).reduce((sum, price) => sum + price, 0);
+
+      // Set delivery fee to 0 if not a delivery order
+      if (deliveryType !== "delivery") {
+        priceBreakdown.deliveryFee = 0;
+      }
+
+      totalPrice = Object.values(priceBreakdown).reduce(
+        (sum, price) => sum + price,
+        0
+      );
     }
 
-    const orderId = `${shop.settings.orderPrefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const orderId = `${shop.settings.orderPrefix
+      }-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const order = await Order.create({
       orderId,
@@ -54,7 +110,7 @@ const createOrder = async (req, res, next) => {
 
       deliveryDate: new Date(deliveryDate),
       deliveryType,
-      deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+      deliveryAddress: deliveryType === "delivery" ? deliveryAddress : null,
 
       cakeDetails: {
         base: cakeDetails.base,
@@ -62,13 +118,13 @@ const createOrder = async (req, res, next) => {
         size: cakeDetails.size,
         layers: cakeDetails.layers || 2,
         toppings: cakeDetails.toppings || [],
-        message: cakeDetails.message || '',
+        message: cakeDetails.message || "",
         colors: cakeDetails.colors || {
-          cake: '#8B4513',
-          frosting: '#FFF5E6',
-          decorations: '#FF6B8B'
+          cake: "#8B4513",
+          frosting: "#FFF5E6",
+          decorations: "#FF6B8B",
         },
-        specialInstructions: specialInstructions || ''
+        specialInstructions: specialInstructions || "",
       },
 
       priceBreakdown,
@@ -76,114 +132,51 @@ const createOrder = async (req, res, next) => {
       currency: shop.settings.currency,
 
       paymentMethod,
-      paymentStatus: paymentMethod === 'cash' ? 'pending' : 'pending',
+      paymentStatus: paymentMethod === "cash" ? "pending" : "pending",
 
-      status: 'pending',
-      statusHistory: [{
-        status: 'pending',
-        updatedBy: req.user.id,
-        note: 'Order placed successfully',
-        timestamp: new Date()
-      }],
+      status: "pending",
+      statusHistory: [
+        {
+          status: "pending",
+          updatedBy: req.user.id,
+          note: "Order placed successfully",
+          timestamp: new Date(),
+        },
+      ],
 
-      estimatedReadyTime: new Date(Date.now() + (shop.settings.preparationTime || 120) * 60000),
+      estimatedReadyTime: new Date(
+        Date.now() + (shop.settings.preparationTime || 120) * 60000
+      ),
 
-      customerNotes: specialInstructions || ''
+      customerNotes: specialInstructions || "",
     });
 
     await Shop.findByIdAndUpdate(shopId, {
-      $inc: { 'stats.totalOrders': 1 }
+      $inc: { "stats.totalOrders": 1 },
     });
 
     await order.populate([
-      { path: 'shop', select: 'shopName shopSlug address phone' },
-      { path: 'user', select: 'name email phone' }
+      { path: "shop", select: "shopName shopSlug address phone" },
+      { path: "user", select: "name email phone" },
     ]);
 
     res.status(201).json({
       success: true,
-      message: 'Order placed successfully!',
-      order
+      message: "Order placed successfully!",
+      order,
     });
-
   } catch (error) {
     next(error);
   }
 };
 
-// Helper function to calculate price
-const calculatePrice = (cakeDetails, shop) => {
-  // Base prices by cake size (in LKR) - MATCHES frontend PRICING.SIZES
-  const sizePrices = {
-    'small': 8997.00,
-    'medium': 11997.00,
-    'large': 17997.00,
-    'xl': 23997.00
-  };
-
-  // Additional costs for base flavors (in LKR) - MATCHES frontend PRICING.BASES
-  const baseAdditional = {
-    'chocolate': 2500,
-    'vanilla': 2000,
-    'red-velvet': 3000,
-    'carrot': 2800,
-    'lemon': 2200
-  };
-
-  // Additional costs for frostings (in LKR) - MATCHES frontend PRICING.FROSTINGS
-  const frostingAdditional = {
-    'vanilla': 1500,
-    'chocolate': 2000,
-    'cream-cheese': 1800,
-    'strawberry': 1600,
-    'matcha': 2200
-  };
-
-  // Additional costs for toppings (in LKR) - MATCHES frontend PRICING.TOPPINGS
-  const toppingAdditional = {
-    'sprinkles': 800,
-    'berries': 1800,
-    'flowers': 2200,
-    'chocolate-chips': 1200,
-    'nuts': 1200,
-    'gold-leaf': 3500
-  };
-
-  const basePrice = sizePrices[cakeDetails.size] || sizePrices['medium'];
-  const baseFlavorPrice = baseAdditional[cakeDetails.base] || 0;
-  const frostingPrice = frostingAdditional[cakeDetails.frosting] || 0;
-
-  const toppingsPrice = (cakeDetails.toppings || []).reduce((total, toppingId) => {
-    return total + (toppingAdditional[toppingId] || 0);
-  }, 0);
-
-  const extraLayers = Math.max(0, (cakeDetails.layers || 2) - 2);
-  const layersPrice = extraLayers * 1500; // PRICING.EXTRA_LAYER_PRICE
-
-  // Guard against undefined deliveryFee from shop settings
-  const deliveryFee = shop.settings?.deliveryFee || 1500; // MATCHES frontend PRICING.DELIVERY.FEE
-
-  return {
-    basePrice,
-    baseFlavorPrice,
-    frostingPrice,
-    toppingsPrice,
-    layersPrice,
-    deliveryFee,
-    discount: 0,
-    tax: 0
-  };
-};
-
-// @desc    Get user's orders
-// @route   GET /api/orders/my-orders
-// @access  Private
-const getMyOrders = async (req, res, next) => {
+// get my orders
+export const getMyOrders = async (req, res, next) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
 
     const query = { user: req.user.id };
-    if (status && status !== 'all') {
+    if (status && status !== "all") {
       query.status = status;
     }
 
@@ -191,11 +184,11 @@ const getMyOrders = async (req, res, next) => {
 
     const [orders, total] = await Promise.all([
       Order.find(query)
-        .populate('shop', 'shopName shopSlug address phone logo')
+        .populate("shop", "shopName shopSlug address phone logo")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      Order.countDocuments(query)
+      Order.countDocuments(query),
     ]);
 
     const summary = await Order.aggregate([
@@ -204,15 +197,21 @@ const getMyOrders = async (req, res, next) => {
         $group: {
           _id: null,
           totalOrders: { $sum: 1 },
-          totalSpent: { $sum: '$totalPrice' },
+          totalSpent: { $sum: "$totalPrice" },
           completedOrders: {
-            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
           },
           pendingOrders: {
-            $sum: { $cond: [{ $in: ['$status', ['pending', 'confirmed', 'preparing']] }, 1, 0] }
-          }
-        }
-      }
+            $sum: {
+              $cond: [
+                { $in: ["$status", ["pending", "confirmed", "preparing"]] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
     ]);
 
     res.json({
@@ -222,65 +221,60 @@ const getMyOrders = async (req, res, next) => {
         totalOrders: 0,
         totalSpent: 0,
         completedOrders: 0,
-        pendingOrders: 0
+        pendingOrders: 0,
       },
       pagination: {
         total,
         page: parseInt(page),
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
-
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Get single order
-// @route   GET /api/orders/:orderId
-// @access  Private
-const getOrderById = async (req, res, next) => {
+// get single order
+export const getOrderById = async (req, res, next) => {
   try {
     const { orderId } = req.params;
 
     const order = await Order.findOne({ orderId })
-      .populate('shop', 'shopName shopSlug address phone email logo settings')
-      .populate('user', 'name email phone')
-      .populate('statusHistory.updatedBy', 'name role');
+      .populate("shop", "shopName shopSlug address phone email logo settings")
+      .populate("user", "name email phone")
+      .populate("statusHistory.updatedBy", "name role");
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'Order not found'
+        message: "Order not found",
       });
     }
 
     const isOwner = order.user._id.toString() === req.user.id;
-    const isShopOwner = req.user.role === 'shop_owner' &&
+    const isShopOwner =
+      req.user.role === "shop_owner" &&
       order.shop._id.toString() === req.user.shopId?.toString();
-    const isAdmin = req.user.role === 'super_admin';
+    const isAdmin = req.user.role === "super_admin";
 
     if (!isOwner && !isShopOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to view this order'
+        message: "Not authorized to view this order",
       });
     }
 
     res.json({
       success: true,
-      order
+      order,
     });
-
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Cancel order
-// @route   PUT /api/orders/:orderId/cancel
-// @access  Private
-const cancelOrder = async (req, res, next) => {
+// cancel order
+export const cancelOrder = async (req, res, next) => {
   try {
     const { orderId } = req.params;
     const { reason } = req.body;
@@ -290,35 +284,36 @@ const cancelOrder = async (req, res, next) => {
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'Order not found'
+        message: "Order not found",
       });
     }
 
     const isOwner = order.user.toString() === req.user.id;
-    const isShopOwner = req.user.role === 'shop_owner' &&
+    const isShopOwner =
+      req.user.role === "shop_owner" &&
       order.shop.toString() === req.user.shopId?.toString();
 
     if (!isOwner && !isShopOwner) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to cancel this order'
+        message: "Not authorized to cancel this order",
       });
     }
 
-    const cancellableStatuses = ['pending', 'confirmed'];
+    const cancellableStatuses = ["pending", "confirmed"];
     if (!cancellableStatuses.includes(order.status)) {
       return res.status(400).json({
         success: false,
-        message: `Order cannot be cancelled because it is ${order.status}`
+        message: `Order cannot be cancelled because it is ${order.status}`,
       });
     }
 
-    order.status = 'cancelled';
+    order.status = "cancelled";
     order.statusHistory.push({
-      status: 'cancelled',
+      status: "cancelled",
       updatedBy: req.user.id,
-      note: reason || 'Order cancelled by user',
-      timestamp: new Date()
+      note: reason || "Order cancelled by user",
+      timestamp: new Date(),
     });
     order.cancelledAt = new Date();
     order.cancellationReason = reason;
@@ -327,45 +322,44 @@ const cancelOrder = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: 'Order cancelled successfully',
-      order
+      message: "Order cancelled successfully",
+      order,
     });
-
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Track order (public)
-// @route   GET /api/orders/track/:orderId
-// @access  Public
-const trackOrder = async (req, res, next) => {
+// track order
+export const trackOrder = async (req, res, next) => {
   try {
     const { orderId } = req.params;
     const { phone } = req.query;
 
     const order = await Order.findOne({ orderId })
-      .populate('shop', 'shopName phone address')
-      .select('orderId status statusHistory estimatedReadyTime actualReadyTime customerName customerPhone');
+      .populate("shop", "shopName phone address")
+      .select(
+        "orderId status statusHistory estimatedReadyTime actualReadyTime customerName customerPhone"
+      );
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'Order not found'
+        message: "Order not found",
       });
     }
 
     if (phone && order.customerPhone !== phone) {
       return res.status(403).json({
         success: false,
-        message: 'Invalid phone number for this order'
+        message: "Invalid phone number for this order",
       });
     }
 
-    const timeline = order.statusHistory.map(history => ({
+    const timeline = order.statusHistory.map((history) => ({
       status: history.status,
       note: history.note,
-      timestamp: history.timestamp
+      timestamp: history.timestamp,
     }));
 
     res.json({
@@ -377,19 +371,10 @@ const trackOrder = async (req, res, next) => {
         estimatedReadyTime: order.estimatedReadyTime,
         actualReadyTime: order.actualReadyTime,
         shop: order.shop,
-        timeline
-      }
+        timeline,
+      },
     });
-
   } catch (error) {
     next(error);
   }
-};
-
-module.exports = {
-  createOrder,
-  getMyOrders,
-  getOrderById,
-  cancelOrder,
-  trackOrder
 };

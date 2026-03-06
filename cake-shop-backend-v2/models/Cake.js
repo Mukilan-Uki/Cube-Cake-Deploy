@@ -1,63 +1,64 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const cakeSchema = new mongoose.Schema({
   shop: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Shop',
-    required: true
+    ref: "Shop",
+    required: true,
   },
   shopName: {
     type: String,
-    required: true
+    required: true,
   },
   shopSlug: {
     type: String,
-    required: true
+    required: true,
   },
   name: {
     type: String,
-    required: [true, 'Cake name is required'],
-    trim: true
+    required: [true, "Cake name is required"],
+    trim: true,
   },
   description: {
     type: String,
-    required: [true, 'Description is required']
+    required: [true, "Description is required"],
   },
   priceLKR: {
     type: Number,
-    required: [true, 'Price is required'],
-    min: [0, 'Price cannot be negative']
+    required: [true, "Price is required"],
+    min: [0, "Price cannot be negative"],
   },
   category: {
     type: String,
-    required: [true, 'Category is required'],
-    enum: ['Birthday', 'Wedding', 'Anniversary', 'Special', 'Custom', 'Kids']
+    required: [true, "Category is required"],
+    enum: ["Birthday", "Wedding", "Anniversary", "Special", "Custom", "Kids"],
   },
   image: {
     type: String,
-    default: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop'
+    default: true,
   },
   isAvailable: {
     type: Boolean,
-    default: true
+    default: true,
   },
   isPopular: {
     type: Boolean,
-    default: false
+    default: false,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-cakeSchema.pre('save', function(next) {
+cakeSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-module.exports = mongoose.model('Cake', cakeSchema);
+const Cake = mongoose.model("Cake", cakeSchema);
+export default Cake;

@@ -1,170 +1,195 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const shopSchema = new mongoose.Schema({
   shopName: {
     type: String,
-    required: [true, 'Shop name is required'],
-    trim: true
+    required: [true, "Shop name is required"],
+    trim: true,
   },
   shopSlug: {
     type: String,
     required: true,
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   description: {
     type: String,
-    default: ''
+    default: "",
   },
   logo: {
     type: String,
-    default: '/images/front.png'
+    default: "/images/front.png",
   },
   coverImage: {
     type: String,
-    default: '/images/cover.png'
+    default: "/images/cover.png",
   },
-  
+
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
-  
-  admins: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  
+
+  admins: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+
   email: {
     type: String,
-    required: true
+    required: true,
   },
   phone: {
     type: String,
-    required: true
+    required: true,
   },
   whatsapp: String,
-  
+
   address: {
     street: String,
     city: String,
     state: String,
     zipCode: String,
-    country: { type: String, default: 'Sri Lanka' }
+    country: { type: String, default: "Sri Lanka" },
   },
-  
+
   location: {
     type: {
       type: String,
-      enum: ['Point'],
-      default: 'Point'
+      enum: ["Point"],
+      default: "Point",
     },
     coordinates: {
       type: [Number],
-      default: [80.7718, 7.8731] // Default to Sri Lanka center
-    }
+      default: [80.7718, 7.8731], // Default to Sri Lanka center
+    },
   },
-  
+
   businessType: {
     type: String,
-    enum: ['bakery', 'cafe', 'home_business', 'patisserie'],
-    default: 'bakery'
+    enum: ["bakery", "cafe", "home_business", "patisserie"],
+    default: "bakery",
   },
   registrationNumber: String,
   taxId: String,
-  
+
   settings: {
-    currency: { type: String, default: 'LKR' },
-    timezone: { type: String, default: 'Asia/Colombo' },
-    orderPrefix: { type: String, default: 'ORD' },
+    currency: { type: String, default: "LKR" },
+    timezone: { type: String, default: "Asia/Colombo" },
+    orderPrefix: { type: String, default: "ORD" },
     autoAcceptOrders: { type: Boolean, default: false },
     preparationTime: { type: Number, default: 120 },
     maxOrdersPerDay: { type: Number, default: 50 },
     deliveryRadius: { type: Number, default: 10 },
     deliveryFee: { type: Number, default: 150 },
-    freeDeliveryThreshold: { type: Number, default: 5000 }
+    freeDeliveryThreshold: { type: Number, default: 5000 },
   },
-  
-  operatingHours: [{
-    day: {
-      type: String,
-      enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+  operatingHours: [
+    {
+      day: {
+        type: String,
+        enum: [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ],
+      },
+      open: { type: String, default: "09:00" },
+      close: { type: String, default: "18:00" },
+      closed: { type: Boolean, default: false },
     },
-    open: { type: String, default: '09:00' },
-    close: { type: String, default: '18:00' },
-    closed: { type: Boolean, default: false }
-  }],
-  
-  holidays: [{
-    date: Date,
-    reason: String
-  }],
-  
-  paymentMethods: [{
-    type: String,
-    enum: ['cash', 'card', 'online'],
-    default: ['cash']
-  }],
-  
+  ],
+
+  holidays: [
+    {
+      date: Date,
+      reason: String,
+    },
+  ],
+
+  paymentMethods: [
+    {
+      type: String,
+      enum: ["cash", "card", "online"],
+      default: ["cash"],
+    },
+  ],
+
   socialMedia: {
     facebook: String,
     instagram: String,
-    twitter: String
+    twitter: String,
   },
-  
+
   stats: {
     totalOrders: { type: Number, default: 0 },
     totalRevenue: { type: Number, default: 0 },
     averageRating: { type: Number, default: 0 },
-    reviewCount: { type: Number, default: 0 }
+    reviewCount: { type: Number, default: 0 },
   },
-  
+
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   isVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
   verifiedAt: Date,
-  
+
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Indexes
-shopSchema.index({ location: '2dsphere' });
+shopSchema.index({ location: "2dsphere" });
 shopSchema.index({ shopSlug: 1 }, { unique: true });
 shopSchema.index({ owner: 1 });
 shopSchema.index({ isActive: 1, isVerified: 1 });
 
 // Pre-save middleware
-shopSchema.pre('save', function(next) {
+shopSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
 // Set default operating hours if not provided
-shopSchema.pre('save', function(next) {
+shopSchema.pre("save", function (next) {
   if (!this.operatingHours || this.operatingHours.length === 0) {
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    this.operatingHours = days.map(day => ({
+    const days = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
+    ];
+    this.operatingHours = days.map((day) => ({
       day,
-      open: '09:00',
-      close: '18:00',
-      closed: day === 'sunday'
+      open: "09:00",
+      close: "18:00",
+      closed: day === "sunday",
     }));
   }
   next();
 });
 
-module.exports = mongoose.model('Shop', shopSchema);
+const Shop = mongoose.model("Shop", shopSchema);
+export default Shop;

@@ -1,21 +1,21 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const {
+import {
   createOrder,
   getMyOrders,
   getOrderById,
   cancelOrder,
-  trackOrder
-} = require('../controllers/orderController');
-const { protect } = require('../middleware/auth');
+  trackOrder,
+} from "../controllers/orderController.js";
+import { protect } from "../middleware/auth.js";
 
 // Public route for tracking
-router.get('/track/:orderId', trackOrder);
+router.get("/track/:orderId", trackOrder);
 
 // Protected routes
-router.post('/', protect, createOrder);
-router.get('/my-orders', protect, getMyOrders);
-router.get('/:orderId', protect, getOrderById);
-router.put('/:orderId/cancel', protect, cancelOrder);
+router.post("/", protect, createOrder);
+router.get("/my-orders", protect, getMyOrders);
+router.get("/:orderId", protect, getOrderById);
+router.put("/:orderId/cancel", protect, cancelOrder);
 
-module.exports = router;
+export default router;

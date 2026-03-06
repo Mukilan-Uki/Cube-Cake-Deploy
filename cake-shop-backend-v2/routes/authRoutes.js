@@ -1,36 +1,21 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const {
+import {
   register,
   login,
-  adminLogin,
-  registerShopOwner,
   registerShop,
   getProfile,
-  updateProfile
-} = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
+  updateProfile,
+} from "../controllers/authController.js";
+import { protect } from "../middleware/auth.js";
 
 // Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/admin/login', adminLogin);
-
-// Shop registration routes (BOTH endpoints work)
-router.post('/register-shop-owner', registerShopOwner);
-router.post('/register-shop', registerShop); // This matches your frontend
+router.post("/register", register);
+router.post("/register-shop", registerShop);
+router.post("/login", login);
 
 // Protected routes
-router.get('/me', protect, getProfile);
-router.put('/profile', protect, updateProfile);
+router.get("/me", protect, getProfile);
+router.put("/profile", protect, updateProfile);
 
-// Test route
-router.get('/test', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Auth routes are working!',
-    timestamp: new Date().toISOString()
-  });
-});
-
-module.exports = router;
+export default router;

@@ -1,12 +1,13 @@
+// Admin middleware
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'super_admin') {
+  if (req.user && req.user.role === "super_admin") {
     next();
   } else {
     res.status(403).json({
       success: false,
-      message: 'Not authorized as admin'
+      message: "Not authorized as admin",
     });
   }
 };
 
-module.exports = admin;
+export default admin;

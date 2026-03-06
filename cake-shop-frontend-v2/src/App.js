@@ -99,12 +99,8 @@ function AppContent() {
             <Route path="/shops"             element={<AllShopsPage />} />
             <Route path="/shops/:shopSlug"   element={<PublicShopPage />} />
             <Route path="/register"          element={<RegisterPage />} />
-            <Route path="/register/customer" element={<RegisterPage />} />
             <Route path="/register/shop"     element={<ShopRegistrationPage />} />
             <Route path="/login-selection"   element={<LoginPage />} />
-            <Route path="/login"             element={<LoginPage />} />
-            <Route path="/login/customer"    element={<LoginPage />} />
-            <Route path="/admin/login"       element={<LoginPage />} />
             <Route path="/order"             element={<RequireAuth><OrderPage /></RequireAuth>} />
             <Route path="/profile"           element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/my-orders"         element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />

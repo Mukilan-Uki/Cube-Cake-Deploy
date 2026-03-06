@@ -1,18 +1,16 @@
-const Cake = require('../models/Cake');
+import Cake from "../models/Cake.js";
 
-// @desc    Get all cakes for public display
-// @route   GET /api/public/cakes
-// @access  Public
-const getAllCakes = async (req, res) => {
+// get all cakes
+export const getAllCakes = async (req, res) => {
   try {
     const { category, shop, limit = 20, page = 1 } = req.query;
 
     const query = { isAvailable: true };
-    
-    if (category && category !== 'all') {
+
+    if (category && category !== "all") {
       query.category = category;
     }
-    
+
     if (shop) {
       query.shop = shop;
     }
@@ -21,11 +19,11 @@ const getAllCakes = async (req, res) => {
 
     const [cakes, total] = await Promise.all([
       Cake.find(query)
-        .populate('shop', '_id shopName shopSlug phone address')
+        .populate("shop", "_id shopName shopSlug phone address")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      Cake.countDocuments(query)
+      Cake.countDocuments(query),
     ]);
 
     res.json({
@@ -34,99 +32,88 @@ const getAllCakes = async (req, res) => {
       total,
       page: parseInt(page),
       pages: Math.ceil(total / limit),
-      cakes
+      cakes,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching cakes',
-      error: error.message
+      message: "Error fetching cakes",
+      error: error.message,
     });
   }
 };
 
-// @desc    Get cakes by shop
-// @route   GET /api/public/shops/:shopId/cakes
-// @access  Public
-const getCakesByShop = async (req, res) => {
+// Get cakes by shop
+export const getCakesByShop = async (req, res) => {
   try {
     const { shopId } = req.params;
-    
-    const cakes = await Cake.find({ 
+
+    const cakes = await Cake.find({
       shop: shopId,
-      isAvailable: true 
+      isAvailable: true,
     }).sort({ createdAt: -1 });
 
     res.json({
       success: true,
       count: cakes.length,
-      cakes
+      cakes,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching cakes',
-      error: error.message
+      message: "Error fetching cakes",
+      error: error.message,
     });
   }
 };
 
-// @desc    Get single cake by ID
-// @route   GET /api/public/cakes/:id
-// @access  Public
-const getCakeById = async (req, res) => {
+// Get single cake by ID
+
+export const getCakeById = async (req, res) => {
   try {
     const cake = await Cake.findById(req.params.id);
 
     if (!cake) {
       return res.status(404).json({
         success: false,
-        message: 'Cake not found'
+        message: "Cake not found",
       });
     }
 
     res.json({
       success: true,
-      cake
+      cake,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching cake',
-      error: error.message
+      message: "Error fetching cake",
+      error: error.message,
     });
   }
 };
 
-// @desc    Get featured/popular cakes for home page
-// @route   GET /api/public/cakes/featured
-// @access  Public
-const getFeaturedCakes = async (req, res) => {
+// Get featured/popular cakes for home page
+
+export const getFeaturedCakes = async (req, res) => {
   try {
-    const cakes = await Cake.find({ 
+    const cakes = await Cake.find({
       isAvailable: true,
-      isPopular: true 
+      isPopular: true,
     })
-    .limit(6)
-    .sort({ createdAt: -1 });
+      .limit(6)
+      .sort({ createdAt: -1 });
 
     res.json({
       success: true,
       count: cakes.length,
-      cakes
+      cakes,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching featured cakes',
-      error: error.message
+      message: "Error fetching featured cakes",
+      error: error.message,
     });
   }
-};
-
-module.exports = {
-  getAllCakes,
-  getCakesByShop,
-  getCakeById,
-  getFeaturedCakes
 };
