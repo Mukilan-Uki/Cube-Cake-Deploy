@@ -32,8 +32,35 @@ const Footer = () => {
               Where cakes transform into edible masterpieces and every celebration finds its perfect sweet expression.
             </p>
             <div className="d-flex gap-2 mt-3">
-              {['bi-instagram','bi-facebook','bi-twitter-x'].map(icon => (
-                <a key={icon} href="#!" style={{
+              <a href="https://www.instagram.com/mukilan_vasantharaj/" style={{
+                  width: 34, height: 34,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 8,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'rgba(250,250,248,0.5)',
+                  transition: 'all 0.2s',
+                  textDecoration: 'none',
+                }}onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,147,58,0.15)'; e.currentTarget.style.color = '#C9933A'; e.currentTarget.style.borderColor = 'rgba(201,147,58,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(250,250,248,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}>
+                    <i className="bi bi-instagram"></i>
+                  </a>
+
+                <a href="https://www.linkedin.com/in/mukilan-vasantharaj-640992372/" style={{
+                  width: 34, height: 34,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 8,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'rgba(250,250,248,0.5)',
+                  transition: 'all 0.2s',
+                  textDecoration: 'none',
+                }}onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,147,58,0.15)'; e.currentTarget.style.color = '#C9933A'; e.currentTarget.style.borderColor = 'rgba(201,147,58,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(250,250,248,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}>
+                    <i className="bi bi-linkedin"></i>
+                  </a>
+
+                <a href="https://web.whatsapp.com/" style={{
                   width: 34, height: 34,
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.1)',
@@ -43,12 +70,10 @@ const Footer = () => {
                   transition: 'all 0.2s',
                   textDecoration: 'none',
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,147,58,0.15)'; e.currentTarget.style.color = '#C9933A'; e.currentTarget.style.borderColor = 'rgba(201,147,58,0.3)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(250,250,248,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                >
-                  <i className={`bi ${icon}`} style={{ fontSize: '0.85rem' }}></i>
-                </a>
-              ))}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,147,58,0.15)'; e.currentTarget.style.color = '#C9933A'; e.currentTarget.style.borderColor = 'rgba(201,147,58,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(250,250,248,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}>
+                    <i className="bi bi-whatsapp"></i>
+                  </a>
             </div>
           </div>
 
@@ -74,7 +99,7 @@ const Footer = () => {
               {[
                 { icon: 'bi-geo-alt', text: 'Main Street, Santhively, Batticaloa' },
                 { icon: 'bi-telephone', text: '0743086099' },
-                { icon: 'bi-envelope', text: 'hello@cubecake.com' },
+                { icon: 'bi-envelope', text: 'cubecake@gmail.com' },
               ].map((item, i) => (
                 <div key={i} className="d-flex gap-2 align-items-start">
                   <div style={{
@@ -95,7 +120,7 @@ const Footer = () => {
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginTop: '3rem', paddingTop: '1.5rem', textAlign: 'center' }}>
           <p style={{ color: 'rgba(250,250,248,0.3)', fontSize: '0.82rem', margin: 0 }}>
-            © 2025 Cube Cake Shop • Made with <i className="bi bi-heart-fill" style={{ color: '#C4614A', margin: '0 3px' }}></i> and sprinkles
+            © 2026 Cube Cake Shop • Made with <i className="bi bi-heart-fill" style={{ color: '#C4614A', margin: '0 3px' }}></i> and sprinkles
           </p>
         </div>
       </div>

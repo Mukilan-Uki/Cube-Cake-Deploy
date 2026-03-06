@@ -68,6 +68,7 @@ const BuilderPage = () => {
         }
         if (data.sizes?.length > 0 && !data.sizes.find(s => s.id === cakeDesign.size)) {
           setCakeDesign(prev => ({ ...prev, size: data.sizes[0].id }));
+          setShowPreview(true);
         }
       } catch (error) {
         console.error('Error fetching pricing data:', error);
@@ -75,7 +76,7 @@ const BuilderPage = () => {
     };
 
     fetchPricingData();
-  }, []);
+  });
 
   // Use pricingData if available, otherwise empty arrays
   const sizes = pricingData?.sizes || [];
@@ -190,7 +191,6 @@ const BuilderPage = () => {
     // Draw each layer with 3D-ish effect
     for (let i = cakeDesign.layers - 1; i >= 0; i--) {
       const layerY = cakeTopY + i * layerH;
-      const isFrosted = i < cakeDesign.layers - 1;
 
       // Side shadow
       ctx.save();
@@ -474,7 +474,7 @@ const BuilderPage = () => {
   return (
     <div className="container-fluid px-0">
       {/* Header */}
-      <div className="bg-cream py-3 sticky-top" style={{ zIndex: 1000 }}>
+      <div className="bg-cream py-3 sticky-top" style={{ zIndex: 4000 }}>
         <div className="container">
           <div className="d-flex align-items-center justify-content-between">
             <h5 className="mb-0 text-chocolate">
@@ -511,7 +511,7 @@ const BuilderPage = () => {
                     <canvas
                       ref={canvasRef}
                       width={400}
-                      height={300}
+                      height={400}
                       className="border rounded bg-cream w-100"
                       style={{ maxWidth: '100%' }}
                     />
