@@ -5,7 +5,6 @@ import { apiService } from '../utils/api';
 import RequireAuth from '../components/RequireAuth';
 import { formatLKR } from '../config/currency';
 import { API_CONFIG } from '../config';
-import { PRICING, calculateCustomCakePrice } from '../config/pricing';
 
 // Canvas helpers for cake preview
 const adjustColor = (hex, amount) => {
@@ -215,7 +214,7 @@ const OrderPageContent = () => {
   const calculateTotalPrice = () => {
     // If this is a gallery cake order
     if (isGalleryOrder && galleryCake) {
-      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (PRICING?.DELIVERY?.FEE || 1500) : 0;
+      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (pricingData?.deliveryFee || 1500) : 0;
       return (galleryCake.priceLKR || 0) + deliveryFee;
     }
 
@@ -240,15 +239,15 @@ const OrderPageContent = () => {
         return sum + (topping?.priceLKR || 0);
       }, 0);
       const extraLayers = Math.max(0, (design.layers || 2) - 2);
-      const layersPrice = extraLayers * (PRICING?.EXTRA_LAYER_PRICE || 1500);
+      const layersPrice = extraLayers * (pricingData?.extraLayerPrice || 1500);
 
       const subtotal = basePrice + baseCake + frostingPrice + toppingPrice + layersPrice;
-      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (PRICING?.DELIVERY?.FEE || 1500) : 0;
+      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (pricingData?.deliveryFee || 1500) : 0;
       return subtotal + deliveryFee;
     }
 
     // Fallback
-    return (design.finalPriceLKR || calculateCustomCakePrice(design)) + (orderDetails.deliveryType === 'delivery' ? (PRICING?.DELIVERY?.FEE || 1500) : 0);
+    return (design.finalPriceLKR || 0) + (orderDetails.deliveryType === 'delivery' ? (pricingData?.deliveryFee || 1500) : 0);
   };
 
   const totalPrice = calculateTotalPrice();
@@ -442,7 +441,7 @@ const OrderPageContent = () => {
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(PRICING.DELIVERY.FEE) : 'FREE'}
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(pricingData?.deliveryFee || 1500) : 'FREE'}
                     </span>
                   </div>
                   <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
@@ -515,8 +514,7 @@ const OrderPageContent = () => {
                     </span>
                     <span className="fw-medium">
                       {formatLKR(
-                        (pricingData?.sizes?.find(s => s.id === design.size)?.priceLKR) ??
-                        (PRICING.SIZES.find(s => s.id === design.size)?.priceLKR || 0)
+                        (pricingData?.sizes?.find(s => s.id === design.size)?.priceLKR) || 0
                       )}
                     </span>
                   </div>
@@ -529,8 +527,7 @@ const OrderPageContent = () => {
                       </span>
                       <span className="fw-medium text-success">
                         +{formatLKR(
-                          (pricingData?.bases?.find(b => b.id === design.base)?.priceLKR) ??
-                          (PRICING.BASES.find(b => b.id === design.base)?.priceLKR || 0)
+                          (pricingData?.bases?.find(b => b.id === design.base)?.priceLKR) || 0
                         )}
                       </span>
                     </div>
@@ -544,8 +541,7 @@ const OrderPageContent = () => {
                       </span>
                       <span className="fw-medium text-success">
                         +{formatLKR(
-                          (pricingData?.frostings?.find(f => f.id === design.frosting)?.priceLKR) ??
-                          (PRICING.FROSTINGS.find(f => f.id === design.frosting)?.priceLKR || 0)
+                          (pricingData?.frostings?.find(f => f.id === design.frosting)?.priceLKR) || 0
                         )}
                       </span>
                     </div>
@@ -558,14 +554,14 @@ const OrderPageContent = () => {
                         <span className="text-muted">Toppings:</span>
                         <span className="fw-medium text-success">
                           +{formatLKR(design.toppings.reduce((sum, toppingId) => {
-                            const topping = pricingData?.toppings?.find(t => t.id === toppingId) || PRICING.TOPPINGS.find(t => t.id === toppingId);
+                            const topping = pricingData?.toppings?.find(t => t.id === toppingId);
                             return sum + (topping?.priceLKR || 0);
                           }, 0))}
                         </span>
                       </div>
                       <div className="ps-3">
                         {design.toppings.map(toppingId => {
-                          const topping = pricingData?.toppings?.find(t => t.id === toppingId) || PRICING.TOPPINGS.find(t => t.id === toppingId);
+                          const topping = pricingData?.toppings?.find(t => t.id === toppingId);
                           return (
                             <div key={toppingId} className="d-flex justify-content-between small">
                               <span className="text-muted">• {topping?.name || toppingId}</span>
@@ -586,7 +582,7 @@ const OrderPageContent = () => {
                         Extra Layers ({design.layers - 2})
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR((design.layers - 2) * (pricingData?.extraLayerPrice || PRICING.EXTRA_LAYER_PRICE))}
+                        +{formatLKR((design.layers - 2) * (pricingData?.extraLayerPrice || 1500))}
                       </span>
                     </div>
                   )}
@@ -595,7 +591,7 @@ const OrderPageContent = () => {
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(PRICING?.DELIVERY?.FEE || 1500) : 'FREE'}
+                      {orderDetails.deliveryType === 'delivery' ? formatLKR(pricingData?.deliveryFee || 1500) : 'FREE'}
                     </span>
                   </div>
 
@@ -705,7 +701,7 @@ const OrderPageContent = () => {
                     onChange={(e) => setOrderDetails({ ...orderDetails, deliveryType: e.target.value })}
                   >
                     <option value="pickup">Pickup from Shop (Free)</option>
-                    <option value="delivery">Home Delivery (+₨ {PRICING.DELIVERY.FEE.toLocaleString()})</option>
+                    <option value="delivery">Home Delivery (+₨ {(pricingData?.deliveryFee || 1500).toLocaleString()})</option>
                   </select>
                 </div>
                 {orderDetails.deliveryType === 'delivery' && (

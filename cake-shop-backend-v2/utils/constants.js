@@ -26,3 +26,7 @@ export const toppingAdditional = {
   flowers: { id: "flowers", name: "Edible Flowers", price: 500 },
   nuts: { id: "nuts", name: "Crushed Nuts", price: 300 },
 };
+
+// Additional Pricing Information
+export const EXTRA_LAYER_PRICE = 1500;
+export const DELIVERY_FEE = 1500;

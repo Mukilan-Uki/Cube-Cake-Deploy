@@ -22,7 +22,7 @@ const startServer = async () => {
         phone: "0743086099",
         password: "admin123",
         role: "super_admin",
-      });Admin
+      });
       console.log("Default admin created (admin@cubecake.com / admin123)");
     }
 

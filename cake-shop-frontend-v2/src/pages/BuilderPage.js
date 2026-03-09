@@ -1,5 +1,4 @@
 import { formatLKR } from '../config/currency';
-import { PRICING } from '../config/pricing';
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
 import { useEffect } from 'react';
@@ -115,7 +114,7 @@ const BuilderPage = () => {
 
       // Extra layers price (first 2 layers are included)
       const extraLayers = Math.max(0, cakeDesign.layers - 2);
-      const layersPriceLKR = extraLayers * (pricingData?.extraLayerPrice || PRICING?.EXTRA_LAYER_PRICE || 1500);
+      const layersPriceLKR = extraLayers * (pricingData?.extraLayerPrice || 1500);
 
       // Calculate total
       const totalLKR = basePriceLKR + baseCakeLKR + frostingPriceLKR + toppingsPriceLKR + layersPriceLKR;
@@ -730,7 +729,8 @@ const BuilderPage = () => {
                         </button>
                       </div>
                       <p className="text-muted small">
-                        Base price includes 2 layers. Extra layers: +{formatLKR(PRICING.EXTRA_LAYER_PRICE)} each
+                        {/* Base price includes 2 layers. Extra layers: +{formatLKR(PRICING.EXTRA_LAYER_PRICE)} each */}
+                        Base price includes 2 layers. Extra layers: +{formatLKR(pricingData?.extraLayerPrice || 1500)} each
                       </p>
                     </div>
                   </div>

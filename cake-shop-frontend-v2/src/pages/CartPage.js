@@ -1,10 +1,10 @@
 // src/pages/CartPage.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatLKR } from '../config/currency';
-import { PRICING } from '../config/pricing';
+import { apiService } from '../utils/api';
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -18,9 +18,21 @@ const CartPage = () => {
     cartCount
   } = useCart();
 
+  const [deliveryFee, setDeliveryFee] = useState(1500);
+
+  useEffect(() => {
+    const fetchPricing = async () => {
+      const data = await apiService.getDesigningData();
+      if (data && data.deliveryFee) {
+        setDeliveryFee(data.deliveryFee);
+      }
+    };
+    fetchPricing();
+  }, []);
+
   const subtotal = getSubtotal();
-  const deliveryFee = subtotal > 0 ? PRICING.DELIVERY.FEE : 0;
-  const total = subtotal + deliveryFee;
+  const currentDeliveryFee = subtotal > 0 ? deliveryFee : 0;
+  const total = subtotal + currentDeliveryFee;
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -178,7 +190,7 @@ const CartPage = () => {
               </div>
               <div className="d-flex justify-content-between mb-2">
                 <span className="text-muted">Delivery Fee</span>
-                <span className="fw-bold">{deliveryFee > 0 ? formatLKR(deliveryFee) : 'Free'}</span>
+                <span className="fw-bold">{currentDeliveryFee > 0 ? formatLKR(currentDeliveryFee) : 'Free'}</span>
               </div>
               <hr />
               <div className="d-flex justify-content-between mb-3">

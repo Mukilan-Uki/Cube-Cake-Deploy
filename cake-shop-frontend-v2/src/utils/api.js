@@ -19,14 +19,14 @@ export const apiService = {
         headers: getAuthHeaders(),
         body: JSON.stringify(userData)
       });
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
       console.error('Registration error:', error);
-      return { 
-        success: false, 
-        message: 'Network error. Check if backend is running.' 
+      return {
+        success: false,
+        message: 'Network error. Check if backend is running.'
       };
     }
   },
@@ -38,14 +38,14 @@ export const apiService = {
         headers: getAuthHeaders(),
         body: JSON.stringify(credentials)
       });
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
       console.error('Login error:', error);
-      return { 
-        success: false, 
-        message: 'Cannot connect to server.' 
+      return {
+        success: false,
+        message: 'Cannot connect to server.'
       };
     }
   },
@@ -57,12 +57,12 @@ export const apiService = {
         headers: getAuthHeaders(),
         body: JSON.stringify(credentials)
       });
-      
+
       return await response.json();
     } catch (error) {
-      return { 
-        success: false, 
-        message: 'Cannot connect to admin server' 
+      return {
+        success: false,
+        message: 'Cannot connect to admin server'
       };
     }
   },
@@ -72,7 +72,7 @@ export const apiService = {
       const response = await fetch(API_CONFIG.AUTH.ME, {
         headers: getAuthHeaders()
       });
-      
+
       return await response.json();
     } catch (error) {
       return { success: false, message: 'Network error' };
@@ -85,7 +85,7 @@ export const apiService = {
       const response = await fetch(API_CONFIG.ORDERS.BASE, {
         headers: getAuthHeaders()
       });
-      
+
       return await response.json();
     } catch (error) {
       console.error('Get orders error:', error);
@@ -98,7 +98,7 @@ export const apiService = {
       const response = await fetch(API_CONFIG.ORDERS.MY_ORDERS, {
         headers: getAuthHeaders()
       });
-      
+
       return await response.json();
     } catch (error) {
       console.error('Get my orders error:', error);
@@ -110,9 +110,9 @@ export const apiService = {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        return { 
-          success: false, 
-          message: 'You must be logged in to place an order' 
+        return {
+          success: false,
+          message: 'You must be logged in to place an order'
         };
       }
 
@@ -124,14 +124,14 @@ export const apiService = {
         },
         body: JSON.stringify(orderData)
       });
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
       console.error('Create order error:', error);
-      return { 
-        success: false, 
-        message: 'Failed to create order. Please try again.' 
+      return {
+        success: false,
+        message: 'Failed to create order. Please try again.'
       };
     }
   },
@@ -160,7 +160,7 @@ export const apiService = {
         headers: getAuthHeaders(),
         body: JSON.stringify({ status })
       });
-      
+
       return await response.json();
     } catch (error) {
       console.error('Update order status error:', error);
@@ -174,7 +174,7 @@ export const apiService = {
       const response = await fetch(API_CONFIG.CAKES, {
         headers: getAuthHeaders()
       });
-      
+
       return await response.json();
     } catch (error) {
       console.error('Get cakes error:', error);
@@ -188,7 +188,7 @@ export const apiService = {
       const response = await fetch(API_CONFIG.STATS, {
         headers: getAuthHeaders()
       });
-      
+
       return await response.json();
     } catch (error) {
       console.error('Get stats error:', error);
@@ -202,12 +202,30 @@ export const apiService = {
       const response = await fetch(API_CONFIG.HEALTH, {
         headers: { 'Accept': 'application/json' }
       });
-      
+
       return await response.json();
     } catch (error) {
-      return { 
-        success: false, 
-        message: 'Backend is not responding' 
+      return {
+        success: false,
+        message: 'Backend is not responding'
+      };
+    }
+  },
+
+  // ========== DESIGNING DATA API ==========
+  async getDesigningData() {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/designing-data`);
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch pricing data error:', error);
+      return {
+        sizes: [],
+        bases: [],
+        frostings: [],
+        toppings: [],
+        extraLayerPrice: 1500,
+        deliveryFee: 1500
       };
     }
   }

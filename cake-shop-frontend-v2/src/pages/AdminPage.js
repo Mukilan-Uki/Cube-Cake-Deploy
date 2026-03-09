@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_CONFIG } from '../config';
 import { formatLKR } from '../config/currency';
 
-// ─── helpers ────────────────────────────────────────────
+// Helpers
 const fmt = (d) =>
   d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
 
@@ -18,7 +18,7 @@ const statusClass = (s) => {
   return m[s] || 'bg-secondary';
 };
 
-// ─── Sub-components ─────────────────────────────────────
+// Sub components
 
 const StatCard = ({ label, value, icon, iconCls, sub }) => (
   <div className="stat-card">
@@ -31,7 +31,7 @@ const StatCard = ({ label, value, icon, iconCls, sub }) => (
   </div>
 );
 
-// ─── TABS ────────────────────────────────────────────────
+// Tabs
 
 const OverviewTab = ({ token }) => {
   const [stats, setStats] = useState(null);
@@ -155,13 +155,13 @@ const ShopsTab = ({ token }) => {
   const verifyShop = async (shopId) => {
     const r = await fetch(API_CONFIG.ADMIN.SHOP_VERIFY(shopId), { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
     const d = await r.json();
-    if (d.success) { showMsg('✅ Shop verified and activated!'); fetchShops(); }
+    if (d.success) { showMsg('Shop verified and activated!'); fetchShops(); }
   };
 
   const toggleShop = async (shopId, isActive) => {
     const r = await fetch(API_CONFIG.ADMIN.SHOP_TOGGLE(shopId), { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
     const d = await r.json();
-    if (d.success) { showMsg(isActive ? '⛔ Shop suspended' : '✅ Shop reactivated'); fetchShops(); }
+    if (d.success) { showMsg(isActive ? 'Shop suspended' : 'Shop reactivated'); fetchShops(); }
   };
 
   return (
@@ -261,8 +261,8 @@ const UsersTab = ({ token }) => {
   const toggleUser = async (userId, isActive) => {
     const r = await fetch(API_CONFIG.ADMIN.USER_TOGGLE(userId), { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
     const d = await r.json();
-    if (d.success) { showMsg(isActive ? '⛔ User deactivated' : '✅ User activated'); fetchUsers(); }
-    else showMsg(`❌ ${d.message}`);
+    if (d.success) { showMsg(isActive ? 'User deactivated' : 'User activated'); fetchUsers(); }
+    else showMsg(`${d.message}`);
   };
 
   const roleLabel = (role) => {
@@ -497,7 +497,7 @@ const CakesTab = ({ token }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.shopId) { showMsg('❌ Please select a shop'); return; }
+    if (!formData.shopId) { showMsg('Please select a shop'); return; }
     setSaving(true);
     const url = editingCake
       ? API_CONFIG.ADMIN.CAKE(editingCake._id)
@@ -514,11 +514,11 @@ const CakesTab = ({ token }) => {
         setShowModal(false);
         resetForm();
         fetchCakes();
-        showMsg(editingCake ? '✅ Cake updated!' : '✅ Cake added successfully!');
+        showMsg(editingCake ? 'Cake updated!' : 'Cake added successfully!');
       } else {
-        showMsg(`❌ ${d.message}`);
+        showMsg(`${d.message}`);
       }
-    } catch (err) { showMsg('❌ Error saving cake'); }
+    } catch (err) { showMsg('Error saving cake'); }
     finally { setSaving(false); }
   };
 
@@ -528,8 +528,8 @@ const CakesTab = ({ token }) => {
       method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
     });
     const d = await r.json();
-    if (d.success) { fetchCakes(); showMsg('✅ Cake deleted'); }
-    else showMsg(`❌ ${d.message}`);
+    if (d.success) { fetchCakes(); showMsg('Cake deleted'); }
+    else showMsg(`${d.message}`);
   };
 
   const handleEdit = (cake) => {
@@ -698,7 +698,7 @@ const CakesTab = ({ token }) => {
 };
 
 
-// ─── MAIN ADMIN PAGE ────────────────────────────────────
+// Main admin page
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user, logout, token } = useAuth();
@@ -734,7 +734,7 @@ const AdminPage = () => {
             <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
               <div style={{width:38,height:38,background:'var(--grad-gold)',borderRadius:'var(--radius-sm)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'var(--shadow-gold)'}}><i className="bi bi-shield-lock" style={{color:'var(--text-dark)'}}></i></div>
               <div>
-                <h1 style={{fontFamily:'var(--font-display)',color:'var(--gold-light)',fontSize:'1.5rem',fontWeight:700,margin:0}}>Admin Dashboard</h1>
+                <h1 style={{fontFamily:'var(--font-display)',color:'var(--surface-alt',fontSize:'1.5rem',fontWeight:700,margin:0}}>Admin Dashboard</h1>
                 <p style={{color:'rgba(255,255,255,0.4)',fontSize:'0.75rem',margin:0}}>Platform-wide management</p>
               </div>
             </div>
@@ -752,7 +752,7 @@ const AdminPage = () => {
               <button key={t.key} onClick={() => setActiveTab(t.key)}
                 style={{padding:'0.5rem 1.1rem',borderRadius:'var(--radius-sm) var(--radius-sm) 0 0',border:'none',cursor:'pointer',fontSize:'0.86rem',fontWeight:600,fontFamily:'var(--font-body)',display:'flex',alignItems:'center',gap:'0.4rem',transition:'all 0.2s',
                   background: activeTab === t.key ? 'var(--cream-warm)' : 'rgba(255,255,255,0.08)',
-                  color: activeTab === t.key ? 'var(--text-dark)' : 'rgba(255,255,255,0.7)'}}>
+                  color: activeTab === t.key ? 'var(--surface-alt)' : 'rgba(255,255,255,0.7)'}}>
                 <i className={`bi ${t.icon}`}></i>{t.label}
               </button>
             ))}
