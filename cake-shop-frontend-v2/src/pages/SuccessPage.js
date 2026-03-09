@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { formatLKR } from '../config/currency';
+
+
+const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const SuccessPage = () => {
   const location = useLocation();

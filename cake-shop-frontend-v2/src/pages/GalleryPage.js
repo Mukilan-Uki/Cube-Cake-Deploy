@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import CakeCard from '../components/CakeCard';
 import { getCategoryIcon } from '../utils/helpers';
-import { formatLKR } from '../config/currency';
 import { API_CONFIG } from '../config';
+
+const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const GalleryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');

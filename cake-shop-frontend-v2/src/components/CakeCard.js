@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { formatLKR } from '../config/currency';
+
+
+const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const CakeCard = ({ cake }) => {
   const [isHovered, setIsHovered] = useState(false);

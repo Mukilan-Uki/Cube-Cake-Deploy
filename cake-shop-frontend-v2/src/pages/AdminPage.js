@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_CONFIG } from '../config';
-import { formatLKR } from '../config/currency';
+
+
+const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 // Helpers
 const fmt = (d) =>

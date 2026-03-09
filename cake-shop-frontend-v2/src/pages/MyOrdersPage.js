@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../utils/api';
-import { formatLKR } from '../config/currency';
+
+
+const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const MyOrdersPage = () => {
   const { isAuthenticated } = useAuth();
