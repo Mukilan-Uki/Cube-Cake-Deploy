@@ -1,4 +1,3 @@
-// src/pages/LoginPage.js - Unified login for all user types
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

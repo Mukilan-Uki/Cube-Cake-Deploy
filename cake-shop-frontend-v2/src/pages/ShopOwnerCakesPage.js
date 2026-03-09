@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_CONFIG } from '../config';
 
-
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-
+// categories available for shop owner cakes
+const categories = ['Birthday', 'Wedding', 'Anniversary', 'Special', 'Custom', 'Kids'];
 const ShopOwnerCakesPage = () => {
   const navigate = useNavigate();
   const { user, token } = useAuth();
@@ -13,15 +12,16 @@ const ShopOwnerCakesPage = () => {
   const [cakes, setCakes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingCake, setEditingCake] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '', description: '', priceLKR: '', category: 'Birthday',
     image: '', isAvailable: true, isPopular: false
   });
+  const [imagePreview, setImagePreview] = useState('');
 
-  const categories = ['Birthday', 'Wedding', 'Anniversary', 'Special', 'Custom', 'Kids'];
+  const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 
   const fetchCakes = useCallback(async () => {
     try {
@@ -29,6 +29,7 @@ const ShopOwnerCakesPage = () => {
       const res = await fetch(API_CONFIG.SHOPS.MY_CAKES, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (!res.ok) throw new Error(`Failed to fetch cakes: ${res.status}`);
       const data = await res.json();
       if (data.success) setCakes(data.cakes);
     } catch (error) {
@@ -56,6 +57,17 @@ const ShopOwnerCakesPage = () => {
     setImagePreview(url);
   };
 
+  const handleImageFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setFormData(prev => ({ ...prev, image: ev.target.result }));
+      setImagePreview(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -67,6 +79,7 @@ const ShopOwnerCakesPage = () => {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ...formData, priceLKR: parseFloat(formData.priceLKR) })
       });
+      if (!res.ok) throw new Error(`Failed to save cake: ${res.status}`);
       const data = await res.json();
       if (data.success) {
         setShowModal(false);
@@ -98,6 +111,7 @@ const ShopOwnerCakesPage = () => {
       const res = await fetch(API_CONFIG.SHOPS.CAKE(cakeId), {
         method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (!res.ok) throw new Error(`Failed to delete cake: ${res.status}`);
       const data = await res.json();
       if (data.success) { fetchCakes(); showSuccess('Cake deleted.'); }
     } catch (error) {
@@ -110,6 +124,7 @@ const ShopOwnerCakesPage = () => {
       const res = await fetch(API_CONFIG.SHOPS.CAKE_TOGGLE(cakeId), {
         method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (!res.ok) throw new Error(`Failed to toggle availability: ${res.status}`);
       const data = await res.json();
       if (data.success) fetchCakes();
     } catch (error) { console.error(error); }
@@ -120,6 +135,7 @@ const ShopOwnerCakesPage = () => {
       const res = await fetch(API_CONFIG.SHOPS.CAKE_POPULAR(cakeId), {
         method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (!res.ok) throw new Error(`Failed to toggle popular: ${res.status}`);
       const data = await res.json();
       if (data.success) fetchCakes();
     } catch (error) { console.error(error); }
@@ -289,9 +305,15 @@ const ShopOwnerCakesPage = () => {
                         )}
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Image URL</label>
-                        <input type="text" className="form-control" value={formData.image} onChange={handleImageChange} placeholder="https://example.com/cake.jpg" />
-                        <small style={{color:'var(--text-soft)',fontSize:'0.75rem'}}>Paste any image URL from the web</small>
+                        <label className="form-label">Cake Image</label>
+                        <div className="d-flex gap-2">
+                          <input type="text" className="form-control" value={formData.image} onChange={handleImageChange} placeholder="https://example.com/cake.jpg" />
+                          <button type="button" className="btn btn-outline-secondary" onClick={() => fileInputRef.current?.click()}>
+                            <i className="bi bi-upload"></i> Upload
+                          </button>
+                        </div>
+                        <input type="file" ref={fileInputRef} accept="image/*" style={{ display: 'none' }} onChange={handleImageFile} />
+                        <small style={{color:'var(--text-soft)',fontSize:'0.75rem'}}>Paste an image URL or upload from your device</small>
                       </div>
                       <div className="mb-0">
                         <label className="form-label">Category</label>

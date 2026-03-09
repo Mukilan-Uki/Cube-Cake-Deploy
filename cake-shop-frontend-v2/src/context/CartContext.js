@@ -1,4 +1,3 @@
-// src/context/CartContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const CartContext = createContext();
@@ -41,7 +40,7 @@ export const CartProvider = ({ children }) => {
   // Add item to cart
   const addToCart = (item) => {
     setCartItems(prevItems => {
-      // Check if item already exists (by id or custom design)
+      // Check if item already exists
       const existingItemIndex = prevItems.findIndex(
         i => i.id === item.id || 
              (i.designId && i.designId === item.designId) ||
@@ -57,7 +56,7 @@ export const CartProvider = ({ children }) => {
         };
         return updatedItems;
       } else {
-        // Add new item with quantity 1
+        // Add new item
         return [...prevItems, { ...item, quantity: 1 }];
       }
     });

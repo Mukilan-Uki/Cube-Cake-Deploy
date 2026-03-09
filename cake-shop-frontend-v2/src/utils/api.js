@@ -11,7 +11,7 @@ const getAuthHeaders = () => {
 };
 
 export const apiService = {
-  // ========== AUTH API ==========
+  // auth api
   async register(userData) {
     try {
       const response = await fetch(API_CONFIG.AUTH.REGISTER, {
@@ -79,7 +79,7 @@ export const apiService = {
     }
   },
 
-  // ========== ORDERS API ==========
+  // order api
   async getOrders() {
     try {
       const response = await fetch(API_CONFIG.ORDERS.BASE, {
@@ -168,7 +168,7 @@ export const apiService = {
     }
   },
 
-  // ========== CAKES API ==========
+  // cakes api
   async getCakes() {
     try {
       const response = await fetch(API_CONFIG.CAKES, {
@@ -182,7 +182,7 @@ export const apiService = {
     }
   },
 
-  // ========== STATS API ==========
+  // stats api
   async getStats() {
     try {
       const response = await fetch(API_CONFIG.STATS, {
@@ -196,7 +196,7 @@ export const apiService = {
     }
   },
 
-  // ========== HEALTH CHECK ==========
+  // health check
   async checkBackendHealth() {
     try {
       const response = await fetch(API_CONFIG.HEALTH, {
@@ -212,7 +212,7 @@ export const apiService = {
     }
   },
 
-  // ========== DESIGNING DATA API ==========
+  // designing data api
   async getDesigningData() {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/designing-data`);
