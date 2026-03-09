@@ -1,4 +1,3 @@
-// src/components/ShopSidebarNav.js - Sidebar for shop owner and admin routes
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

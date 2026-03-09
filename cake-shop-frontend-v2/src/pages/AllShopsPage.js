@@ -1,5 +1,5 @@
 import { API_CONFIG } from '../config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AllShopsPage = () => {
@@ -9,11 +9,7 @@ const AllShopsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [city, setCity] = useState('');
 
-  useEffect(() => {
-    fetchShops();
-  }, [city]);
-
-  const fetchShops = async () => {
+  const fetchShops = useCallback(async () => {
     try {
       setLoading(true);
       const url = city 
@@ -30,7 +26,11 @@ const AllShopsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [city]);
+
+  useEffect(() => {
+    fetchShops();
+  }, [city, fetchShops]);
 
   const filteredShops = shops.filter(shop => 
     shop.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||

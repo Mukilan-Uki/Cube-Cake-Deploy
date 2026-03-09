@@ -20,12 +20,10 @@ const ProtectedRoute = ({ children, requiredRole, requireShop = false }) => {
     return <Navigate to="/login-selection" replace />;
   }
 
-  // Check for specific role if required
   if (requiredRole && !hasRole(requiredRole)) {
     return <Navigate to="/" replace />;
   }
 
-  // Check if shop owner has registered shop
   if (requireShop && !isShopOwnerWithShop()) {
     return <Navigate to="/shop/register" replace />;
   }

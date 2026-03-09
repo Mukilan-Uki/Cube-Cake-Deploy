@@ -20,7 +20,7 @@ const SuccessPage = () => {
       orders.unshift(order);
       localStorage.setItem('orderHistory', JSON.stringify(orders));
     }
-  }, []);
+  });
 
   if (!order) {
     return (

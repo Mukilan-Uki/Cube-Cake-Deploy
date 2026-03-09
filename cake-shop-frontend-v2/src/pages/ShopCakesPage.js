@@ -1,5 +1,5 @@
 import { API_CONFIG } from '../config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatLKR } from '../config/currency';
@@ -19,16 +19,7 @@ const ShopCakesPage = () => {
     image: '',
     isPopular: false
   });
-
-  useEffect(() => {
-    if (!user || user.role !== 'shop_owner') {
-      navigate('/');
-      return;
-    }
-    fetchCakes();
-  }, [user, navigate]);
-
-  const fetchCakes = async () => {
+  const fetchCakes = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_CONFIG.BASE_URL}//shops/cakes`, {
@@ -45,7 +36,14 @@ const ShopCakesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+  useEffect(() => {
+    if (!user || user.role !== 'shop_owner') {
+      navigate('/');
+      return;
+    }
+    fetchCakes();
+  }, [user, navigate, fetchCakes]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

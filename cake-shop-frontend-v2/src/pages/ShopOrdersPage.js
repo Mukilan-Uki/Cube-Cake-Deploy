@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatLKR } from '../config/currency';
@@ -12,15 +12,7 @@ const ShopOrdersPage = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    // FIX: allow both shop_owner AND super_admin
-    if (!user || (user.role !== 'shop_owner' && user.role !== 'super_admin')) {
-      navigate('/'); return;
-    }
-    fetchOrders();
-  }, [user, navigate]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_CONFIG.SHOPS.ORDERS}?limit=100`, {
@@ -33,7 +25,15 @@ const ShopOrdersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    // FIX: allow both shop_owner AND super_admin
+    if (!user || (user.role !== 'shop_owner' && user.role !== 'super_admin')) {
+      navigate('/'); return;
+    }
+    fetchOrders();
+  }, [user, navigate, fetchOrders]);
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {

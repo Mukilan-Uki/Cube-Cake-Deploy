@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import CakeCard from '../components/CakeCard';
 import { getCategoryIcon } from '../utils/helpers';
 import { formatLKR } from '../config/currency';
 import { API_CONFIG } from '../config';
 
 const GalleryPage = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('default');

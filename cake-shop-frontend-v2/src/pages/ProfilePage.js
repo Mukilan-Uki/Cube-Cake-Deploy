@@ -39,7 +39,7 @@ const ProfilePage = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      const res = await fetch(`${API_CONFIG.BASE_URL}/auth/profile`, {
+      await fetch(`${API_CONFIG.BASE_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +47,6 @@ const ProfilePage = () => {
         },
         body: JSON.stringify({ name: profileForm.name, phone: profileForm.phone, profilePicture: profileForm.profilePicture })
       });
-      const data = await res.json();
       const updatedUser = { ...user, name: profileForm.name, phone: profileForm.phone, profilePicture: profileForm.profilePicture };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       // Update AuthContext so sidebar and other components reflect changes

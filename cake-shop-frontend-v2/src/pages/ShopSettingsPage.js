@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_CONFIG } from '../config';
@@ -12,16 +12,7 @@ const ShopSettingsPage = () => {
   const [formData, setFormData] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-
-  useEffect(() => {
-    // FIX: allow both shop_owner AND super_admin
-    if (!user || (user.role !== 'shop_owner' && user.role !== 'super_admin')) {
-      navigate('/'); return;
-    }
-    fetchSettings();
-  }, [user, navigate]);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(API_CONFIG.SHOPS.SETTINGS, {
@@ -55,7 +46,14 @@ const ShopSettingsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+  useEffect(() => {
+    // FIX: allow both shop_owner AND super_admin
+    if (!user || (user.role !== 'shop_owner' && user.role !== 'super_admin')) {
+      navigate('/'); return;
+    }
+    fetchSettings();
+  }, [user, navigate, fetchSettings]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

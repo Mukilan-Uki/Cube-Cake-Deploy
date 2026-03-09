@@ -1,5 +1,5 @@
 import { API_CONFIG } from '../config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatLKR } from '../config/currency';
 
@@ -11,11 +11,7 @@ const PublicShopPage = () => {
   const [cakes, setCakes] = useState([]);
   const [selectedCake, setSelectedCake] = useState(null);
 
-  useEffect(() => {
-    fetchShopData();
-  }, [shopSlug]);
-
-  const fetchShopData = async () => {
+  const fetchShopData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_CONFIG.BASE_URL}/public/shops/${shopSlug}`);
@@ -29,7 +25,11 @@ const PublicShopPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [shopSlug]);
+
+  useEffect(() => {
+    fetchShopData();
+  }, [shopSlug, fetchShopData]);
 
   if (loading) {
     return (

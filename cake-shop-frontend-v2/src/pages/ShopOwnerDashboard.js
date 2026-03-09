@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatLKR } from '../config/currency';
@@ -18,17 +18,7 @@ const ShopOwnerDashboard = () => {
     totalCakes: 0
   });
 
-  useEffect(() => {
-    if (!user) { navigate('/login-selection'); return; }
-    // FIX: allow both shop_owner AND super_admin
-    if (user.role !== 'shop_owner' && user.role !== 'super_admin') {
-      navigate('/'); return;
-    }
-    if (!user.shopId) { navigate('/shop/register'); return; }
-    fetchDashboardData();
-  }, [user, navigate]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(API_CONFIG.SHOPS.DASHBOARD, {
@@ -46,7 +36,17 @@ const ShopOwnerDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!user) { navigate('/login-selection'); return; }
+    // FIX: allow both shop_owner AND super_admin
+    if (user.role !== 'shop_owner' && user.role !== 'super_admin') {
+      navigate('/'); return;
+    }
+    if (!user.shopId) { navigate('/shop/register'); return; }
+    fetchDashboardData();
+  }, [user, navigate, fetchDashboardData]);
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {

@@ -1,4 +1,3 @@
-// src/components/CakeCard.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -35,11 +34,9 @@ const CakeCard = ({ cake }) => {
   const handleBuyNow = (e) => {
     e.stopPropagation();
     if (cake.isCustomDesign && cake.designData) {
-      // Custom designed cake — pass the original design data so order page shows custom details
+      // Custom designed cake
       navigate('/order', { state: { design: cake.designData } });
     } else {
-      // Gallery/shop cake — pass full cake object including shopId from the shop field
-      // The shop field may be a populated object or a plain id string
       const shopId = cake.shop?._id || cake.shop || cake.shopId || null;
       navigate('/order', { state: { galleryCake: { ...cake, shopId } } });
     }

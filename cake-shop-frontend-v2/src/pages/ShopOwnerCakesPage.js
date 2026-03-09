@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatLKR } from '../config/currency';
@@ -21,14 +21,7 @@ const ShopOwnerCakesPage = () => {
 
   const categories = ['Birthday', 'Wedding', 'Anniversary', 'Special', 'Custom', 'Kids'];
 
-  useEffect(() => {
-    if (!user || (user.role !== 'shop_owner' && user.role !== 'super_admin')) {
-      navigate('/'); return;
-    }
-    fetchCakes();
-  }, [user, navigate]);
-
-  const fetchCakes = async () => {
+  const fetchCakes = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(API_CONFIG.SHOPS.MY_CAKES, {
@@ -41,7 +34,14 @@ const ShopOwnerCakesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!user || (user.role !== 'shop_owner' && user.role !== 'super_admin')) {
+      navigate('/'); return;
+    }
+    fetchCakes();
+  }, [user, navigate, fetchCakes]);
 
   const showSuccess = (msg) => {
     setSuccessMsg(msg);

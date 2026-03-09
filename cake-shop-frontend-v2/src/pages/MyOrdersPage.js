@@ -5,7 +5,7 @@ import { apiService } from '../utils/api';
 import { formatLKR } from '../config/currency';
 
 const MyOrdersPage = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
