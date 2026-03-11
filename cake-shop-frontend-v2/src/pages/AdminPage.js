@@ -58,7 +58,7 @@ const OverviewTab = ({ token }) => {
       {/* Top stats */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3"><StatCard label="Total Orders" value={stats.orders.total} icon="bi-bag" iconCls="stat-icon-rose" /></div>
-        <div className="col-6 col-md-3"><StatCard label="Total Revenue" value={formatLKR(stats.revenue.total)} icon="bi-currency-rupee" iconCls="stat-icon-green" /></div>
+        <div className="col-6 col-md-3"><StatCard label="Total Revenue" value={formatLKR(stats.revenue.total)} icon="bi bi-cash" iconCls="stat-icon-green" /></div>
         <div className="col-6 col-md-3"><StatCard label="Total Users" value={stats.users.total} icon="bi-people" iconCls="stat-icon-blue" sub={`${stats.users.customers} customers · ${stats.users.shopOwners} owners`} /></div>
         <div className="col-6 col-md-3"><StatCard label="Shops" value={stats.shops.total} icon="bi-shop" iconCls="stat-icon-gold" sub={`${stats.shops.verified} verified · ${stats.shops.pending} pending`} /></div>
       </div>
@@ -268,7 +268,7 @@ const UsersTab = ({ token }) => {
   };
 
   const roleLabel = (role) => {
-    const map = { customer: { label:'Customer', bg:'#E3F2FD', color:'#1565C0' }, shop_owner: { label:'Shop Owner', bg:'var(--gold-pale)', color:'var(--gold-rich)' }, super_admin: { label:'Super Admin', bg:'var(--rg-blush)', color:'var(--rg-deep)' } };
+    const map = { customer: { label:'Customer', bg:'#E3F2FD', color:'#1565C0' }, shop_owner: { label:'Shop Owner', bg:'#efd10f', color:'#000000' }, super_admin: { label:'Super Admin', bg:'#ff0000', color:'#ffffff' } };
     return map[role] || { label: role, bg: '#eee', color: '#333' };
   };
 
@@ -309,8 +309,12 @@ const UsersTab = ({ token }) => {
                     <tr key={u._id}>
                       <td>
                         <div style={{display:'flex',alignItems:'center',gap:'0.6rem'}}>
-                          <div style={{width:32,height:32,background:'var(--grad-rose)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:'0.85rem',flexShrink:0}}>
-                            {u.name?.charAt(0)?.toUpperCase()}
+                          <div style={{width:32,height:32,borderRadius:'50%',overflow:'hidden',flexShrink:0}}>
+                            <img
+                              src={u.profilePicture || '/images/default-avatar.jpg'}
+                              alt={u.name}
+                              style={{width:'100%',height:'100%',objectFit:'cover'}}
+                            />
                           </div>
                           <div>
                             <div style={{fontWeight:600,color:'var(--text-dark)',fontSize:'0.9rem'}}>{u.name}</div>
@@ -569,7 +573,7 @@ const CakesTab = ({ token }) => {
                   <img src={cake.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop'}
                     alt={cake.name} style={{width:'100%',height:'100%',objectFit:'cover'}} />
                   <div style={{position:'absolute',top:'8px',right:'8px',display:'flex',gap:'4px'}}>
-                    {cake.isPopular && <span className="badge" style={{background:'var(--gold-mid)',color:'var(--text-dark)',fontSize:'0.7rem'}}>⭐ Popular</span>}
+                    {cake.isPopular && <span className="badge" style={{background:'#000000',color:'#ffffff',fontSize:'0.7rem'}}>⭐ Popular</span>}
                     <span className="badge" style={{background: cake.isAvailable ? '#D4EDDA' : '#F8D7DA', color: cake.isAvailable ? '#155724' : '#721C24', fontSize:'0.7rem'}}>
                       {cake.isAvailable ? 'Live' : 'Hidden'}
                     </span>
