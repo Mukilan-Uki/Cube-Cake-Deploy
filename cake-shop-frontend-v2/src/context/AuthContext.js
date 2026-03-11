@@ -160,7 +160,7 @@ export const AuthProvider = ({ children }) => {
   // Login user (any role)
   const login = async (email, password, rememberMe = false) => {
     try {
-      const response = await fetch(API_CONFIG.BASE_URL + '/auth/login', {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/login-selection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

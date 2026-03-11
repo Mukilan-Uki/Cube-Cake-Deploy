@@ -10,7 +10,7 @@ export const API_CONFIG = {
   // Auth endpoints
   AUTH: {
     REGISTER: `${API_BASE_URL}/auth/register`,
-    LOGIN: `${API_BASE_URL}/auth/login`,
+    LOGIN: `${API_BASE_URL}/auth/login-selection`,
     ADMIN_LOGIN: `${API_BASE_URL}/auth/admin/login`,
     VERIFY_ADMIN: `${API_BASE_URL}/auth/verify-admin`,
     ME: `${API_BASE_URL}/auth/me`

@@ -32,7 +32,7 @@ const RegisterPage = () => {
     const result = await register({ name: formData.name, email: formData.email, phone: formData.phone, password: formData.password, role: 'customer' });
     if (result.success) {
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 2000);
+      setTimeout(() => navigate('/login-selection'), 2000);
     } else {
       setErrors({ general: result.message || 'Registration failed' });
     }
@@ -101,7 +101,7 @@ const RegisterPage = () => {
 
           {/* Phone */}
           <div style={{ marginBottom:'1rem' }}>
-            <label style={{ color:'rgba(255,255,255,0.5)', fontSize:'0.72rem', fontWeight:600, letterSpacing:1, textTransform:'uppercase', display:'block', marginBottom:'0.4rem' }}>Phone <span style={{opacity:0.5,fontWeight:400}}>(optional)</span></label>
+            <label style={{ color:'rgba(255,255,255,0.5)', fontSize:'0.72rem', fontWeight:600, letterSpacing:1, textTransform:'uppercase', display:'block', marginBottom:'0.4rem' }}>Phone</label>
             <div style={{ position:'relative' }}>
               <i className="bi bi-telephone-fill" style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'#D4AF37', fontSize:'0.95rem' }} />
               <input type="tel" value={formData.phone} onChange={e => setFormData({...formData,phone:e.target.value})} placeholder="+94 77 000 0000" style={inputStyle(false)}
@@ -150,7 +150,7 @@ const RegisterPage = () => {
 
         <div style={{ textAlign:'center', marginTop:'1.25rem' }}>
           <p style={{ color:'rgba(255,255,255,0.35)', fontSize:'0.85rem', margin:'0 0 0.4rem' }}>Already have an account?{' '}
-            <Link to="/login" style={{ color:'#D4AF37', fontWeight:600, textDecoration:'none' }}>Sign In</Link>
+            <Link to="/login-selection" style={{ color:'#D4AF37', fontWeight:600, textDecoration:'none' }}>Sign In</Link>
           </p>
         </div>
 

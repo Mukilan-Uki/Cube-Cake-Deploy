@@ -234,7 +234,7 @@ const GalleryPage = () => {
                 <div>
                   <h5 className="text-chocolate mb-1">Average Rating</h5>
                   <span className="fs-3 fw-bold text-lavender">
-                    {(cakes.reduce((sum, cake) => sum + (cake.rating || 4.5), 0) / cakes.length).toFixed(1)}
+                    4.5
                   </span>
                   <i className="bi bi-star-fill text-warning ms-1"></i>
                 </div>

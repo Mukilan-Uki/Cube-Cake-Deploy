@@ -58,7 +58,7 @@ const CakeCard = ({ cake }) => {
       >
         <div className={`glass-panel overflow-hidden border-0 h-100 w-100 ${isHovered ? 'hover-antigravity' : ''}`}
              style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
-             onClick={() => navigate(`/cake/${cake.id}`)}>
+             onClick={handleQuickView}>
           
           <div className="position-relative overflow-hidden" style={{ height: '250px' }}>
             <img 
