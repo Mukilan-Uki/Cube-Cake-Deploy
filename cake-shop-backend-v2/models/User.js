@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema({
   ],
   profilePicture: {
     type: String,
-    default: "/images/default-avatar.jpg",
+    default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU-rxXTrx4QdTdwIpw938VLL8EuJiVhCelkQ&s",
   },
   isActive: {
     type: Boolean,

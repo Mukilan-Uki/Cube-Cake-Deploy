@@ -12,10 +12,10 @@ const AllShopsPage = () => {
   const fetchShops = useCallback(async () => {
     try {
       setLoading(true);
-      const url = city 
+      const url = city
         ? `${API_CONFIG.BASE_URL}/public/shops?city=${city}`
-        : `${API_CONFIG.BASE_URL}//public/shops`;
-      
+        : `${API_CONFIG.BASE_URL}/public/shops`;
+
       const res = await fetch(url);
       const data = await res.json();
       if (data.success) {
@@ -32,7 +32,7 @@ const AllShopsPage = () => {
     fetchShops();
   }, [city, fetchShops]);
 
-  const filteredShops = shops.filter(shop => 
+  const filteredShops = shops.filter(shop =>
     shop.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     shop.address?.city?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -72,7 +72,7 @@ const AllShopsPage = () => {
           </div>
         </div>
         <div className="col-md-4">
-          <select 
+          <select
             className="form-select"
             value={city}
             onChange={(e) => setCity(e.target.value)}
@@ -91,7 +91,7 @@ const AllShopsPage = () => {
         <div className="row g-4">
           {filteredShops.map(shop => (
             <div className="col-md-6 col-lg-4" key={shop._id}>
-              <div 
+              <div
                 className="card h-100 border-0 shadow-sm hover-shadow"
                 style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
                 onClick={() => navigate(`/shops/${shop.shopSlug}`)}
@@ -111,11 +111,11 @@ const AllShopsPage = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <p className="card-text text-muted small mb-3">
                     {shop.description || 'No description available'}
                   </p>
-                  
+
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
                       <i className="bi bi-telephone me-1 text-muted"></i>

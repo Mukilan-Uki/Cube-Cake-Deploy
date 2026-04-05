@@ -3,7 +3,7 @@ import CakeCard from '../components/CakeCard';
 import { getCategoryIcon } from '../utils/helpers';
 import { API_CONFIG } from '../config';
 
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const GalleryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,13 +33,12 @@ const GalleryPage = () => {
             priceLKR: c.priceLKR,
             category: c.category,
             image: c.image,
-            rating: 4.5,
-            isNew: false,
+
             isPopular: c.isPopular || false,
             shopName: c.shopName,
             shopSlug: c.shopSlug,
             shop: c.shop,
-            shopId: c.shop,
+            shopId: c.shop?._id || c.shop,
             sizes: ['Standard'],
             isShopCake: true
           }));
@@ -81,9 +80,7 @@ const GalleryPage = () => {
       case 'price-high':
         filtered.sort((a, b) => b.priceLKR - a.priceLKR);
         break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
+
       case 'newest':
         filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
         break;
@@ -134,7 +131,7 @@ const GalleryPage = () => {
                 <option value="default">Sort by: Popular</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
+
                 <option value="newest">Newest First</option>
               </select>
             </div>
@@ -216,7 +213,7 @@ const GalleryPage = () => {
               ))}
             </div>
 
-            <div className="text-center fixed-show mt-5" style={{position:"fixed", bottom:"30px",display:"flex", justifyContent:"center", alignItems:"center", width:"70%", zIndex:"1000"}}>
+            <div className="text-center fixed-show mt-5" style={{ position: "fixed", bottom: "30px", display: "flex", justifyContent: "center", alignItems: "center", width: "70%", zIndex: "1000" }}>
               <div className="glass-card d-inline-flex align-items-center gap-4 p-4">
                 <div>
                   <h5 className="text-chocolate mb-1">Showing</h5>
@@ -230,14 +227,7 @@ const GalleryPage = () => {
                   <span className="text-muted"> - </span>
                   <span className="fs-3 fw-bold text-strawberry">{formatLKR(Math.max(...cakes.map(c => c.priceLKR)))}</span>
                 </div>
-                <div className="vr"></div>
-                <div>
-                  <h5 className="text-chocolate mb-1">Average Rating</h5>
-                  <span className="fs-3 fw-bold text-lavender">
-                    4.5
-                  </span>
-                  <i className="bi bi-star-fill text-warning ms-1"></i>
-                </div>
+
               </div>
             </div>
           </>

@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const CakeCard = ({ cake }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  
+
   const price = cake.priceLKR;
 
   const handleAddToCart = (e) => {
@@ -20,7 +20,7 @@ const CakeCard = ({ cake }) => {
       quantity: 1,
       addedAt: new Date().toISOString()
     });
-    
+
     // Show success message
     const toast = document.createElement('div');
     toast.className = 'position-fixed top-0 end-0 m-3 p-3 bg-success text-white rounded-3 shadow';
@@ -51,27 +51,27 @@ const CakeCard = ({ cake }) => {
 
   return (
     <>
-      <div 
+      <div
         className="col-md-6 col-lg-4 mb-4 d-flex"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className={`glass-panel overflow-hidden border-0 h-100 w-100 ${isHovered ? 'hover-antigravity' : ''}`}
-             style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
-             onClick={handleQuickView}>
-          
+          style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+          onClick={handleQuickView}>
+
           <div className="position-relative overflow-hidden" style={{ height: '250px' }}>
-            <img 
-              src={cake.image} 
+            <img
+              src={cake.image}
               className="w-100 h-100"
               alt={cake.name}
-              style={{ 
+              style={{
                 objectFit: 'cover',
                 transition: 'transform 0.6s ease',
                 transform: isHovered ? 'scale(1.1)' : 'scale(1)'
               }}
             />
-            
+
             {/* Badges */}
             <div className="position-absolute top-0 end-0 p-3 d-flex gap-2">
               {cake.isNew && (
@@ -86,36 +86,30 @@ const CakeCard = ({ cake }) => {
               )}
             </div>
 
-            {/* Rating */}
-            <div className="position-absolute top-0 start-0 p-3">
-              <span className="badge bg-white text-dark shadow-sm px-3 py-2">
-                <i className="bi bi-star-fill text-warning me-1"></i>
-                {cake.rating}
-              </span>
-            </div>
-            
+
+
             {/* Hover Overlay with Actions */}
             <div className={`position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center gap-2
                             ${isHovered ? 'opacity-100' : 'opacity-0'}`}
-                 style={{ 
-                   background: 'linear-gradient(135deg, rgba(255,107,139,0.9), rgba(157,92,255,0.9))',
-                   transition: 'opacity 0.3s ease'
-                 }}>
-              <button 
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,107,139,0.9), rgba(157,92,255,0.9))',
+                transition: 'opacity 0.3s ease'
+              }}>
+              <button
                 className="btn btn-light rounded-circle p-3 magnetic-hover"
                 onClick={handleQuickView}
                 title="Quick View"
               >
                 <i className="bi bi-eye"></i>
               </button>
-              <button 
+              <button
                 className="btn btn-light rounded-circle p-3 magnetic-hover"
                 onClick={handleAddToCart}
                 title="Add to Cart"
               >
                 <i className="bi bi-cart-plus"></i>
               </button>
-              <button 
+              <button
                 className="btn btn-light rounded-circle p-3 magnetic-hover"
                 onClick={handleBuyNow}
                 title="Buy Now"
@@ -124,16 +118,16 @@ const CakeCard = ({ cake }) => {
               </button>
             </div>
           </div>
-          
+
           <div className="p-4">
             <div className="d-flex justify-content-between align-items-start mb-2">
               <h5 className="card-title fw-bold text-chocolate mb-0">{cake.name}</h5>
             </div>
-            
+
             <p className="text-muted small mb-3" style={{ minHeight: '40px' }}>
               {cake.description.length > 60 ? cake.description.substring(0, 60) + '...' : cake.description}
             </p>
-            
+
             <div className="d-flex flex-wrap gap-2 mb-3">
               {cake.category && (
                 <span className="badge bg-cream text-chocolate">
@@ -157,22 +151,21 @@ const CakeCard = ({ cake }) => {
                 </div>
               </div>
             )}
-            
+
             <div className="d-flex justify-content-between align-items-center">
               <div>
                 <span className="fw-bold fs-4 text-gradient">{formatLKR(price)}</span>
-                <small className="text-muted ms-2">LKR</small>
               </div>
-              
+
               <div className="d-flex gap-2">
-                <button 
+                <button
                   className="btn btn-outline-gradient btn-sm px-3 py-2"
                   onClick={handleAddToCart}
                 >
                   <i className="bi bi-cart-plus me-1"></i>
                   Cart
                 </button>
-                <button 
+                <button
                   className="btn-primary-gradient btn-sm px-4 py-2"
                   onClick={handleBuyNow}
                 >
@@ -200,11 +193,11 @@ const CakeCard = ({ cake }) => {
                   </div>
                   <div className="col-md-6">
                     <p className="text-secondary">{cake.description}</p>
-                    
+
                     <div className="mb-3">
                       <strong>Category:</strong> {cake.category}
                     </div>
-                    
+
                     <div className="mb-3">
                       <strong>Flavors:</strong>
                       <div className="d-flex flex-wrap gap-2 mt-2">
@@ -215,7 +208,7 @@ const CakeCard = ({ cake }) => {
                         ))}
                       </div>
                     </div>
-                    
+
                     <div className="mb-3">
                       <strong>Sizes:</strong>
                       <div className="d-flex flex-wrap gap-2 mt-2">
@@ -226,10 +219,10 @@ const CakeCard = ({ cake }) => {
                         ))}
                       </div>
                     </div>
-                    
+
                     <div className="d-flex justify-content-between align-items-center mt-4">
-                      <span className="h3 text-gradient mb-0">{formatLKR(price)} LKR</span>
-                      <button 
+                      <span className="h3 text-gradient mb-0">{formatLKR(price)}</span>
+                      <button
                         className="btn-primary-gradient px-4 py-2"
                         onClick={() => {
                           addToCart(cake);

@@ -280,3 +280,34 @@ export const updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+// Check if email is already taken
+export const checkEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.json({
+        success: false,
+        isAvailable: false,
+        message: "Email is already taken",
+      });
+    }
+
+    res.json({
+      success: true,
+      isAvailable: true,
+      message: "Email is available",
+    });
+  } catch (error) {
+    next(error);
+  }
+};

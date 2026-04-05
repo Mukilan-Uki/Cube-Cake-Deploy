@@ -19,11 +19,11 @@ const shopSchema = new mongoose.Schema({
   },
   logo: {
     type: String,
-    default: "/images/front.png",
+    default: "https://www.google.com/imgres?q=icing%20cake%20shop%20logo&imgurl=https%3A%2F%2Fwww.designmantic.com%2Flogo-images%2F11949.png%3Fcompany%3DCompany%2520Name%26keyword%3Dcake%2520shop%26slogan%3D%26verify%3D1&imgrefurl=https%3A%2F%2Fwww.designmantic.com%2Flogos%2Fsearch%2Fcake-shop&docid=kuTmRpKzpQxCHM&tbnid=d0LTOrcrpYq32M&vet=12ahUKEwiitsDUx5qTAxUwxTgGHTwVIgUQnPAOegQIJxAB..i&w=440&h=338&hcb=2&ved=2ahUKEwiitsDUx5qTAxUwxTgGHTwVIgUQnPAOegQIJxAB",
   },
   coverImage: {
     type: String,
-    default: "/images/cover.png",
+    default: "https://www.google.com/imgres?q=icing%20cake%20shop%20cover&imgurl=https%3A%2F%2Fwww.designmantic.com%2Flogo-images%2F11949.png%3Fcompany%3DCompany%2520Name%26keyword%3Dcake%2520shop%26slogan%3D%26verify%3D1&imgrefurl=https%3A%2F%2Fwww.designmantic.com%2Flogos%2Fsearch%2Fcake-shop&docid=kuTmRpKzpQxCHM&tbnid=d0LTOrcrpYq32M&vet=12ahUKEwiitsDUx5qTAxUwxTgGHTwVIgUQnPAOegQIJxAB..i&w=440&h=338&hcb=2&ved=2ahUKEwiitsDUx5qTAxUwxTgGHTwVIgUQnPAOegQIJxAB",
   },
 
   owner: {
@@ -133,8 +133,6 @@ const shopSchema = new mongoose.Schema({
   stats: {
     totalOrders: { type: Number, default: 0 },
     totalRevenue: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 },
-    reviewCount: { type: Number, default: 0 },
   },
 
   isActive: {

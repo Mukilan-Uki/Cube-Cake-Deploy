@@ -3,12 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 
 
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const SuccessPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const order = location.state?.order || JSON.parse(localStorage.getItem('currentOrder'));
+  const order = location.state?.order || JSON.parse(sessionStorage.getItem('currentOrder'));
 
   useEffect(() => {
     confetti({
@@ -18,9 +18,9 @@ const SuccessPage = () => {
     });
 
     if (order) {
-      const orders = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+      const orders = JSON.parse(sessionStorage.getItem('orderHistory') || '[]');
       orders.unshift(order);
-      localStorage.setItem('orderHistory', JSON.stringify(orders));
+      sessionStorage.setItem('orderHistory', JSON.stringify(orders));
     }
   });
 
@@ -42,7 +42,7 @@ const SuccessPage = () => {
         <h1 className="display-5 font-script gradient-text mb-3">
           Order Confirmed!
         </h1>
-        
+
         <div className="alert alert-success fs-4 mb-4">
           <i className="bi bi-check-circle me-2"></i>
           Thank you for your order!
@@ -58,23 +58,23 @@ const SuccessPage = () => {
         </div>
 
         <div className="d-flex flex-column flex-md-row gap-3 justify-content-center">
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="btn btn-frosting"
           >
             <i className="bi bi-house me-2"></i>
             Back to Home
           </button>
-          
-          <button 
+
+          <button
             onClick={() => window.print()}
             className="btn btn-outline-apricot"
           >
             <i className="bi bi-printer me-2"></i>
             Print Receipt
           </button>
-          
-          <button 
+
+          <button
             onClick={() => navigate('/gallery')}
             className="btn btn-outline-strawberry"
           >

@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Connect to Database and start server
 const startServer = async () => {
@@ -29,8 +29,8 @@ const startServer = async () => {
     // Start server
     app.listen(PORT, () => {
       console.log(`
-      Cube Cake Server Started!
-      Port: ${PORT}
+Cube Cake Server Started!
+Port: ${PORT}
       `);
     });
   } catch (error) {

@@ -48,13 +48,13 @@ const ProfilePage = () => {
         body: JSON.stringify({ name: profileForm.name, phone: profileForm.phone, profilePicture: profileForm.profilePicture })
       });
       const updatedUser = { ...user, name: profileForm.name, phone: profileForm.phone, profilePicture: profileForm.profilePicture };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
       // Update AuthContext so sidebar and other components reflect changes
       setAuthData(updatedUser, token);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
       const updatedUser = { ...user, ...profileForm };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
       setAuthData(updatedUser, token);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } finally {

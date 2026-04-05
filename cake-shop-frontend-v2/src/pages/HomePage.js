@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_CONFIG } from '../config';
 
 
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -14,6 +14,8 @@ const HomePage = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [hoveredCard, setHoveredCard] = useState(null);
   const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [stats, setStats] = useState({ happyClients: 0, flavors: 0, partnerShops: 0 });
+  const [loadingStats, setLoadingStats] = useState(true);
   const heroRef = useRef(null);
 
   useEffect(() => {
@@ -26,6 +28,23 @@ const HomePage = () => {
       finally { setLoadingCakes(false); }
     };
     fetchCakes();
+  }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(API_CONFIG.PUBLIC.STATS);
+        const data = await res.json();
+        if (data.success) {
+          setStats(data.stats);
+        }
+      } catch (e) {
+        console.error('Error fetching stats:', e);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -172,7 +191,15 @@ const HomePage = () => {
 
               {/* Stats */}
               <div style={{ display: 'flex', gap: '2.5rem' }}>
-                {[{ v: '2,500+', l: 'Happy Clients' }, { v: '50+', l: 'Flavors' }, { v: '15+', l: 'Partner Shops' }].map((s, i) => (
+                {[
+                  {
+                    v: loadingStats ? '...' :
+                      (stats.happyClients >= 10 ? `${Math.floor(stats.happyClients / 10) * 10}+` : stats.happyClients),
+                    l: 'Happy Clients'
+                  },
+                  { v: loadingStats ? '...' : stats.flavors, l: 'Flavors' },
+                  { v: loadingStats ? '...' : stats.partnerShops, l: 'Partner Shops' }
+                ].map((s, i) => (
                   <div key={i} style={{ cursor: 'default' }}>
                     <div className="hero-stat-num" style={{
                       color: '#0D0D0D', fontWeight: 800,

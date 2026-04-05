@@ -41,7 +41,7 @@ const orderSchema = new mongoose.Schema({
     base: String,
     frosting: String,
     size: String,
-    layers: { type: Number, default: 2 },
+    layers: { type: Number, default: 3 },
     toppings: [String],
     message: String,
     colors: {

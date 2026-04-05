@@ -35,7 +35,8 @@ const cakeSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    default: true,
+    required: [true, "Image is required"],
+    default: "",
   },
   isAvailable: {
     type: Boolean,

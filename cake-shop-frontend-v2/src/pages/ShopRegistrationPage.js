@@ -1,6 +1,7 @@
 import { API_CONFIG } from '../config';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const ShopRegistrationPage = () => {
   const navigate = useNavigate();
@@ -16,11 +17,36 @@ const ShopRegistrationPage = () => {
     businessType: 'bakery'
   });
   const [error, setError] = useState('');
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const { checkEmailAvailability } = useAuth();
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        setEmailChecking(true);
+        const result = await checkEmailAvailability(formData.email);
+        if (!result.isAvailable) {
+          setEmailError('This email is already taken');
+        } else {
+          setEmailError('');
+        }
+        setEmailChecking(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [formData.email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (emailError) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch(API_CONFIG.BASE_URL + '/auth/register-shop', {
@@ -39,9 +65,9 @@ const ShopRegistrationPage = () => {
       }
       else if (data.success) {
         // Save token and user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+
         // Redirect to dashboard
         navigate('/shop/dashboard');
       } else {
@@ -76,7 +102,7 @@ const ShopRegistrationPage = () => {
                   type="text"
                   className="form-control"
                   value={formData.shopName}
-                  onChange={(e) => setFormData({...formData, shopName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
                   required
                 />
               </div>
@@ -87,7 +113,7 @@ const ShopRegistrationPage = () => {
                   type="text"
                   className="form-control"
                   value={formData.ownerName}
-                  onChange={(e) => setFormData({...formData, ownerName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
                   required
                 />
               </div>
@@ -95,13 +121,24 @@ const ShopRegistrationPage = () => {
               <div className="row">
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Email *</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    required
-                  />
+                  <div className="position-relative">
+                    <input
+                      type="email"
+                      className={`form-control ${emailError ? 'is-invalid' : ''}`}
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
+                    {emailChecking && (
+                      <div className="position-absolute" style={{ right: '10px', top: '50%', transform: 'translateY(-50%)' }}>
+                        <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      </div>
+                    )}
+                    {!emailChecking && formData.email && !emailError && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                      <i className="bi bi-check-circle-fill text-success position-absolute" style={{ right: '10px', top: '50%', transform: 'translateY(-50%)' }}></i>
+                    )}
+                    {emailError && <div className="invalid-feedback">{emailError}</div>}
+                  </div>
                 </div>
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Phone *</label>
@@ -109,7 +146,7 @@ const ShopRegistrationPage = () => {
                     type="tel"
                     className="form-control"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     required
                   />
                 </div>
@@ -121,7 +158,7 @@ const ShopRegistrationPage = () => {
                   className="form-control"
                   rows="2"
                   value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   required
                 />
               </div>
@@ -131,7 +168,7 @@ const ShopRegistrationPage = () => {
                 <select
                   className="form-select"
                   value={formData.businessType}
-                  onChange={(e) => setFormData({...formData, businessType: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
                 >
                   <option value="bakery">Bakery</option>
                   <option value="cafe">Cafe</option>
@@ -146,7 +183,7 @@ const ShopRegistrationPage = () => {
                   type="password"
                   className="form-control"
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   minLength="6"
                 />
@@ -159,15 +196,15 @@ const ShopRegistrationPage = () => {
                   type="password"
                   className="form-control"
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   required
                   minLength="6"
                 />
                 <small className="text-muted">Minimum 6 characters</small>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-primary w-100 py-2"
                 disabled={loading}
               >
@@ -185,9 +222,9 @@ const ShopRegistrationPage = () => {
             <div className="text-center mt-4">
               <p className="mb-0">
                 Already have a shop?{' '}
-                <button 
+                <button
                   className="btn btn-link p-0"
-                  onClick={() => navigate('/admin/login')}
+                  onClick={() => navigate('/login-selection')}
                 >
                   Login here
                 </button>

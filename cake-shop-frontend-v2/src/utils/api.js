@@ -2,7 +2,7 @@ import { API_CONFIG } from '../config';
 
 // Helper to get auth headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   return {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -108,7 +108,7 @@ export const apiService = {
 
   async createOrder(orderData) {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         return {
           success: false,
@@ -138,7 +138,7 @@ export const apiService = {
 
   async cancelOrder(orderId) {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}/cancel`, {
         method: 'PUT',
         headers: {

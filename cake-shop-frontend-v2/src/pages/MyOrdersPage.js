@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiService } from '../utils/api';
 
 
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const MyOrdersPage = () => {
   const { isAuthenticated } = useAuth();
@@ -27,9 +27,9 @@ const MyOrdersPage = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       const result = await apiService.getMyOrders();
-      
+
       if (result.success) {
         setOrders(result.orders || []);
       } else {
@@ -47,7 +47,7 @@ const MyOrdersPage = () => {
 
   const getFilteredOrders = () => {
     if (filter === 'all') return orders;
-    return orders.filter(order => 
+    return orders.filter(order =>
       order.status.toLowerCase() === filter.toLowerCase()
     );
   };
@@ -60,7 +60,7 @@ const MyOrdersPage = () => {
       'Completed': 'success',
       'Cancelled': 'danger'
     };
-    
+
     return (
       <span className={`badge bg-${statusColors[status] || 'secondary'} px-3 py-2`}>
         {status}
@@ -85,7 +85,7 @@ const MyOrdersPage = () => {
     try {
       const result = await apiService.cancelOrder(orderId);
       if (result.success) {
-        setOrders(prev => prev.map(o => 
+        setOrders(prev => prev.map(o =>
           (o.orderId === orderId || o._id === orderId) ? { ...o, status: 'Cancelled' } : o
         ));
         alert('Order cancelled successfully.');
@@ -129,7 +129,7 @@ const MyOrdersPage = () => {
         <div className="alert alert-danger mb-4">
           <i className="bi bi-exclamation-triangle me-2"></i>
           {error}
-          <button 
+          <button
             className="btn btn-sm btn-outline-danger ms-3"
             onClick={fetchMyOrders}
           >
@@ -177,14 +177,14 @@ const MyOrdersPage = () => {
               You haven't placed any orders yet. Start designing your first cake!
             </p>
             <div className="d-flex flex-column flex-md-row gap-3 justify-content-center">
-              <button 
+              <button
                 className="btn btn-frosting px-4 py-2"
                 onClick={() => navigate('/create')}
               >
                 <i className="bi bi-palette me-2"></i>
                 Design Your First Cake
               </button>
-              <button 
+              <button
                 className="btn btn-outline-apricot px-4 py-2"
                 onClick={() => navigate('/gallery')}
               >
@@ -201,7 +201,7 @@ const MyOrdersPage = () => {
               <i className="bi bi-filter-circle fs-1 text-muted mb-3"></i>
               <h5 className="text-chocolate mb-2">No {filter !== 'all' ? filter : ''} orders found</h5>
               <p className="text-muted mb-3">Try changing your filter selection</p>
-              <button 
+              <button
                 className="btn btn-outline-apricot"
                 onClick={() => setFilter('all')}
               >
@@ -271,7 +271,6 @@ const MyOrdersPage = () => {
                           <div className="fs-4 fw-bold" style={{ color: '#FF6B8B' }}>
                             {formatLKR(order.totalPrice || 0)}
                           </div>
-                          <small className="text-muted">LKR</small>
                         </div>
                       </div>
                     </div>
@@ -298,9 +297,9 @@ const MyOrdersPage = () => {
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="d-flex gap-2">
-                        <button 
+                        <button
                           className="btn btn-sm btn-outline-apricot rounded-pill px-3"
                           onClick={() => {
                             alert(`Order Details:
@@ -316,21 +315,11 @@ Payment: ${order.paymentMethod || 'Cash'}`);
                           <i className="bi bi-eye me-1"></i>
                           View Details
                         </button>
-                        
-                        {order.status === 'Completed' && (
-                          <button 
-                            className="btn btn-sm btn-outline-success rounded-pill px-3"
-                            onClick={() => {
-                              alert('Thank you for your order! We hope you enjoyed your cake. 🎂');
-                            }}
-                          >
-                            <i className="bi bi-star me-1"></i>
-                            Review
-                          </button>
-                        )}
-                        
+
+
+
                         {(order.status === 'Pending' || order.status === 'pending') && (
-                          <button 
+                          <button
                             className="btn btn-sm btn-outline-danger rounded-pill px-3"
                             onClick={() => cancelOrder(order.orderId || order._id)}
                           >

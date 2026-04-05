@@ -99,10 +99,10 @@ const OrderPageContent = () => {
       setDesign({});
     } else if (location.state?.design) {
       setDesign(location.state.design);
-      localStorage.setItem('cakeDesign', JSON.stringify(location.state.design));
+      sessionStorage.setItem('cakeDesign', JSON.stringify(location.state.design));
     } else {
       // Check if coming from cart checkout
-      const checkoutItems = localStorage.getItem('checkoutItems');
+      const checkoutItems = sessionStorage.getItem('checkoutItems');
       if (checkoutItems) {
         try {
           const items = JSON.parse(checkoutItems);
@@ -130,8 +130,8 @@ const OrderPageContent = () => {
           console.error('Error loading checkout items:', error);
         }
       }
-      // Then try localStorage
-      const savedDesign = localStorage.getItem('cakeDesign');
+      // Then try sessionStorage
+      const savedDesign = sessionStorage.getItem('cakeDesign');
       if (savedDesign) {
         try {
           setDesign(JSON.parse(savedDesign));
@@ -141,18 +141,18 @@ const OrderPageContent = () => {
       }
     }
 
-    // Fetch a default shop to use for custom cake orders (which have no shopId)
-    const fetchDefaultShop = async () => {
+    // Fetch the main shop to use for custom cake orders (which go to the Super Admin)
+    const fetchMainShop = async () => {
       try {
-        const res = await fetch(`${API_CONFIG.PUBLIC.SHOPS}?limit=1`);
+        const res = await fetch(API_CONFIG.PUBLIC.MAIN_SHOP);
         const data = await res.json();
-        if (data.success && data.shops && data.shops.length > 0) {
-          setDefaultShopId(data.shops[0]._id);
+        if (data.success && data.shop) {
+          setDefaultShopId(data.shop._id);
         } else {
-          setShopError('No shops available.');
+          setShopError('Main shop is currently unavailable.');
         }
       } catch (err) {
-        console.error('Fetch shop error:', err);
+        console.error('Fetch main shop error:', err);
       }
     };
 
@@ -166,7 +166,7 @@ const OrderPageContent = () => {
       }
     };
 
-    fetchDefaultShop();
+    fetchMainShop();
     fetchPricingData();
   }, [location.state]);
 
@@ -194,9 +194,9 @@ const OrderPageContent = () => {
 
   const validateForm = () => {
     const errors = [];
-    if (!orderDetails.customerName.trim()) errors.push('Name is required');
-    if (!orderDetails.phone.trim()) errors.push('Phone is required');
-    if (!orderDetails.email.trim()) errors.push('Email is required');
+    if (!String(orderDetails.customerName || '').trim()) errors.push('Name is required');
+    if (!String(orderDetails.phone || '').trim()) errors.push('Phone is required');
+    if (!String(orderDetails.email || '').trim()) errors.push('Email is required');
     if (!orderDetails.deliveryDate) errors.push('Delivery date is required');
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -204,7 +204,7 @@ const OrderPageContent = () => {
       errors.push('Invalid email format');
     }
 
-    if (orderDetails.deliveryType === 'delivery' && !orderDetails.deliveryAddress.trim()) {
+    if (orderDetails.deliveryType === 'delivery' && !String(orderDetails.deliveryAddress || '').trim()) {
       errors.push('Delivery address is required');
     }
 
@@ -349,9 +349,9 @@ const OrderPageContent = () => {
       const result = await apiService.createOrder(orderData);
 
       if (result.success) {
-        // Clear design from localStorage after successful order
-        localStorage.removeItem('cakeDesign');
-        localStorage.setItem('currentOrder', JSON.stringify(result.order));
+        // Clear design from sessionStorage after successful order
+        sessionStorage.removeItem('cakeDesign');
+        sessionStorage.setItem('currentOrder', JSON.stringify(result.order));
         navigate('/success', { state: { order: result.order } });
       } else {
         alert('Failed to create order: ' + (result.message || 'Unknown error'));
@@ -701,7 +701,7 @@ const OrderPageContent = () => {
                     onChange={(e) => setOrderDetails({ ...orderDetails, deliveryType: e.target.value })}
                   >
                     <option value="pickup">Pickup from Shop (Free)</option>
-                    <option value="delivery">Home Delivery (+₨ {(pricingData?.deliveryFee || 1500).toLocaleString()})</option>
+                    <option value="delivery">Home Delivery (+Rs. {(pricingData?.deliveryFee || 1500).toLocaleString()})</option>
                   </select>
                 </div>
                 {orderDetails.deliveryType === 'delivery' && (

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_CONFIG } from '../config';
 
 
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const ShopOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ const ShopOwnerDashboard = () => {
     { label: 'Total Orders', value: stats.totalOrders || 0, icon: 'bi-bag', iconClass: 'stat-icon-rose' },
     { label: 'Pending', value: stats.pendingOrders || 0, icon: 'bi-clock-history', iconClass: 'stat-icon-gold' },
     { label: 'My Cakes', value: stats.totalCakes || 0, icon: 'bi-cake2', iconClass: 'stat-icon-blue' },
-    { label: 'Total Revenue', value: formatLKR(stats.totalRevenue || 0), icon: 'bi-currency-rupee', iconClass: 'stat-icon-green', isMoney: true },
+    { label: 'Total Revenue', value: formatLKR(stats.totalRevenue || 0), icon: 'bi-cash', iconClass: 'stat-icon-green', isMoney: true },
   ];
 
   return (

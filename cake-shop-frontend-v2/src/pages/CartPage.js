@@ -44,8 +44,8 @@ const CartPage = () => {
       return;
     }
 
-    // Save cart items to localStorage for order page
-    localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
+    // Save cart items to sessionStorage for order page
+    sessionStorage.setItem('checkoutItems', JSON.stringify(cartItems));
     navigate('/order');
   };
 

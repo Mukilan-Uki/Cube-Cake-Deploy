@@ -11,7 +11,7 @@ export const CartProvider = ({ children }) => {
 
   // Load cart from localStorage on initial load
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
+    const savedCart = sessionStorage.getItem('cart');
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart);
@@ -22,17 +22,17 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to sessionStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-    
+    sessionStorage.setItem('cart', JSON.stringify(cartItems));
+
     // Calculate total items and price
     const count = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
     const total = cartItems.reduce((sum, item) => {
       const price = item.priceLKR || item.totalPrice || 0;
       return sum + (price * (item.quantity || 1));
     }, 0);
-    
+
     setCartCount(count);
     setCartTotal(total);
   }, [cartItems]);
@@ -42,9 +42,9 @@ export const CartProvider = ({ children }) => {
     setCartItems(prevItems => {
       // Check if item already exists
       const existingItemIndex = prevItems.findIndex(
-        i => i.id === item.id || 
-             (i.designId && i.designId === item.designId) ||
-             (i.orderId && i.orderId === item.orderId)
+        i => i.id === item.id ||
+          (i.designId && i.designId === item.designId) ||
+          (i.orderId && i.orderId === item.orderId)
       );
 
       if (existingItemIndex >= 0) {
@@ -64,9 +64,9 @@ export const CartProvider = ({ children }) => {
 
   // Remove item from cart
   const removeFromCart = (itemId) => {
-    setCartItems(prevItems => prevItems.filter(item => 
-      item.id !== itemId && 
-      item.designId !== itemId && 
+    setCartItems(prevItems => prevItems.filter(item =>
+      item.id !== itemId &&
+      item.designId !== itemId &&
       item.orderId !== itemId
     ));
   };
@@ -74,7 +74,7 @@ export const CartProvider = ({ children }) => {
   // Update item quantity
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity < 1) return;
-    
+
     setCartItems(prevItems =>
       prevItems.map(item => {
         if (item.id === itemId || item.designId === itemId || item.orderId === itemId) {

@@ -1,12 +1,12 @@
 // Currency Configuration for Sri Lankan Rupees (LKR)
 export const CURRENCY = {
   code: 'LKR',
-  symbol: '₨',
+  symbol: 'Rs.',
   name: 'Sri Lankan Rupee',
   exchangeRate: 300, // 1 USD = 300 LKR (adjust this as needed)
   format: (amount) => {
     // Format with thousand separators for LKR
-    return `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+    return `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   }
 };
 
@@ -17,7 +17,7 @@ export const usdToLkr = (usdAmount) => {
 
 // Helper function to format LKR with proper spacing and symbol
 export const formatLKR = (lkrAmount) => {
-  return `₨ ${lkrAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  return `Rs. ${lkrAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 };
 
 // Helper function to convert and format in one step

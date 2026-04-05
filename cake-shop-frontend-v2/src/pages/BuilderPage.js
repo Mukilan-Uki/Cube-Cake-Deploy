@@ -75,7 +75,7 @@ const BuilderPage = () => {
     };
 
     fetchPricingData();
-  });
+  }, []);
 
   // Use pricingData if available, otherwise empty arrays
   const sizes = pricingData?.sizes || [];
@@ -365,7 +365,7 @@ const BuilderPage = () => {
   useEffect(() => {
     const autoSaveTimer = setTimeout(() => {
       if (Object.keys(cakeDesign).length > 0) {
-        localStorage.setItem('cakeDesignDraft', JSON.stringify(cakeDesign));
+        sessionStorage.setItem('cakeDesignDraft', JSON.stringify(cakeDesign));
       }
     }, 5000);
     return () => clearTimeout(autoSaveTimer);
@@ -373,7 +373,7 @@ const BuilderPage = () => {
 
   // Load saved draft
   useEffect(() => {
-    const savedDraft = localStorage.getItem('cakeDesignDraft');
+    const savedDraft = sessionStorage.getItem('cakeDesignDraft');
     if (savedDraft) {
       try {
         const draft = JSON.parse(savedDraft);
@@ -410,8 +410,8 @@ const BuilderPage = () => {
       createdAt: new Date().toISOString()
     };
 
-    // Save design to localStorage as fallback for order page
-    localStorage.setItem('cakeDesign', JSON.stringify(design));
+    // Save design to sessionStorage as fallback for order page
+    sessionStorage.setItem('cakeDesign', JSON.stringify(design));
 
     setIsSaving(false);
     // Go directly to order page — custom designs do NOT save to gallery

@@ -58,8 +58,8 @@ const AdminLogin = () => {
       }
 
       if (response.ok && result.success) {
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
+        sessionStorage.setItem('token', result.token);
+        sessionStorage.setItem('user', JSON.stringify(result.user));
         setAuthData(result.user, result.token);
         navigate('/admin');
       } else {
@@ -153,10 +153,10 @@ const AdminLogin = () => {
 
           <div className="mt-4 text-center">
             <div className={`d-inline-flex align-items-center px-3 py-1 rounded-pill small ${backendStatus === 'online' ? 'bg-success bg-opacity-10 text-success' :
-                backendStatus === 'offline' ? 'bg-danger bg-opacity-10 text-danger' : 'bg-secondary bg-opacity-10 text-secondary'
+              backendStatus === 'offline' ? 'bg-danger bg-opacity-10 text-danger' : 'bg-secondary bg-opacity-10 text-secondary'
               }`}>
               <div className={`rounded-circle me-2 ${backendStatus === 'online' ? 'bg-success' :
-                  backendStatus === 'offline' ? 'bg-danger' : 'bg-secondary'
+                backendStatus === 'offline' ? 'bg-danger' : 'bg-secondary'
                 }`} style={{ width: '8px', height: '8px' }}></div>
               System Status: {backendStatus === 'online' ? 'Online' : backendStatus === 'offline' ? 'Offline' : 'Checking...'}
             </div>

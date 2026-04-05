@@ -9,14 +9,14 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(sessionStorage.getItem('token'));
   const navigate = useNavigate();
 
   // Validate token on load
   useEffect(() => {
     const validateToken = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
+      const storedToken = sessionStorage.getItem('token');
+      const storedUser = sessionStorage.getItem('user');
 
       if (storedToken && storedUser) {
         try {
@@ -30,19 +30,19 @@ export const AuthProvider = ({ children }) => {
           if (response.ok) {
             const data = await response.json();
             if (data.success) {
-              // Preserve profilePicture from localStorage since the backend may not store it
+              // Preserve profilePicture from sessionStorage since the backend may not store it
               const localUser = JSON.parse(storedUser);
               const mergedUser = {
                 ...data.user,
                 profilePicture: data.user.profilePicture || localUser.profilePicture || ''
               };
-              localStorage.setItem('user', JSON.stringify(mergedUser));
+              sessionStorage.setItem('user', JSON.stringify(mergedUser));
               setUser(mergedUser);
               setToken(storedToken);
             } else {
               // Invalid token - clear storage
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
+              sessionStorage.removeItem('token');
+              sessionStorage.removeItem('user');
               setUser(null);
               setToken(null);
             }
@@ -106,8 +106,8 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
         return { success: true, data };
@@ -137,8 +137,8 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
 
@@ -172,8 +172,8 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
 
@@ -217,8 +217,8 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
 
@@ -247,8 +247,8 @@ export const AuthProvider = ({ children }) => {
 
   // Logout
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     setToken(null);
     setUser(null);
     navigate('/');
@@ -270,12 +270,34 @@ export const AuthProvider = ({ children }) => {
 
       if (data.success) {
         const updatedUser = { ...user, ...profileData };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
         return { success: true, message: 'Profile updated successfully' };
       } else {
         return { success: false, message: data.message };
       }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Network error: ${error.message}`
+      };
+    }
+  };
+
+  // Check if email is already taken
+  const checkEmailAvailability = async (email) => {
+    try {
+      const response = await fetch(API_CONFIG.BASE_URL + '/auth/check-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      return data;
     } catch (error) {
       return {
         success: false,
@@ -305,6 +327,7 @@ export const AuthProvider = ({ children }) => {
     adminLogin,
     logout,
     updateProfile,
+    checkEmailAvailability,
     hasRole,
     isShopOwnerWithShop,
     isAuthenticated: !!user,

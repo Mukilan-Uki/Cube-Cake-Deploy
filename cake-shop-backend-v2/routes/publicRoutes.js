@@ -11,4 +11,10 @@ router.get("/shops/:slug", publicShopController.getPublicShopBySlug);
 // Get shop's cakes
 router.get("/shops/:shopId/cakes", publicShopController.getPublicShopCakes);
 
+// Get the main (Super Admin) shop
+router.get("/main-shop", publicShopController.getMainShop);
+
+// Get platform stats
+router.get("/stats", publicShopController.getPublicStats);
+
 export default router;

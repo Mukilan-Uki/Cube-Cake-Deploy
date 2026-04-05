@@ -22,10 +22,10 @@ export const getCategoryIcon = (category) => {
 // LKR specific formatter for large numbers
 export const formatLargeLKR = (amount) => {
   if (amount >= 1000000) {
-    return `₨ ${(amount / 1000000).toFixed(1)}M`;
+    return `Rs. ${(amount / 1000000).toFixed(1)}M`;
   }
   if (amount >= 1000) {
-    return `₨ ${(amount / 1000).toFixed(1)}K`;
+    return `Rs. ${(amount / 1000).toFixed(1)}K`;
   }
-  return `₨ ${amount.toFixed(2)}`;
+  return `Rs. ${amount.toFixed(2)}`;
 };

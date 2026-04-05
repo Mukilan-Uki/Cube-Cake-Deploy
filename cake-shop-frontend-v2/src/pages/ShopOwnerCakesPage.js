@@ -21,7 +21,7 @@ const ShopOwnerCakesPage = () => {
   });
   const [imagePreview, setImagePreview] = useState('');
 
-  const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 
   const fetchCakes = useCallback(async () => {
     try {

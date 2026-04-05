@@ -47,22 +47,24 @@ export const API_CONFIG = {
 
   // Super Admin endpoints
   ADMIN: {
-    STATS:              `${API_BASE_URL}/admin/stats`,
-    ORDERS:             `${API_BASE_URL}/admin/orders`,
-    ORDER_STATUS: (id)=> `${API_BASE_URL}/admin/orders/${id}/status`,
-    USERS:              `${API_BASE_URL}/admin/users`,
-    USER_TOGGLE: (id)=> `${API_BASE_URL}/admin/users/${id}/toggle`,
-    SHOPS:              `${API_BASE_URL}/admin/shops`,
-    SHOP_VERIFY: (id)=> `${API_BASE_URL}/admin/shops/${id}/verify`,
-    SHOP_TOGGLE: (id)=> `${API_BASE_URL}/admin/shops/${id}/toggle`,
-    CAKES:              `${API_BASE_URL}/admin/cakes`,
-    CAKE: (id)=>        `${API_BASE_URL}/admin/cakes/${id}`,
+    STATS: `${API_BASE_URL}/admin/stats`,
+    ORDERS: `${API_BASE_URL}/admin/orders`,
+    ORDER_STATUS: (id) => `${API_BASE_URL}/admin/orders/${id}/status`,
+    USERS: `${API_BASE_URL}/admin/users`,
+    USER_TOGGLE: (id) => `${API_BASE_URL}/admin/users/${id}/toggle`,
+    SHOPS: `${API_BASE_URL}/admin/shops`,
+    SHOP_VERIFY: (id) => `${API_BASE_URL}/admin/shops/${id}/verify`,
+    SHOP_TOGGLE: (id) => `${API_BASE_URL}/admin/shops/${id}/toggle`,
+    CAKES: `${API_BASE_URL}/admin/cakes`,
+    CAKE: (id) => `${API_BASE_URL}/admin/cakes/${id}`,
   },
 
   // Public endpoints
   PUBLIC: {
     CAKES: `${API_BASE_URL}/public/cakes`,
     SHOPS: `${API_BASE_URL}/public/shops`,
+    MAIN_SHOP: `${API_BASE_URL}/public/main-shop`,
     SHOP: (slug) => `${API_BASE_URL}/public/shops/${slug}`,
+    STATS: `${API_BASE_URL}/public/stats`,
   }
 };

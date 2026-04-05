@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_CONFIG } from '../config';
 
 
-const formatLKR = (amount) => `₨ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+const formatLKR = (amount) => `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 
 const ShopOrdersPage = () => {
   const navigate = useNavigate();

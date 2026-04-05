@@ -22,7 +22,7 @@ const ShopCakesPage = () => {
   const fetchCakes = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_CONFIG.BASE_URL}//shops/cakes`, {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/shops/my-cakes`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -50,7 +50,7 @@ const ShopCakesPage = () => {
     try {
       const url = editingCake 
         ? `${API_CONFIG.BASE_URL}/shops/cakes/${editingCake._id}`
-        : `${API_CONFIG.BASE_URL}//shops/cakes`;
+        : `${API_CONFIG.BASE_URL}/shops/cakes`;
       
       const method = editingCake ? 'PUT' : 'POST';
 

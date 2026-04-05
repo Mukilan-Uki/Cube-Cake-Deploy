@@ -1,5 +1,6 @@
 import Order from "../models/Order.js";
 import Shop from "../models/Shop.js";
+import User from "../models/User.js";
 import { sizePrices, baseAdditional, frostingAdditional, toppingAdditional } from '../utils/constants.js'
 
 // Helper function to calculate price
@@ -55,7 +56,18 @@ export const createOrder = async (req, res, next) => {
       specialInstructions,
     } = req.body;
 
-    const shop = await Shop.findById(shopId);
+    let finalShopId = shopId;
+
+    // Custom design orders (no galleryCakePriceLKR) must always go to the Super Admin shop
+    if (!req.body.galleryCakePriceLKR || Number(req.body.galleryCakePriceLKR) === 0) {
+      const superAdmin = await User.findOne({ role: "super_admin" });
+      if (superAdmin && superAdmin.shopId) {
+        finalShopId = superAdmin.shopId;
+        console.log(`Custom order redirected to Super Admin shop: ${finalShopId}`);
+      }
+    }
+
+    const shop = await Shop.findById(finalShopId);
     if (!shop) {
       return res.status(404).json({
         success: false,
@@ -102,7 +114,7 @@ export const createOrder = async (req, res, next) => {
 
     const order = await Order.create({
       orderId,
-      shop: shopId,
+      shop: finalShopId,
       user: req.user.id,
       customerName: req.user.name,
       customerPhone: req.user.phone,
@@ -151,7 +163,7 @@ export const createOrder = async (req, res, next) => {
       customerNotes: specialInstructions || "",
     });
 
-    await Shop.findByIdAndUpdate(shopId, {
+    await Shop.findByIdAndUpdate(finalShopId, {
       $inc: { "stats.totalOrders": 1 },
     });
 
@@ -192,7 +204,7 @@ export const getMyOrders = async (req, res, next) => {
     ]);
 
     const summary = await Order.aggregate([
-      { $match: { user: req.user._id } },
+      { $match: { user: req.user.id } },
       {
         $group: {
           _id: null,
