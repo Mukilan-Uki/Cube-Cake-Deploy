@@ -55,7 +55,7 @@ export const register = async (req, res, next) => {
   }
 };
 
-// Login user (any role)
+// Login (any role)
 export const login = async (req, res, next) => {
   try {
     const { email, password, rememberMe } = req.body;

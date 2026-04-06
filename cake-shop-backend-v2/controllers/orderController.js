@@ -58,7 +58,7 @@ export const createOrder = async (req, res, next) => {
 
     let finalShopId = shopId;
 
-    // Custom design orders (no galleryCakePriceLKR) must always go to the Super Admin shop
+    // Custom design orders - Super Admin shop
     if (!req.body.galleryCakePriceLKR || Number(req.body.galleryCakePriceLKR) === 0) {
       const superAdmin = await User.findOne({ role: "super_admin" });
       if (superAdmin && superAdmin.shopId) {
@@ -82,7 +82,6 @@ export const createOrder = async (req, res, next) => {
       });
     }
 
-    // If a galleryCakePriceLKR is provided (gallery/shop cake order), use it directly
     let priceBreakdown, totalPrice;
     if (
       req.body.galleryCakePriceLKR &&
