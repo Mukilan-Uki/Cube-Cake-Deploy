@@ -1,24 +1,24 @@
-import { API_CONFIG } from '../config';
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { API_CONFIG } from "../config";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const ShopRegistrationPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    shopName: '',
-    ownerName: '',
-    email: '',
-    phone: '',
-    address: '',
-    password: '',
-    confirmPassword: '',
-    businessType: 'bakery'
+    shopName: "",
+    ownerName: "",
+    email: "",
+    phone: "",
+    address: "",
+    password: "",
+    confirmPassword: "",
+    businessType: "bakery",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [emailChecking, setEmailChecking] = useState(false);
-  const [emailError, setEmailError] = useState('');
+  const [emailError, setEmailError] = useState("");
   const { checkEmailAvailability } = useAuth();
 
   useEffect(() => {
@@ -27,21 +27,21 @@ const ShopRegistrationPage = () => {
         setEmailChecking(true);
         const result = await checkEmailAvailability(formData.email);
         if (!result.isAvailable) {
-          setEmailError('This email is already taken');
+          setEmailError("This email is already taken");
         } else {
-          setEmailError('');
+          setEmailError("");
         }
         setEmailChecking(false);
       }
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [formData.email]);
+  }, [formData.email, checkEmailAvailability]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     if (emailError) {
       setLoading(false);
@@ -49,32 +49,34 @@ const ShopRegistrationPage = () => {
     }
 
     try {
-      const response = await fetch(API_CONFIG.BASE_URL + '/auth/register-shop', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        API_CONFIG.BASE_URL + "/auth/register-shop",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
         },
-        body: JSON.stringify(formData)
-      });
+      );
 
       const data = await response.json();
 
       if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
+        setError("Passwords do not match");
         return;
-      }
-      else if (data.success) {
+      } else if (data.success) {
         // Save token and user data
-        sessionStorage.setItem('token', data.token);
-        sessionStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("user", JSON.stringify(data.user));
 
         // Redirect to dashboard
-        navigate('/shop/dashboard');
+        navigate("/shop/dashboard");
       } else {
-        setError(data.message || 'Registration failed');
+        setError(data.message || "Registration failed");
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,7 +84,7 @@ const ShopRegistrationPage = () => {
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light py-5">
-      <div className="container" style={{ maxWidth: '600px' }}>
+      <div className="container" style={{ maxWidth: "600px" }}>
         <div className="card shadow border-0">
           <div className="card-body p-5">
             <div className="text-center mb-4">
@@ -91,9 +93,7 @@ const ShopRegistrationPage = () => {
               <p className="text-muted">Start selling your cakes online</p>
             </div>
 
-            {error && (
-              <div className="alert alert-danger">{error}</div>
-            )}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -102,7 +102,9 @@ const ShopRegistrationPage = () => {
                   type="text"
                   className="form-control"
                   value={formData.shopName}
-                  onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, shopName: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -113,7 +115,9 @@ const ShopRegistrationPage = () => {
                   type="text"
                   className="form-control"
                   value={formData.ownerName}
-                  onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ownerName: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -124,20 +128,44 @@ const ShopRegistrationPage = () => {
                   <div className="position-relative">
                     <input
                       type="email"
-                      className={`form-control ${emailError ? 'is-invalid' : ''}`}
+                      className={`form-control ${emailError ? "is-invalid" : ""}`}
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
                       required
                     />
                     {emailChecking && (
-                      <div className="position-absolute" style={{ right: '10px', top: '50%', transform: 'translateY(-50%)' }}>
-                        <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      <div
+                        className="position-absolute"
+                        style={{
+                          right: "10px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                        }}
+                      >
+                        <div
+                          className="spinner-border spinner-border-sm text-primary"
+                          role="status"
+                        ></div>
                       </div>
                     )}
-                    {!emailChecking && formData.email && !emailError && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                      <i className="bi bi-check-circle-fill text-success position-absolute" style={{ right: '10px', top: '50%', transform: 'translateY(-50%)' }}></i>
+                    {!emailChecking &&
+                      formData.email &&
+                      !emailError &&
+                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                        <i
+                          className="bi bi-check-circle-fill text-success position-absolute"
+                          style={{
+                            right: "10px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                          }}
+                        ></i>
+                      )}
+                    {emailError && (
+                      <div className="invalid-feedback">{emailError}</div>
                     )}
-                    {emailError && <div className="invalid-feedback">{emailError}</div>}
                   </div>
                 </div>
                 <div className="col-md-6 mb-3">
@@ -146,7 +174,9 @@ const ShopRegistrationPage = () => {
                     type="tel"
                     className="form-control"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -158,7 +188,9 @@ const ShopRegistrationPage = () => {
                   className="form-control"
                   rows="2"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -168,7 +200,9 @@ const ShopRegistrationPage = () => {
                 <select
                   className="form-select"
                   value={formData.businessType}
-                  onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, businessType: e.target.value })
+                  }
                 >
                   <option value="bakery">Bakery</option>
                   <option value="cafe">Cafe</option>
@@ -183,7 +217,9 @@ const ShopRegistrationPage = () => {
                   type="password"
                   className="form-control"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   required
                   minLength="6"
                 />
@@ -196,7 +232,12 @@ const ShopRegistrationPage = () => {
                   type="password"
                   className="form-control"
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
                   required
                   minLength="6"
                 />
@@ -214,17 +255,17 @@ const ShopRegistrationPage = () => {
                     Registering...
                   </>
                 ) : (
-                  'Register Shop'
+                  "Register Shop"
                 )}
               </button>
             </form>
 
             <div className="text-center mt-4">
               <p className="mb-0">
-                Already have a shop?{' '}
+                Already have a shop?{" "}
                 <button
                   className="btn btn-link p-0"
-                  onClick={() => navigate('/login-selection')}
+                  onClick={() => navigate("/login-selection")}
                 >
                   Login here
                 </button>

@@ -1,7 +1,9 @@
 // Central configuration for all API URLs
 // To change backend URL, update this single variable
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const BACKEND_URL =
+  process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
@@ -13,14 +15,14 @@ export const API_CONFIG = {
     LOGIN: `${API_BASE_URL}/auth/login-selection`,
     ADMIN_LOGIN: `${API_BASE_URL}/auth/admin/login`,
     VERIFY_ADMIN: `${API_BASE_URL}/auth/verify-admin`,
-    ME: `${API_BASE_URL}/auth/me`
+    ME: `${API_BASE_URL}/auth/me`,
   },
 
   // Order endpoints
   ORDERS: {
     BASE: `${API_BASE_URL}/orders`,
     MY_ORDERS: `${API_BASE_URL}/orders/my-orders`,
-    UPDATE_STATUS: (orderId) => `${API_BASE_URL}/orders/${orderId}/status`
+    UPDATE_STATUS: (orderId) => `${API_BASE_URL}/orders/${orderId}/status`,
   },
 
   // Cake endpoints
@@ -66,5 +68,5 @@ export const API_CONFIG = {
     MAIN_SHOP: `${API_BASE_URL}/public/main-shop`,
     SHOP: (slug) => `${API_BASE_URL}/public/shops/${slug}`,
     STATS: `${API_BASE_URL}/public/stats`,
-  }
+  },
 };
