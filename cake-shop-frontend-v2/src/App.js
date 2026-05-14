@@ -169,6 +169,7 @@ function AppContent() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/register/shop" element={<ShopRegistrationPage />} />
             <Route path="/login-selection" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route
               path="/order"
               element={
