@@ -1,37 +1,53 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { apiService } from '../utils/api';
-import RequireAuth from '../components/RequireAuth';
-import { formatLKR } from '../config/currency';
-import { API_CONFIG } from '../config';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { apiService } from "../utils/api";
+import RequireAuth from "../components/RequireAuth";
+import { formatLKR } from "../config/currency";
+import { API_CONFIG } from "../config";
 
 // Canvas helpers for cake preview
 const adjustColor = (hex, amount) => {
   try {
-    const num = parseInt(hex.replace('#', ''), 16);
+    const num = parseInt(hex.replace("#", ""), 16);
     const r = Math.min(255, Math.max(0, (num >> 16) + amount));
     const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
     const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-  } catch { return hex; }
+  } catch {
+    return hex;
+  }
 };
 
 const drawMiniCake = (canvas, design) => {
   if (!canvas || !design) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const layers = design.layers || 2;
-  const colors = design.colors || { cake: '#8B4513', frosting: '#FFF5E6', decorations: '#FF6B8B' };
-  const cakeW = 140, layerH = 35, cakeX = (canvas.width - cakeW) / 2;
+  const colors = design.colors || {
+    cake: "#8B4513",
+    frosting: "#FFF5E6",
+    decorations: "#FF6B8B",
+  };
+  const cakeW = 140,
+    layerH = 35,
+    cakeX = (canvas.width - cakeW) / 2;
   const baseY = canvas.height - 30;
   const topY = baseY - layers * layerH;
 
   // Shadow
   ctx.save();
   ctx.beginPath();
-  ctx.ellipse(canvas.width / 2, baseY + 8, cakeW / 2 + 10, 10, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.ellipse(
+    canvas.width / 2,
+    baseY + 8,
+    cakeW / 2 + 10,
+    10,
+    0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.fillStyle = "rgba(0,0,0,0.1)";
   ctx.fill();
   ctx.restore();
 
@@ -44,7 +60,7 @@ const drawMiniCake = (canvas, design) => {
     ctx.beginPath();
     ctx.roundRect(cakeX, ly, cakeW, layerH - 1, 4);
     ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillStyle = "rgba(255,255,255,0.1)";
     ctx.fillRect(cakeX + 4, ly + 2, cakeW - 8, 6);
     if (i > 0) {
       ctx.fillStyle = colors.frosting;
@@ -56,16 +72,34 @@ const drawMiniCake = (canvas, design) => {
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(cakeX, topY);
-  for (let x = cakeX; x <= cakeX + cakeW; x += 8) ctx.lineTo(x, topY - 8 + Math.sin((x - cakeX) / 15) * 4);
-  ctx.lineTo(cakeX + cakeW, topY); ctx.lineTo(cakeX, topY); ctx.closePath();
-  ctx.fillStyle = colors.frosting; ctx.fill();
+  for (let x = cakeX; x <= cakeX + cakeW; x += 8)
+    ctx.lineTo(x, topY - 8 + Math.sin((x - cakeX) / 15) * 4);
+  ctx.lineTo(cakeX + cakeW, topY);
+  ctx.lineTo(cakeX, topY);
+  ctx.closePath();
+  ctx.fillStyle = colors.frosting;
+  ctx.fill();
   ctx.restore();
 };
 
 const CakePreview = ({ design }) => {
   const ref = useRef(null);
-  useEffect(() => { drawMiniCake(ref.current, design); }, [design]);
-  return <canvas ref={ref} width={200} height={160} style={{ width: '100%', maxWidth: 200, borderRadius: 12, background: '#faf7f4' }} />;
+  useEffect(() => {
+    drawMiniCake(ref.current, design);
+  }, [design]);
+  return (
+    <canvas
+      ref={ref}
+      width={200}
+      height={160}
+      style={{
+        width: "100%",
+        maxWidth: 200,
+        borderRadius: 12,
+        background: "#faf7f4",
+      }}
+    />
+  );
 };
 
 const OrderPageContent = () => {
@@ -73,14 +107,14 @@ const OrderPageContent = () => {
   const location = useLocation();
   const { user } = useAuth();
   const [orderDetails, setOrderDetails] = useState({
-    customerName: user?.name || '',
-    phone: user?.phone || '',
-    email: user?.email || '',
-    deliveryDate: '',
-    deliveryAddress: '',
-    deliveryType: 'pickup',
-    specialInstructions: '',
-    paymentMethod: 'cash'
+    customerName: user?.name || "",
+    phone: user?.phone || "",
+    email: user?.email || "",
+    deliveryDate: "",
+    deliveryAddress: "",
+    deliveryType: "pickup",
+    specialInstructions: "",
+    paymentMethod: "cash",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,7 +122,7 @@ const OrderPageContent = () => {
   const [galleryCake, setGalleryCake] = useState(null); // For gallery cake orders
   const isGalleryOrder = !!galleryCake;
   const [defaultShopId, setDefaultShopId] = useState(null);
-  const [shopError, setShopError] = useState('');
+  const [shopError, setShopError] = useState("");
   const [pricingData, setPricingData] = useState(null);
 
   // Load design from location state or localStorage, and fetch a default shop for custom orders
@@ -99,44 +133,62 @@ const OrderPageContent = () => {
       setDesign({});
     } else if (location.state?.design) {
       setDesign(location.state.design);
-      sessionStorage.setItem('cakeDesign', JSON.stringify(location.state.design));
+      sessionStorage.setItem(
+        "cakeDesign",
+        JSON.stringify(location.state.design),
+      );
     } else {
       // Check if coming from cart checkout
-      const checkoutItems = sessionStorage.getItem('checkoutItems');
+      const checkoutItems = sessionStorage.getItem("checkoutItems");
       if (checkoutItems) {
         try {
           const items = JSON.parse(checkoutItems);
           if (items && items.length > 0) {
             const firstItem = items[0];
             // If it's a gallery/shop cake
-            if (firstItem.isShopCake || firstItem.shopId || firstItem.shopName) {
+            if (
+              firstItem.isShopCake ||
+              firstItem.shopId ||
+              firstItem.shopName
+            ) {
               setGalleryCake({
                 ...firstItem,
-                priceLKR: items.reduce((sum, item) => sum + (item.priceLKR || 0) * (item.quantity || 1), 0),
-                name: items.length === 1 ? firstItem.name : `${items.length} cakes`,
-                description: items.map(i => i.name).join(', '),
-                image: firstItem.image
+                priceLKR: items.reduce(
+                  (sum, item) =>
+                    sum + (item.priceLKR || 0) * (item.quantity || 1),
+                  0,
+                ),
+                name:
+                  items.length === 1 ? firstItem.name : `${items.length} cakes`,
+                description: items.map((i) => i.name).join(", "),
+                image: firstItem.image,
               });
             } else {
               // custom cake from cart
               setDesign({
                 ...firstItem,
-                finalPriceLKR: items.reduce((sum, item) => sum + (item.priceLKR || item.totalPrice || 0) * (item.quantity || 1), 0)
+                finalPriceLKR: items.reduce(
+                  (sum, item) =>
+                    sum +
+                    (item.priceLKR || item.totalPrice || 0) *
+                      (item.quantity || 1),
+                  0,
+                ),
               });
             }
             return;
           }
         } catch (error) {
-          console.error('Error loading checkout items:', error);
+          console.error("Error loading checkout items:", error);
         }
       }
       // Then try sessionStorage
-      const savedDesign = sessionStorage.getItem('cakeDesign');
+      const savedDesign = sessionStorage.getItem("cakeDesign");
       if (savedDesign) {
         try {
           setDesign(JSON.parse(savedDesign));
         } catch (error) {
-          console.error('Error loading design:', error);
+          console.error("Error loading design:", error);
         }
       }
     }
@@ -149,20 +201,19 @@ const OrderPageContent = () => {
         if (data.success && data.shop) {
           setDefaultShopId(data.shop._id);
         } else {
-          setShopError('Main shop is currently unavailable.');
+          setShopError("Main shop is currently unavailable.");
         }
       } catch (err) {
-        console.error('Fetch main shop error:', err);
+        console.error("Fetch main shop error:", err);
       }
     };
 
     const fetchPricingData = async () => {
       try {
-        const response = await fetch('/api/designing-data');
-        const data = await response.json();
+        const data = await apiService.getDesigningData();
         setPricingData(data);
       } catch (error) {
-        console.error('Error fetching pricing data:', error);
+        console.error("Error fetching pricing data:", error);
       }
     };
 
@@ -173,9 +224,9 @@ const OrderPageContent = () => {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!user) {
-      navigate('/login-selection', {
-        state: { from: '/order' },
-        replace: true
+      navigate("/login-selection", {
+        state: { from: "/order" },
+        replace: true,
       });
     }
   }, [user, navigate]);
@@ -183,29 +234,35 @@ const OrderPageContent = () => {
   // Update form with user data
   useEffect(() => {
     if (user) {
-      setOrderDetails(prev => ({
+      setOrderDetails((prev) => ({
         ...prev,
         customerName: user.name || prev.customerName,
         phone: user.phone || prev.phone,
-        email: user.email || prev.email
+        email: user.email || prev.email,
       }));
     }
   }, [user]);
 
   const validateForm = () => {
     const errors = [];
-    if (!String(orderDetails.customerName || '').trim()) errors.push('Name is required');
-    if (!String(orderDetails.phone || '').trim()) errors.push('Phone is required');
-    if (!String(orderDetails.email || '').trim()) errors.push('Email is required');
-    if (!orderDetails.deliveryDate) errors.push('Delivery date is required');
+    if (!String(orderDetails.customerName || "").trim())
+      errors.push("Name is required");
+    if (!String(orderDetails.phone || "").trim())
+      errors.push("Phone is required");
+    if (!String(orderDetails.email || "").trim())
+      errors.push("Email is required");
+    if (!orderDetails.deliveryDate) errors.push("Delivery date is required");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (orderDetails.email && !emailRegex.test(orderDetails.email)) {
-      errors.push('Invalid email format');
+      errors.push("Invalid email format");
     }
 
-    if (orderDetails.deliveryType === 'delivery' && !String(orderDetails.deliveryAddress || '').trim()) {
-      errors.push('Delivery address is required');
+    if (
+      orderDetails.deliveryType === "delivery" &&
+      !String(orderDetails.deliveryAddress || "").trim()
+    ) {
+      errors.push("Delivery address is required");
     }
 
     return errors;
@@ -214,7 +271,10 @@ const OrderPageContent = () => {
   const calculateTotalPrice = () => {
     // If this is a gallery cake order
     if (isGalleryOrder && galleryCake) {
-      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (pricingData?.deliveryFee || 1500) : 0;
+      const deliveryFee =
+        orderDetails.deliveryType === "delivery"
+          ? pricingData?.deliveryFee || 1500
+          : 0;
       return (galleryCake.priceLKR || 0) + deliveryFee;
     }
 
@@ -230,24 +290,34 @@ const OrderPageContent = () => {
       const frostings = pricingData.frostings || [];
       const toppings = pricingData.toppings || [];
 
-      const sizeData = sizes.find(s => s.id === design.size) || sizes[0];
+      const sizeData = sizes.find((s) => s.id === design.size) || sizes[0];
       const basePrice = sizeData?.priceLKR || 0;
-      const baseCake = bases.find(b => b.id === design.base)?.priceLKR || 0;
-      const frostingPrice = frostings.find(f => f.id === design.frosting)?.priceLKR || 0;
+      const baseCake = bases.find((b) => b.id === design.base)?.priceLKR || 0;
+      const frostingPrice =
+        frostings.find((f) => f.id === design.frosting)?.priceLKR || 0;
       const toppingPrice = (design.toppings || []).reduce((sum, tid) => {
-        const topping = toppings.find(t => t.id === tid);
+        const topping = toppings.find((t) => t.id === tid);
         return sum + (topping?.priceLKR || 0);
       }, 0);
       const extraLayers = Math.max(0, (design.layers || 2) - 2);
       const layersPrice = extraLayers * (pricingData?.extraLayerPrice || 1500);
 
-      const subtotal = basePrice + baseCake + frostingPrice + toppingPrice + layersPrice;
-      const deliveryFee = orderDetails.deliveryType === 'delivery' ? (pricingData?.deliveryFee || 1500) : 0;
+      const subtotal =
+        basePrice + baseCake + frostingPrice + toppingPrice + layersPrice;
+      const deliveryFee =
+        orderDetails.deliveryType === "delivery"
+          ? pricingData?.deliveryFee || 1500
+          : 0;
       return subtotal + deliveryFee;
     }
 
     // Fallback
-    return (design.finalPriceLKR || 0) + (orderDetails.deliveryType === 'delivery' ? (pricingData?.deliveryFee || 1500) : 0);
+    return (
+      (design.finalPriceLKR || 0) +
+      (orderDetails.deliveryType === "delivery"
+        ? pricingData?.deliveryFee || 1500
+        : 0)
+    );
   };
 
   const totalPrice = calculateTotalPrice();
@@ -255,28 +325,33 @@ const OrderPageContent = () => {
   // Helper function to get readable names
   const getSizeName = (sizeId) => {
     if (pricingData?.sizes) {
-      return pricingData.sizes.find(s => s.id === sizeId)?.name || sizeId;
+      return pricingData.sizes.find((s) => s.id === sizeId)?.name || sizeId;
     }
     return sizeId;
   };
 
   const getBaseName = (baseId) => {
     if (pricingData?.bases) {
-      return pricingData.bases.find(b => b.id === baseId)?.name || baseId;
+      return pricingData.bases.find((b) => b.id === baseId)?.name || baseId;
     }
     return baseId;
   };
 
   const getFrostingName = (frostingId) => {
     if (pricingData?.frostings) {
-      return pricingData.frostings.find(f => f.id === frostingId)?.name || frostingId;
+      return (
+        pricingData.frostings.find((f) => f.id === frostingId)?.name ||
+        frostingId
+      );
     }
     return frostingId;
   };
 
   const getToppingName = (toppingId) => {
     if (pricingData?.toppings) {
-      return pricingData.toppings.find(t => t.id === toppingId)?.name || toppingId;
+      return (
+        pricingData.toppings.find((t) => t.id === toppingId)?.name || toppingId
+      );
     }
     return toppingId;
   };
@@ -286,7 +361,7 @@ const OrderPageContent = () => {
 
     const errors = validateForm();
     if (errors.length > 0) {
-      alert(`Please fix:\n${errors.join('\n')}`);
+      alert(`Please fix:\n${errors.join("\n")}`);
       return;
     }
 
@@ -299,66 +374,81 @@ const OrderPageContent = () => {
     // - For gallery/shop cakes: use the shopId passed from CakeCard
     // - For custom designs: use the defaultShopId fetched from the public API
     const resolvedShopId = isGalleryOrder
-      ? (galleryCake.shopId || galleryCake.shop?._id || galleryCake.shop || defaultShopId)
+      ? galleryCake.shopId ||
+        galleryCake.shop?._id ||
+        galleryCake.shop ||
+        defaultShopId
       : defaultShopId;
 
     if (!resolvedShopId) {
-      alert('No shop is available to process your order. Please try again later.');
+      alert(
+        "No shop is available to process your order. Please try again later.",
+      );
       setIsSubmitting(false);
       return;
     }
 
-    const orderData = isGalleryOrder ? {
-      // Gallery cake order
-      shopId: resolvedShopId,
-      galleryCakePriceLKR: galleryCake.priceLKR,
-      cakeDetails: {
-        base: 'vanilla',
-        frosting: 'vanilla',
-        size: 'medium',
-        layers: 2,
-        toppings: [],
-        message: galleryCake.name,
-        colors: { cake: '#F3E5AB', frosting: '#FFF5E6', decorations: '#FF6B8B' },
-        specialInstructions: `Gallery cake: ${galleryCake.name}. ${orderDetails.specialInstructions || ''}`
-      },
-      ...orderDetails,
-      deliveryDate: formattedDate,
-      paymentMethod: orderDetails.paymentMethod,
-    } : {
-      // Custom design order
-      shopId: resolvedShopId,
-      cakeDetails: {
-        base: design.base || 'chocolate',
-        frosting: design.frosting || 'vanilla',
-        size: design.size || 'medium',
-        layers: design.layers || 2,
-        toppings: design.toppings || [],
-        message: design.message || '',
-        colors: design.colors || { cake: '#8B4513', frosting: '#FFF5E6', decorations: '#FF6B8B' },
-        specialInstructions: orderDetails.specialInstructions || ''
-      },
-      ...orderDetails,
-      deliveryDate: formattedDate,
-      paymentMethod: orderDetails.paymentMethod,
-    };
+    const orderData = isGalleryOrder
+      ? {
+          // Gallery cake order
+          shopId: resolvedShopId,
+          galleryCakePriceLKR: galleryCake.priceLKR,
+          cakeDetails: {
+            base: "vanilla",
+            frosting: "vanilla",
+            size: "medium",
+            layers: 2,
+            toppings: [],
+            message: galleryCake.name,
+            colors: {
+              cake: "#F3E5AB",
+              frosting: "#FFF5E6",
+              decorations: "#FF6B8B",
+            },
+            specialInstructions: `Gallery cake: ${galleryCake.name}. ${orderDetails.specialInstructions || ""}`,
+          },
+          ...orderDetails,
+          deliveryDate: formattedDate,
+          paymentMethod: orderDetails.paymentMethod,
+        }
+      : {
+          // Custom design order
+          shopId: resolvedShopId,
+          cakeDetails: {
+            base: design.base || "chocolate",
+            frosting: design.frosting || "vanilla",
+            size: design.size || "medium",
+            layers: design.layers || 2,
+            toppings: design.toppings || [],
+            message: design.message || "",
+            colors: design.colors || {
+              cake: "#8B4513",
+              frosting: "#FFF5E6",
+              decorations: "#FF6B8B",
+            },
+            specialInstructions: orderDetails.specialInstructions || "",
+          },
+          ...orderDetails,
+          deliveryDate: formattedDate,
+          paymentMethod: orderDetails.paymentMethod,
+        };
 
-    console.log('Submitting order:', orderData);
+    console.log("Submitting order:", orderData);
 
     try {
       const result = await apiService.createOrder(orderData);
 
       if (result.success) {
         // Clear design from sessionStorage after successful order
-        sessionStorage.removeItem('cakeDesign');
-        sessionStorage.setItem('currentOrder', JSON.stringify(result.order));
-        navigate('/success', { state: { order: result.order } });
+        sessionStorage.removeItem("cakeDesign");
+        sessionStorage.setItem("currentOrder", JSON.stringify(result.order));
+        navigate("/success", { state: { order: result.order } });
       } else {
-        alert('Failed to create order: ' + (result.message || 'Unknown error'));
+        alert("Failed to create order: " + (result.message || "Unknown error"));
       }
     } catch (error) {
-      console.error('Order creation error:', error);
-      alert('Error creating order. Please try again.');
+      console.error("Order creation error:", error);
+      alert("Error creating order. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -375,7 +465,7 @@ const OrderPageContent = () => {
       <div className="row">
         {/* Order Summary Column */}
         <div className="col-lg-5 mb-4">
-          <div className="glass-panel p-4 sticky-top" style={{ top: '100px' }}>
+          <div className="glass-panel p-4 sticky-top" style={{ top: "100px" }}>
             <h4 className="text-chocolate mb-4">
               <i className="bi bi-bag-heart me-2 text-gold"></i>
               Order Summary
@@ -390,12 +480,16 @@ const OrderPageContent = () => {
                     src={galleryCake.image}
                     alt={galleryCake.name}
                     className="rounded-4 w-100"
-                    style={{ height: '160px', objectFit: 'cover' }}
+                    style={{ height: "160px", objectFit: "cover" }}
                   />
                 </div>
                 <div className="mb-4">
-                  <h5 className="fw-bold text-chocolate mb-1">{galleryCake.name}</h5>
-                  <p className="text-muted small mb-3">{galleryCake.description}</p>
+                  <h5 className="fw-bold text-chocolate mb-1">
+                    {galleryCake.name}
+                  </h5>
+                  <p className="text-muted small mb-3">
+                    {galleryCake.description}
+                  </p>
                   <div className="bg-cream p-3 rounded-3 mb-3">
                     <div className="d-flex justify-content-between mb-2">
                       <span className="text-muted">Category:</span>
@@ -404,30 +498,44 @@ const OrderPageContent = () => {
                     {galleryCake.flavors?.length > 0 && (
                       <div className="d-flex justify-content-between mb-2">
                         <span className="text-muted">Flavors:</span>
-                        <span className="fw-bold">{galleryCake.flavors.join(', ')}</span>
+                        <span className="fw-bold">
+                          {galleryCake.flavors.join(", ")}
+                        </span>
                       </div>
                     )}
                     {galleryCake.sizes?.length > 0 && (
                       <div className="d-flex justify-content-between mb-2">
                         <span className="text-muted">Available Sizes:</span>
-                        <span className="fw-bold">{galleryCake.sizes.join(', ')}</span>
+                        <span className="fw-bold">
+                          {galleryCake.sizes.join(", ")}
+                        </span>
                       </div>
                     )}
                   </div>
                   {galleryCake.shopName && (
-                    <div className="p-3 rounded-3 mb-3" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)' }}>
+                    <div
+                      className="p-3 rounded-3 mb-3"
+                      style={{
+                        background: "rgba(212,175,55,0.1)",
+                        border: "1px solid rgba(212,175,55,0.25)",
+                      }}
+                    >
                       <div className="d-flex align-items-center gap-2 mb-1">
                         <i className="bi bi-shop text-gold fs-5"></i>
-                        <span className="fw-bold text-chocolate">{galleryCake.shopName}</span>
+                        <span className="fw-bold text-chocolate">
+                          {galleryCake.shopName}
+                        </span>
                       </div>
                       {galleryCake.shopLocation && (
                         <div className="small text-muted ms-4">
-                          <i className="bi bi-geo-alt me-1"></i>{galleryCake.shopLocation}
+                          <i className="bi bi-geo-alt me-1"></i>
+                          {galleryCake.shopLocation}
                         </div>
                       )}
                       {galleryCake.shopPhone && (
                         <div className="small text-muted ms-4">
-                          <i className="bi bi-telephone me-1"></i>{galleryCake.shopPhone}
+                          <i className="bi bi-telephone me-1"></i>
+                          {galleryCake.shopPhone}
                         </div>
                       )}
                     </div>
@@ -436,17 +544,23 @@ const OrderPageContent = () => {
                 <div className="border-top pt-4">
                   <div className="d-flex justify-content-between mb-2">
                     <span className="text-muted">Cake Price</span>
-                    <span className="fw-medium">{formatLKR(galleryCake.priceLKR)}</span>
+                    <span className="fw-medium">
+                      {formatLKR(galleryCake.priceLKR)}
+                    </span>
                   </div>
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(pricingData?.deliveryFee || 1500) : 'FREE'}
+                      {orderDetails.deliveryType === "delivery"
+                        ? formatLKR(pricingData?.deliveryFee || 1500)
+                        : "FREE"}
                     </span>
                   </div>
                   <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
                     <span>Total</span>
-                    <span className="text-gradient">{formatLKR(totalPrice)}</span>
+                    <span className="text-gradient">
+                      {formatLKR(totalPrice)}
+                    </span>
                   </div>
                   <p className="text-muted small mt-3 mb-0">
                     <i className="bi bi-info-circle me-1"></i>
@@ -467,15 +581,21 @@ const OrderPageContent = () => {
                   <div className="bg-cream p-3 rounded-3 mb-3">
                     <div className="d-flex justify-content-between mb-2">
                       <span className="text-muted">Size:</span>
-                      <span className="fw-bold">{getSizeName(design.size)}</span>
+                      <span className="fw-bold">
+                        {getSizeName(design.size)}
+                      </span>
                     </div>
                     <div className="d-flex justify-content-between mb-2">
                       <span className="text-muted">Base Flavor:</span>
-                      <span className="fw-bold">{getBaseName(design.base)}</span>
+                      <span className="fw-bold">
+                        {getBaseName(design.base)}
+                      </span>
                     </div>
                     <div className="d-flex justify-content-between mb-2">
                       <span className="text-muted">Frosting:</span>
-                      <span className="fw-bold">{getFrostingName(design.frosting)}</span>
+                      <span className="fw-bold">
+                        {getFrostingName(design.frosting)}
+                      </span>
                     </div>
                     <div className="d-flex justify-content-between mb-2">
                       <span className="text-muted">Layers:</span>
@@ -483,10 +603,15 @@ const OrderPageContent = () => {
                     </div>
                     {design.toppings?.length > 0 && (
                       <div className="mb-2">
-                        <span className="text-muted d-block mb-1">Toppings:</span>
+                        <span className="text-muted d-block mb-1">
+                          Toppings:
+                        </span>
                         <div className="d-flex flex-wrap gap-1">
-                          {design.toppings.map(topping => (
-                            <span key={topping} className="badge bg-gradient-primary">
+                          {design.toppings.map((topping) => (
+                            <span
+                              key={topping}
+                              className="badge bg-gradient-primary"
+                            >
                               {getToppingName(topping)}
                             </span>
                           ))}
@@ -497,8 +622,12 @@ const OrderPageContent = () => {
 
                   {design.message && (
                     <div className="p-3 bg-cream rounded-3">
-                      <small className="text-muted d-block">Message on cake:</small>
-                      <p className="mb-0 fst-italic fw-bold">"{design.message}"</p>
+                      <small className="text-muted d-block">
+                        Message on cake:
+                      </small>
+                      <p className="mb-0 fst-italic fw-bold">
+                        "{design.message}"
+                      </p>
                     </div>
                   )}
                 </div>
@@ -514,7 +643,8 @@ const OrderPageContent = () => {
                     </span>
                     <span className="fw-medium">
                       {formatLKR(
-                        (pricingData?.sizes?.find(s => s.id === design.size)?.priceLKR) || 0
+                        pricingData?.sizes?.find((s) => s.id === design.size)
+                          ?.priceLKR || 0,
                       )}
                     </span>
                   </div>
@@ -526,8 +656,10 @@ const OrderPageContent = () => {
                         {getBaseName(design.base)} Flavor
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR(
-                          (pricingData?.bases?.find(b => b.id === design.base)?.priceLKR) || 0
+                        +
+                        {formatLKR(
+                          pricingData?.bases?.find((b) => b.id === design.base)
+                            ?.priceLKR || 0,
                         )}
                       </span>
                     </div>
@@ -540,8 +672,11 @@ const OrderPageContent = () => {
                         {getFrostingName(design.frosting)} Frosting
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR(
-                          (pricingData?.frostings?.find(f => f.id === design.frosting)?.priceLKR) || 0
+                        +
+                        {formatLKR(
+                          pricingData?.frostings?.find(
+                            (f) => f.id === design.frosting,
+                          )?.priceLKR || 0,
                         )}
                       </span>
                     </div>
@@ -553,18 +688,30 @@ const OrderPageContent = () => {
                       <div className="d-flex justify-content-between mb-1">
                         <span className="text-muted">Toppings:</span>
                         <span className="fw-medium text-success">
-                          +{formatLKR(design.toppings.reduce((sum, toppingId) => {
-                            const topping = pricingData?.toppings?.find(t => t.id === toppingId);
-                            return sum + (topping?.priceLKR || 0);
-                          }, 0))}
+                          +
+                          {formatLKR(
+                            design.toppings.reduce((sum, toppingId) => {
+                              const topping = pricingData?.toppings?.find(
+                                (t) => t.id === toppingId,
+                              );
+                              return sum + (topping?.priceLKR || 0);
+                            }, 0),
+                          )}
                         </span>
                       </div>
                       <div className="ps-3">
-                        {design.toppings.map(toppingId => {
-                          const topping = pricingData?.toppings?.find(t => t.id === toppingId);
+                        {design.toppings.map((toppingId) => {
+                          const topping = pricingData?.toppings?.find(
+                            (t) => t.id === toppingId,
+                          );
                           return (
-                            <div key={toppingId} className="d-flex justify-content-between small">
-                              <span className="text-muted">• {topping?.name || toppingId}</span>
+                            <div
+                              key={toppingId}
+                              className="d-flex justify-content-between small"
+                            >
+                              <span className="text-muted">
+                                • {topping?.name || toppingId}
+                              </span>
                               <span className="text-muted">
                                 {formatLKR(topping?.priceLKR || 0)}
                               </span>
@@ -582,7 +729,11 @@ const OrderPageContent = () => {
                         Extra Layers ({design.layers - 2})
                       </span>
                       <span className="fw-medium text-success">
-                        +{formatLKR((design.layers - 2) * (pricingData?.extraLayerPrice || 1500))}
+                        +
+                        {formatLKR(
+                          (design.layers - 2) *
+                            (pricingData?.extraLayerPrice || 1500),
+                        )}
                       </span>
                     </div>
                   )}
@@ -591,20 +742,25 @@ const OrderPageContent = () => {
                   <div className="d-flex justify-content-between mb-2 pt-2 border-top">
                     <span className="text-muted">Delivery</span>
                     <span className="fw-medium">
-                      {orderDetails.deliveryType === 'delivery' ? formatLKR(pricingData?.deliveryFee || 1500) : 'FREE'}
+                      {orderDetails.deliveryType === "delivery"
+                        ? formatLKR(pricingData?.deliveryFee || 1500)
+                        : "FREE"}
                     </span>
                   </div>
 
                   {/* Grand Total */}
                   <div className="d-flex justify-content-between fw-bold fs-4 mt-3 pt-3 border-top border-2">
                     <span>Total</span>
-                    <span className="text-gradient">{formatLKR(totalPrice)}</span>
+                    <span className="text-gradient">
+                      {formatLKR(totalPrice)}
+                    </span>
                   </div>
 
                   {/* Price Note */}
                   <p className="text-muted small mt-3 mb-0">
                     <i className="bi bi-info-circle me-1"></i>
-                    All prices are in Sri Lankan Rupees (LKR). Final price includes all customizations.
+                    All prices are in Sri Lankan Rupees (LKR). Final price
+                    includes all customizations.
                   </p>
                 </div>
               </>
@@ -648,7 +804,12 @@ const OrderPageContent = () => {
                     type="text"
                     className="form-control"
                     value={orderDetails.customerName}
-                    onChange={(e) => setOrderDetails({ ...orderDetails, customerName: e.target.value })}
+                    onChange={(e) =>
+                      setOrderDetails({
+                        ...orderDetails,
+                        customerName: e.target.value,
+                      })
+                    }
                     required
                   />
                 </div>
@@ -658,7 +819,12 @@ const OrderPageContent = () => {
                     type="tel"
                     className="form-control"
                     value={orderDetails.phone}
-                    onChange={(e) => setOrderDetails({ ...orderDetails, phone: e.target.value })}
+                    onChange={(e) =>
+                      setOrderDetails({
+                        ...orderDetails,
+                        phone: e.target.value,
+                      })
+                    }
                     required
                   />
                 </div>
@@ -668,7 +834,12 @@ const OrderPageContent = () => {
                     type="email"
                     className="form-control"
                     value={orderDetails.email}
-                    onChange={(e) => setOrderDetails({ ...orderDetails, email: e.target.value })}
+                    onChange={(e) =>
+                      setOrderDetails({
+                        ...orderDetails,
+                        email: e.target.value,
+                      })
+                    }
                     required
                   />
                 </div>
@@ -688,8 +859,13 @@ const OrderPageContent = () => {
                     type="date"
                     className="form-control"
                     value={orderDetails.deliveryDate}
-                    onChange={(e) => setOrderDetails({ ...orderDetails, deliveryDate: e.target.value })}
-                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) =>
+                      setOrderDetails({
+                        ...orderDetails,
+                        deliveryDate: e.target.value,
+                      })
+                    }
+                    min={new Date().toISOString().split("T")[0]}
                     required
                   />
                 </div>
@@ -698,20 +874,33 @@ const OrderPageContent = () => {
                   <select
                     className="form-select"
                     value={orderDetails.deliveryType}
-                    onChange={(e) => setOrderDetails({ ...orderDetails, deliveryType: e.target.value })}
+                    onChange={(e) =>
+                      setOrderDetails({
+                        ...orderDetails,
+                        deliveryType: e.target.value,
+                      })
+                    }
                   >
                     <option value="pickup">Pickup from Shop (Free)</option>
-                    <option value="delivery">Home Delivery (+Rs. {(pricingData?.deliveryFee || 1500).toLocaleString()})</option>
+                    <option value="delivery">
+                      Home Delivery (+Rs.{" "}
+                      {(pricingData?.deliveryFee || 1500).toLocaleString()})
+                    </option>
                   </select>
                 </div>
-                {orderDetails.deliveryType === 'delivery' && (
+                {orderDetails.deliveryType === "delivery" && (
                   <div className="col-12">
                     <label className="form-label">Delivery Address *</label>
                     <textarea
                       className="form-control"
                       rows="2"
                       value={orderDetails.deliveryAddress}
-                      onChange={(e) => setOrderDetails({ ...orderDetails, deliveryAddress: e.target.value })}
+                      onChange={(e) =>
+                        setOrderDetails({
+                          ...orderDetails,
+                          deliveryAddress: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
@@ -730,7 +919,12 @@ const OrderPageContent = () => {
                 rows="3"
                 placeholder="Any special requests? Allergies, dietary restrictions, or additional notes..."
                 value={orderDetails.specialInstructions}
-                onChange={(e) => setOrderDetails({ ...orderDetails, specialInstructions: e.target.value })}
+                onChange={(e) =>
+                  setOrderDetails({
+                    ...orderDetails,
+                    specialInstructions: e.target.value,
+                  })
+                }
               />
             </div>
 
@@ -749,8 +943,13 @@ const OrderPageContent = () => {
                       name="paymentMethod"
                       id="cash"
                       value="cash"
-                      checked={orderDetails.paymentMethod === 'cash'}
-                      onChange={(e) => setOrderDetails({ ...orderDetails, paymentMethod: e.target.value })}
+                      checked={orderDetails.paymentMethod === "cash"}
+                      onChange={(e) =>
+                        setOrderDetails({
+                          ...orderDetails,
+                          paymentMethod: e.target.value,
+                        })
+                      }
                     />
                     <label className="form-check-label" htmlFor="cash">
                       <i className="bi bi-cash me-2"></i>
@@ -766,8 +965,13 @@ const OrderPageContent = () => {
                       name="paymentMethod"
                       id="card"
                       value="card"
-                      checked={orderDetails.paymentMethod === 'card'}
-                      onChange={(e) => setOrderDetails({ ...orderDetails, paymentMethod: e.target.value })}
+                      checked={orderDetails.paymentMethod === "card"}
+                      onChange={(e) =>
+                        setOrderDetails({
+                          ...orderDetails,
+                          paymentMethod: e.target.value,
+                        })
+                      }
                     />
                     <label className="form-check-label" htmlFor="card">
                       <i className="bi bi-credit-card me-2"></i>
@@ -783,8 +987,13 @@ const OrderPageContent = () => {
                       name="paymentMethod"
                       id="online"
                       value="online"
-                      checked={orderDetails.paymentMethod === 'online'}
-                      onChange={(e) => setOrderDetails({ ...orderDetails, paymentMethod: e.target.value })}
+                      checked={orderDetails.paymentMethod === "online"}
+                      onChange={(e) =>
+                        setOrderDetails({
+                          ...orderDetails,
+                          paymentMethod: e.target.value,
+                        })
+                      }
                     />
                     <label className="form-check-label" htmlFor="online">
                       <i className="bi bi-wifi me-2"></i>

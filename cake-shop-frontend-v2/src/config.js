@@ -1,9 +1,10 @@
 // Central configuration for all API URLs
 // To change backend URL, update this single variable
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-const BACKEND_URL =
+const DEFAULT_BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || `${DEFAULT_BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || DEFAULT_BACKEND_URL;
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,

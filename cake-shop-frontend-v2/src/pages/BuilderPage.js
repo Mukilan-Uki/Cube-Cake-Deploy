@@ -2,6 +2,7 @@ import { formatLKR } from "../config/currency";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import { useEffect } from "react";
+import { apiService } from "../utils/api";
 
 // Canvas helper functions
 const adjustColor = (hex, amount) => {
@@ -56,8 +57,7 @@ const BuilderPage = () => {
   useEffect(() => {
     const fetchPricingData = async () => {
       try {
-        const response = await fetch("/api/designing-data");
-        const data = await response.json();
+        const data = await apiService.getDesigningData();
         setPricingData(data);
 
         // Ensure initial cakeDesign IDs match what's available in data
@@ -89,7 +89,7 @@ const BuilderPage = () => {
     };
 
     fetchPricingData();
-  }, [cakeDesign.base, cakeDesign.frosting, cakeDesign.size]);
+  }, []);
 
   // Use pricingData if available, otherwise empty arrays
   const sizes = pricingData?.sizes || [];
