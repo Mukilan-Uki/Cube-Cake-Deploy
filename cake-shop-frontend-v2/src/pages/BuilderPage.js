@@ -89,6 +89,7 @@ const BuilderPage = () => {
     };
 
     fetchPricingData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Use pricingData if available, otherwise empty arrays
@@ -557,16 +558,19 @@ const BuilderPage = () => {
   }
 
   return (
-    <div className="container-fluid px-0">
+    <div className="container-fluid px-0 builder-page">
       {/* Header */}
-      <div className="bg-cream py-3 sticky-top" style={{ zIndex: 4000 }}>
+      <div
+        className="builder-page-header bg-cream py-3 sticky-top"
+        style={{ zIndex: 4000 }}
+      >
         <div className="container">
-          <div className="d-flex align-items-center justify-content-between">
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <h5 className="mb-0 text-chocolate">
               <i className="bi bi-palette me-2"></i>
               Cake Builder Studio
             </h5>
-            <div className="d-flex gap-2">
+            <div className="builder-step-buttons d-flex gap-2 flex-wrap">
               {[1, 2, 3, 4, 5].map((step) => (
                 <button
                   key={step}
@@ -581,12 +585,15 @@ const BuilderPage = () => {
         </div>
       </div>
 
-      <div className="container py-4">
-        <div className="row">
+      <div className="container py-4 builder-page-content">
+        <div className="row gx-4 gy-4">
           {/* Live Preview Column */}
           {showPreview && (
-            <div className="col-lg-4 mb-4">
-              <div className="sticky-top" style={{ top: "80px" }}>
+            <div className="col-lg-4 mb-4 builder-preview-col">
+              <div
+                className="sticky-top builder-preview-sticky"
+                style={{ top: "80px" }}
+              >
                 <div className="glass-panel p-4 mb-4">
                   <h4 className="text-chocolate mb-3">
                     <i className="bi bi-cake me-2"></i>
@@ -735,9 +742,15 @@ const BuilderPage = () => {
           )}
 
           {/* Builder Column */}
-          <div className={showPreview ? "col-lg-8" : "col-12"}>
+          <div
+            className={
+              showPreview
+                ? "col-lg-8 builder-editor-col"
+                : "col-12 builder-editor-col"
+            }
+          >
             {/* Step indicators */}
-            <div className="mb-4">
+            <div className="builder-step-heading mb-4">
               <h3 className="text-chocolate mb-1">
                 {activeStep === 1 && "Choose Your Cake Base"}
                 {activeStep === 2 && "Select Frosting"}
