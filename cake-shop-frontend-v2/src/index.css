@@ -403,6 +403,7 @@ canvas {
 
 .mobile-navbar-wrapper {
   display: none;
+  width: 100%;
 }
 
 @media (max-width: 992px) {
@@ -444,6 +445,28 @@ canvas {
   .navbar .nav-link {
     padding: 0.65rem 0.8rem !important;
     border-radius: 14px !important;
+  }
+
+  @media (max-width: 768px) {
+    .navbar-collapse {
+      width: 100%;
+    }
+
+    .navbar-nav {
+      justify-content: flex-start;
+      width: 100%;
+    }
+
+    .navbar-nav .nav-item {
+      width: 100%;
+      margin: 0.4rem 0 !important;
+    }
+
+    .navbar .nav-link {
+      width: 100%;
+      padding: 0.85rem 1rem !important;
+      border-radius: 14px !important;
+    }
   }
 
   .sticky-top {

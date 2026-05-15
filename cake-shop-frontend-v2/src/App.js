@@ -76,7 +76,13 @@ function AppContent() {
     return (
       <div style={{ display: "flex", minHeight: "100vh" }}>
         <ShopSidebarNav />
-        <div style={{ flex: 1, minWidth: 0, overflowX: "hidden" }}>
+        <div
+          className="app-main-content"
+          style={{ flex: 1, minWidth: 0, overflowX: "hidden" }}
+        >
+          <div className="mobile-navbar-wrapper">
+            <Navbar />
+          </div>
           <Routes>
             <Route
               path="/shop/dashboard"
