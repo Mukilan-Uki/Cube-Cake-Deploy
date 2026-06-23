@@ -13,13 +13,10 @@ import designingCakeDataRoutes from "./routes/designingCakeData.js";
 const app = express();
 
 // Middleware
+// Allow CORS from frontends; in production reflect request origin so Netlify works
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "https://cube-cake-deploy.vercel.app",
-    ],
+    origin: true,
     credentials: true,
   }),
 );
