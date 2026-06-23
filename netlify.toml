@@ -1,6 +1,6 @@
 [build]
   base = "cake-shop-frontend-v2"
-  publish = "cake-shop-frontend-v2/build"
+  publish = "build"
   command = "npm run build"
 
 [dev]
