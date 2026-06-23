@@ -1,0 +1,12 @@
+[build]
+  base = "cake-shop-frontend-v2"
+  publish = "cake-shop-frontend-v2/build"
+  command = "npm run build"
+
+[dev]
+  command = "npm start"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
